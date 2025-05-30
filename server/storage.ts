@@ -65,7 +65,7 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(images).where(eq(images.userId, userId));
   }
 
-  async updateImage(id: number, updates: Partial<InsertImage>): Promise<Image | undefined> {
+  async updateImage(id: number, updates: Partial<Pick<InsertImage, 'currentUrl' | 'editHistory'>>): Promise<Image | undefined> {
     const [updated] = await db
       .update(images)
       .set(updates)

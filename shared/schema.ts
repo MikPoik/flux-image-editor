@@ -41,11 +41,9 @@ export const editHistorySchema = z.object({
   timestamp: z.string(),
 });
 
-export const insertImageSchema = createInsertSchema(images).pick({
-  userId: true,
-  originalUrl: true,
-  currentUrl: true,
-  editHistory: true,
+export const insertImageSchema = createInsertSchema(images).omit({
+  id: true,
+  createdAt: true,
 });
 
 export type UpsertUser = typeof users.$inferInsert;
