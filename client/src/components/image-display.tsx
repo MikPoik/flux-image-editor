@@ -153,23 +153,19 @@ export function ImageDisplay({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
-      // Single touch - prepare for potential long press
+      // Single touch - start immediately for panning when zoomed
       const touch = e.touches[0];
       setTouchStart({ x: touch.clientX, y: touch.clientY });
       
-      // Start long press timer
-      longPressTimer.current = setTimeout(() => {
-        if (zoom > 1) {
-          setIsLongPress(true);
-          setIsDragging(true);
-          dragStartRef.current = { x: touch.clientX, y: touch.clientY };
-          panStartRef.current = { ...pan };
-        }
-      }, 500); // 500ms for long press
+      if (zoom > 1) {
+        // Start panning immediately when zoomed in
+        setIsDragging(true);
+        dragStartRef.current = { x: touch.clientX, y: touch.clientY };
+        panStartRef.current = { ...pan };
+      }
     } else if (e.touches.length === 2) {
       // Multi-touch - pinch zoom
       e.preventDefault();
-      setIsLongPress(false);
       setIsDragging(false);
       if (longPressTimer.current) {
         clearTimeout(longPressTimer.current);
@@ -182,8 +178,8 @@ export function ImageDisplay({
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 1 && isLongPress && isDragging && zoom > 1 && imageRef.current) {
-      // Single touch panning during long press
+    if (e.touches.length === 1 && isDragging && zoom > 1 && imageRef.current) {
+      // Single touch panning when zoomed in
       e.preventDefault();
       const touch = e.touches[0];
       const deltaX = touch.clientX - dragStartRef.current.x;
@@ -198,8 +194,8 @@ export function ImageDisplay({
       e.preventDefault();
       const currentDistance = getTouchDistance(e.touches);
       if (currentDistance && lastTouchDistance) {
-        const scale = currentDistance / lastTouchDistance;
-        const newZoom = Math.min(Math.max(zoom * scale, 0.25), 3);
+        const scaleFactor = currentDistance / lastTouchDistance;
+        const newZoom = Math.min(Math.max(zoom * scaleFactor, 0.25), 3);
         
         setZoom(newZoom);
         setLastTouchDistance(currentDistance);
@@ -210,20 +206,11 @@ export function ImageDisplay({
           if (imageRef.current) {
             imageRef.current.style.transform = `scale(${newZoom}) translate(0px, 0px)`;
           }
-        }
-      }
-    } else {
-      // Cancel long press if finger moves too much
-      if (touchStart && longPressTimer.current) {
-        const touch = e.touches[0];
-        const moveDistance = Math.sqrt(
-          Math.pow(touch.clientX - touchStart.x, 2) + 
-          Math.pow(touch.clientY - touchStart.y, 2)
-        );
-        
-        if (moveDistance > 10) { // 10px threshold
-          clearTimeout(longPressTimer.current);
-          longPressTimer.current = null;
+        } else if (imageRef.current) {
+          // Update the transform with new zoom but keep current pan
+          const currentPanX = pan.x / zoom;
+          const currentPanY = pan.y / zoom;
+          imageRef.current.style.transform = `scale(${newZoom}) translate(${currentPanX}px, ${currentPanY}px)`;
         }
       }
     }
@@ -235,7 +222,7 @@ export function ImageDisplay({
       longPressTimer.current = null;
     }
 
-    if (isLongPress && isDragging && zoom > 1 && imageRef.current) {
+    if (isDragging && zoom > 1 && imageRef.current) {
       // Update React state with final position
       const transform = imageRef.current.style.transform;
       const translateMatch = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
@@ -278,9 +265,8 @@ export function ImageDisplay({
           className="max-w-full max-h-[600px] object-contain"
           style={{ 
             transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
-            maxWidth: zoom > 1 ? 'none' : '100%',
-            maxHeight: zoom > 1 ? 'none' : '600px',
-            pointerEvents: zoom > 1 ? 'none' : 'auto',
+            transformOrigin: 'center center',
+            pointerEvents: 'none',
             transition: isDragging ? 'none' : 'transform 200ms ease-out'
           }}
           onDoubleClick={handleZoomReset}
