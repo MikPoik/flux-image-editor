@@ -36,6 +36,9 @@ export function ImageDisplay({
 }: ImageDisplayProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const handleZoomIn = () => {
@@ -48,6 +51,7 @@ export function ImageDisplay({
 
   const handleZoomReset = () => {
     setZoom(1);
+    setPan({ x: 0, y: 0 });
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -60,25 +64,61 @@ export function ImageDisplay({
       }
     }
   };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - pan.x,
+        y: e.clientY - pan.y,
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      setPan({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
   return (
     <div className="space-y-4">
       {/* Image Container */}
       <div 
         ref={imageContainerRef}
-        className="relative bg-muted rounded-2xl overflow-hidden flex items-center justify-center min-h-[400px] cursor-grab active:cursor-grabbing"
+        className="relative bg-muted rounded-2xl overflow-hidden flex items-center justify-center min-h-[400px]"
         onWheel={handleWheel}
-        style={{ cursor: zoom > 1 ? 'grab' : 'default' }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        style={{ 
+          cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+          userSelect: 'none'
+        }}
       >
         <img
           src={imageUrl}
           alt="Current editing image"
           className="max-w-full max-h-[600px] object-contain transition-transform duration-200"
           style={{ 
-            transform: `scale(${zoom})`,
+            transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
             maxWidth: zoom > 1 ? 'none' : '100%',
-            maxHeight: zoom > 1 ? 'none' : '600px'
+            maxHeight: zoom > 1 ? 'none' : '600px',
+            pointerEvents: zoom > 1 ? 'none' : 'auto'
           }}
           onDoubleClick={handleZoomReset}
+          draggable={false}
         />
 
         {/* Image Controls Overlay */}
