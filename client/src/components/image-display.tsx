@@ -1,7 +1,7 @@
-import { Download, RotateCcw, Plus, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
+import { Download, RotateCcw, Plus, ChevronDown, ChevronUp, Undo2, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface ImageDisplayProps {
   imageUrl: string;
@@ -35,18 +35,83 @@ export function ImageDisplay({
   isReverting,
 }: ImageDisplayProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.25, 0.25));
+  };
+
+  const handleZoomReset = () => {
+    setZoom(1);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        handleZoomIn();
+      } else {
+        handleZoomOut();
+      }
+    }
+  };
   return (
     <div className="space-y-4">
       {/* Image Container */}
-      <div className="relative bg-muted rounded-2xl overflow-hidden flex items-center justify-center min-h-[400px]">
+      <div 
+        ref={imageContainerRef}
+        className="relative bg-muted rounded-2xl overflow-hidden flex items-center justify-center min-h-[400px] cursor-grab active:cursor-grabbing"
+        onWheel={handleWheel}
+        style={{ cursor: zoom > 1 ? 'grab' : 'default' }}
+      >
         <img
           src={imageUrl}
           alt="Current editing image"
-          className="max-w-full max-h-[600px] object-contain"
+          className="max-w-full max-h-[600px] object-contain transition-transform duration-200"
+          style={{ 
+            transform: `scale(${zoom})`,
+            maxWidth: zoom > 1 ? 'none' : '100%',
+            maxHeight: zoom > 1 ? 'none' : '600px'
+          }}
+          onDoubleClick={handleZoomReset}
         />
 
         {/* Image Controls Overlay */}
         <div className="absolute top-3 right-3 flex space-x-2">
+          <div className="flex space-x-1 bg-white/90 backdrop-blur-sm rounded-md p-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleZoomOut}
+              disabled={zoom <= 0.25}
+              className="h-8 w-8 p-0 text-gray-700 hover:bg-gray-100"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleZoomReset}
+              disabled={zoom === 1}
+              className="h-8 px-2 text-xs text-gray-700 hover:bg-gray-100"
+            >
+              {Math.round(zoom * 100)}%
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleZoomIn}
+              disabled={zoom >= 3}
+              className="h-8 w-8 p-0 text-gray-700 hover:bg-gray-100"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </Button>
+          </div>
           <Button
             size="sm"
             variant="secondary"
