@@ -92,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update image record with new URL and history
       const newHistoryItem = {
         prompt,
-        imageUrl: image.currentUrl,
+        imageUrl: editedImageUrl,
         timestamp: new Date().toISOString(),
       };
 
@@ -161,9 +161,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         targetUrl = image.originalUrl;
         newHistory = [];
       } else {
-        // Revert to specific edit
-        targetUrl = image.editHistory[historyIndex].imageUrl;
-        newHistory = image.editHistory.slice(0, historyIndex);
+        // Revert to specific edit - we want the image URL from the NEXT edit after the one we're reverting to
+        const targetEdit = image.editHistory[historyIndex];
+        targetUrl = targetEdit.imageUrl;
+        newHistory = image.editHistory.slice(0, historyIndex + 1);
       }
 
       const updatedImage = await storage.updateImage(parseInt(id), {
