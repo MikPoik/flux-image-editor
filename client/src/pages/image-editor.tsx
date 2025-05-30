@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ImageUpload } from '@/components/image-upload';
 import { ImageDisplay } from '@/components/image-display';
 import { PromptInput } from '@/components/prompt-input';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useImageEditor } from '@/hooks/use-image-editor';
 
 export default function ImageEditor() {
@@ -33,14 +34,17 @@ export default function ImageEditor() {
             </div>
             <h1 className="text-xl font-bold">FluxEdit</h1>
           </div>
-          <Button
-            onClick={handleDownload}
-            disabled={!hasImage || isProcessing}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download
-          </Button>
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            <Button
+              onClick={handleDownload}
+              disabled={!hasImage || isProcessing}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download
+            </Button>
+          </div>
         </div>
       </header>
 
