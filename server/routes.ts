@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertImageSchema, editHistorySchema } from "@shared/schema";
 import { fal } from "@fal-ai/client";
 import multer from "multer";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -21,12 +22,29 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // Upload image and create initial record
-  app.post("/api/images/upload", upload.single('image'), async (req, res) => {
+  app.post("/api/images/upload", isAuthenticated, upload.single('image'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No image file provided" });
       }
+
+      const userId = req.user.claims.sub;
 
       // Upload image to Flux storage
       const file = new File([req.file.buffer], req.file.originalname, {
@@ -37,6 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create image record
       const imageData = {
+        userId,
         originalUrl: uploadedUrl,
         currentUrl: uploadedUrl,
         editHistory: [],
@@ -55,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Edit image using Flux AI
-  app.post("/api/images/:id/edit", async (req, res) => {
+  app.post("/api/images/:id/edit", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { prompt } = req.body;

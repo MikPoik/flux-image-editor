@@ -31,7 +31,7 @@ export const images = pgTable("images", {
   userId: varchar("user_id").notNull().references(() => users.id),
   originalUrl: text("original_url").notNull(),
   currentUrl: text("current_url").notNull(),
-  editHistory: json("edit_history").$type<EditHistoryItem[]>(),
+  editHistory: json("edit_history").$type<EditHistoryItem[]>().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
