@@ -42,6 +42,12 @@ export function ImageDisplay({
   const panStartRef = useRef({ x: 0, y: 0 });
   const imageRef = useRef<HTMLImageElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Touch gesture states
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null);
+  const [isLongPress, setIsLongPress] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 0.25, 3));
@@ -133,6 +139,118 @@ export function ImageDisplay({
     }
     setIsDragging(false);
   };
+
+  // Touch event handlers
+  const getTouchDistance = (touches: TouchList) => {
+    if (touches.length < 2) return null;
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    return Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) + 
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      // Single touch - prepare for potential long press
+      const touch = e.touches[0];
+      setTouchStart({ x: touch.clientX, y: touch.clientY });
+      
+      // Start long press timer
+      longPressTimer.current = setTimeout(() => {
+        if (zoom > 1) {
+          setIsLongPress(true);
+          setIsDragging(true);
+          dragStartRef.current = { x: touch.clientX, y: touch.clientY };
+          panStartRef.current = { ...pan };
+        }
+      }, 500); // 500ms for long press
+    } else if (e.touches.length === 2) {
+      // Multi-touch - pinch zoom
+      e.preventDefault();
+      setIsLongPress(false);
+      setIsDragging(false);
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+      
+      const distance = getTouchDistance(e.touches);
+      setLastTouchDistance(distance);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && isLongPress && isDragging && zoom > 1 && imageRef.current) {
+      // Single touch panning during long press
+      e.preventDefault();
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - dragStartRef.current.x;
+      const deltaY = touch.clientY - dragStartRef.current.y;
+      
+      const newPanX = panStartRef.current.x + deltaX;
+      const newPanY = panStartRef.current.y + deltaY;
+      
+      imageRef.current.style.transform = `scale(${zoom}) translate(${newPanX / zoom}px, ${newPanY / zoom}px)`;
+    } else if (e.touches.length === 2 && lastTouchDistance) {
+      // Pinch zoom
+      e.preventDefault();
+      const currentDistance = getTouchDistance(e.touches);
+      if (currentDistance && lastTouchDistance) {
+        const scale = currentDistance / lastTouchDistance;
+        const newZoom = Math.min(Math.max(zoom * scale, 0.25), 3);
+        
+        setZoom(newZoom);
+        setLastTouchDistance(currentDistance);
+        
+        // Reset pan when zoom is 100% or less
+        if (newZoom <= 1) {
+          setPan({ x: 0, y: 0 });
+          if (imageRef.current) {
+            imageRef.current.style.transform = `scale(${newZoom}) translate(0px, 0px)`;
+          }
+        }
+      }
+    } else {
+      // Cancel long press if finger moves too much
+      if (touchStart && longPressTimer.current) {
+        const touch = e.touches[0];
+        const moveDistance = Math.sqrt(
+          Math.pow(touch.clientX - touchStart.x, 2) + 
+          Math.pow(touch.clientY - touchStart.y, 2)
+        );
+        
+        if (moveDistance > 10) { // 10px threshold
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+
+    if (isLongPress && isDragging && zoom > 1 && imageRef.current) {
+      // Update React state with final position
+      const transform = imageRef.current.style.transform;
+      const translateMatch = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+      if (translateMatch) {
+        const newPanX = parseFloat(translateMatch[1]) * zoom;
+        const newPanY = parseFloat(translateMatch[2]) * zoom;
+        setPan({ x: newPanX, y: newPanY });
+      }
+    }
+
+    setIsLongPress(false);
+    setIsDragging(false);
+    setTouchStart(null);
+    setLastTouchDistance(null);
+  };
   return (
     <div className="space-y-4">
       {/* Image Container */}
@@ -144,9 +262,13 @@ export function ImageDisplay({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{ 
           cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
-          userSelect: 'none'
+          userSelect: 'none',
+          touchAction: 'none' // Prevent default touch behaviors
         }}
       >
         <img
