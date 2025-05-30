@@ -38,7 +38,9 @@ export function ImageDisplay({
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const panStartRef = useRef({ x: 0, y: 0 });
+  const imageRef = useRef<HTMLImageElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const handleZoomIn = () => {
@@ -59,6 +61,9 @@ export function ImageDisplay({
   const handleZoomReset = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
+    if (imageRef.current) {
+      imageRef.current.style.transform = `scale(1) translate(0px, 0px)`;
+    }
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -80,27 +85,52 @@ export function ImageDisplay({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (zoom > 1) {
       setIsDragging(true);
-      setDragStart({
-        x: e.clientX - pan.x,
-        y: e.clientY - pan.y,
-      });
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+      };
+      panStartRef.current = { ...pan };
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && zoom > 1) {
-      setPan({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
+    if (isDragging && zoom > 1 && imageRef.current) {
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
+      
+      const newPanX = panStartRef.current.x + deltaX;
+      const newPanY = panStartRef.current.y + deltaY;
+      
+      // Apply transform directly to the image for immediate visual feedback
+      imageRef.current.style.transform = `scale(${zoom}) translate(${newPanX / zoom}px, ${newPanY / zoom}px)`;
     }
   };
 
   const handleMouseUp = () => {
+    if (isDragging && zoom > 1 && imageRef.current) {
+      // Update React state with final position
+      const transform = imageRef.current.style.transform;
+      const translateMatch = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+      if (translateMatch) {
+        const newPanX = parseFloat(translateMatch[1]) * zoom;
+        const newPanY = parseFloat(translateMatch[2]) * zoom;
+        setPan({ x: newPanX, y: newPanY });
+      }
+    }
     setIsDragging(false);
   };
 
   const handleMouseLeave = () => {
+    if (isDragging && zoom > 1 && imageRef.current) {
+      // Update React state with final position when leaving container
+      const transform = imageRef.current.style.transform;
+      const translateMatch = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+      if (translateMatch) {
+        const newPanX = parseFloat(translateMatch[1]) * zoom;
+        const newPanY = parseFloat(translateMatch[2]) * zoom;
+        setPan({ x: newPanX, y: newPanY });
+      }
+    }
     setIsDragging(false);
   };
   return (
@@ -120,14 +150,16 @@ export function ImageDisplay({
         }}
       >
         <img
+          ref={imageRef}
           src={imageUrl}
           alt="Current editing image"
-          className="max-w-full max-h-[600px] object-contain transition-transform duration-200"
+          className="max-w-full max-h-[600px] object-contain"
           style={{ 
             transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
             maxWidth: zoom > 1 ? 'none' : '100%',
             maxHeight: zoom > 1 ? 'none' : '600px',
-            pointerEvents: zoom > 1 ? 'none' : 'auto'
+            pointerEvents: zoom > 1 ? 'none' : 'auto',
+            transition: isDragging ? 'none' : 'transform 200ms ease-out'
           }}
           onDoubleClick={handleZoomReset}
           draggable={false}
