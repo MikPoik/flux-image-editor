@@ -51,10 +51,7 @@ export class DatabaseStorage implements IStorage {
   async createImage(insertImage: InsertImage): Promise<Image> {
     const [image] = await db
       .insert(images)
-      .values({
-        ...insertImage,
-        editHistory: insertImage.editHistory || []
-      })
+      .values(insertImage)
       .returning();
     return image;
   }
