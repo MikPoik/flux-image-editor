@@ -23,11 +23,11 @@ export function ImageDisplay({
   return (
     <div className="space-y-4">
       {/* Image Container */}
-      <div className="relative bg-muted rounded-2xl overflow-hidden aspect-square">
+      <div className="relative bg-muted rounded-2xl overflow-hidden flex items-center justify-center min-h-[400px]">
         <img
           src={imageUrl}
           alt="Current editing image"
-          className="w-full h-full object-cover"
+          className="max-w-full max-h-[600px] object-contain"
         />
 
         {/* Image Controls Overlay */}
