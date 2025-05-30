@@ -13,15 +13,17 @@ export default function ImageEditor() {
     isUploading,
     isEditing,
     isResetting,
+    isReverting,
     handleUpload,
     handleEdit,
     handleReset,
+    handleRevert,
     handleNewImage,
     handleDownload,
     hasImage,
   } = useImageEditor();
 
-  const isProcessing = isEditing || isResetting || isUploading || isLoadingImage;
+  const isProcessing = isEditing || isResetting || isReverting || isUploading || isLoadingImage;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -61,10 +63,14 @@ export default function ImageEditor() {
               imageUrl={imageData!.currentUrl}
               isProcessing={isProcessing}
               editCount={imageData!.editHistory?.length || 0}
+              editHistory={imageData!.editHistory}
+              originalUrl={imageData!.originalUrl}
               onReset={handleReset}
               onNewImage={handleNewImage}
               onDownload={handleDownload}
+              onRevert={handleRevert}
               isResetting={isResetting}
+              isReverting={isReverting}
             />
           )}
         </div>

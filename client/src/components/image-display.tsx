@@ -99,13 +99,87 @@ export function ImageDisplay({
         </Button>
       </div>
 
-      {/* Image Stats */}
-      <div className="bg-muted rounded-xl p-4 border border-border">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Edits made:</span>
-          <span className="font-medium text-foreground">{editCount}</span>
+      {/* Edit History */}
+      <Collapsible open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <div className="bg-muted rounded-xl p-4 border border-border">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full p-0 h-auto justify-between">
+              <div className="flex items-center justify-between text-sm w-full">
+                <span className="text-muted-foreground">Edits made:</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-foreground">{editCount}</span>
+                  {editCount > 0 && (
+                    isHistoryOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                  )}
+                </div>
+              </div>
+            </Button>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="mt-4">
+            {editHistory.length > 0 && (
+              <div className="space-y-3">
+                {/* Original Image */}
+                <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
+                  <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                    <img
+                      src={originalUrl}
+                      alt="Original image"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">Original Image</p>
+                    <p className="text-xs text-muted-foreground">Starting point</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onRevert(-1)}
+                    disabled={isProcessing || isReverting}
+                    className="flex-shrink-0"
+                  >
+                    <Undo2 className="w-3 h-3 mr-1" />
+                    Revert
+                  </Button>
+                </div>
+
+                {/* Edit History Items */}
+                {editHistory.map((edit, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
+                    <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                      <img
+                        src={edit.imageUrl}
+                        alt={`Edit ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">Edit {index + 1}</p>
+                      <p className="text-xs text-muted-foreground truncate">{edit.prompt}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(edit.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                    {index < editHistory.length - 1 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onRevert(index)}
+                        disabled={isProcessing || isReverting}
+                        className="flex-shrink-0"
+                      >
+                        <Undo2 className="w-3 h-3 mr-1" />
+                        Revert
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CollapsibleContent>
         </div>
-      </div>
+      </Collapsible>
     </div>
   );
 }
