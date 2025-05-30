@@ -50,6 +50,11 @@ export async function resetImage(imageId: number): Promise<FluxEditResponse> {
   return response.json();
 }
 
+export async function revertImage(imageId: number, historyIndex: number): Promise<FluxEditResponse> {
+  const response = await apiRequest('POST', `/api/images/${imageId}/revert`, { historyIndex });
+  return response.json();
+}
+
 export async function getImage(imageId: number): Promise<FluxEditResponse> {
   const response = await apiRequest('GET', `/api/images/${imageId}`);
   return response.json();

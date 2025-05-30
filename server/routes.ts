@@ -134,6 +134,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Revert to a specific edit in history
+  app.post("/api/images/:id/revert", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { historyIndex } = req.body;
+      
+      if (typeof historyIndex !== 'number') {
+        return res.status(400).json({ message: "History index is required" });
+      }
+
+      const image = await storage.getImage(parseInt(id));
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      if (!image.editHistory || historyIndex < -1 || historyIndex >= image.editHistory.length) {
+        return res.status(400).json({ message: "Invalid history index" });
+      }
+
+      let targetUrl: string;
+      let newHistory: any[];
+
+      if (historyIndex === -1) {
+        // Revert to original
+        targetUrl = image.originalUrl;
+        newHistory = [];
+      } else {
+        // Revert to specific edit
+        targetUrl = image.editHistory[historyIndex].imageUrl;
+        newHistory = image.editHistory.slice(0, historyIndex);
+      }
+
+      const updatedImage = await storage.updateImage(parseInt(id), {
+        currentUrl: targetUrl,
+        editHistory: newHistory,
+      });
+
+      res.json(updatedImage);
+    } catch (error) {
+      console.error("Revert error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to revert image" 
+      });
+    }
+  });
+
   // Get image by ID
   app.get("/api/images/:id", async (req, res) => {
     try {

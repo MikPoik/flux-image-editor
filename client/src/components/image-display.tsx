@@ -1,25 +1,40 @@
-import { Download, RotateCcw, Plus } from 'lucide-react';
+import { Download, RotateCcw, Plus, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useState } from 'react';
 
 interface ImageDisplayProps {
   imageUrl: string;
   isProcessing: boolean;
   editCount: number;
+  editHistory?: Array<{
+    prompt: string;
+    imageUrl: string;
+    timestamp: string;
+  }>;
+  originalUrl: string;
   onReset: () => void;
   onNewImage: () => void;
   onDownload: () => void;
+  onRevert: (historyIndex: number) => void;
   isResetting: boolean;
+  isReverting: boolean;
 }
 
 export function ImageDisplay({
   imageUrl,
   isProcessing,
   editCount,
+  editHistory = [],
+  originalUrl,
   onReset,
   onNewImage,
   onDownload,
+  onRevert,
   isResetting,
+  isReverting,
 }: ImageDisplayProps) {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   return (
     <div className="space-y-4">
       {/* Image Container */}

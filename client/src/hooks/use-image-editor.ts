@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, editImage, resetImage, getImage } from '@/lib/flux-api';
+import { uploadImage, editImage, resetImage, revertImage, getImage } from '@/lib/flux-api';
 import { useToast } from '@/hooks/use-toast';
 
 export function useImageEditor() {
@@ -78,6 +78,26 @@ export function useImageEditor() {
     },
   });
 
+  // Revert mutation
+  const revertMutation = useMutation({
+    mutationFn: ({ imageId, historyIndex }: { imageId: number; historyIndex: number }) =>
+      revertImage(imageId, historyIndex),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['/api/images', data.id], data);
+      toast({
+        title: "Success",
+        description: "Image reverted successfully!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Revert Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Upload handler
   const handleUpload = useCallback((file: File) => {
     setIsUploading(true);
@@ -95,6 +115,12 @@ export function useImageEditor() {
     if (!currentImageId) return;
     resetMutation.mutate(currentImageId);
   }, [currentImageId, resetMutation]);
+
+  // Revert handler
+  const handleRevert = useCallback((historyIndex: number) => {
+    if (!currentImageId) return;
+    revertMutation.mutate({ imageId: currentImageId, historyIndex });
+  }, [currentImageId, revertMutation]);
 
   // New image handler
   const handleNewImage = useCallback(() => {
@@ -126,9 +152,11 @@ export function useImageEditor() {
     isUploading,
     isEditing: editMutation.isPending,
     isResetting: resetMutation.isPending,
+    isReverting: revertMutation.isPending,
     handleUpload,
     handleEdit,
     handleReset,
+    handleRevert,
     handleNewImage,
     handleDownload,
     hasImage: !!imageData,
