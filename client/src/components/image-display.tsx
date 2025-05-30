@@ -23,7 +23,7 @@ export function ImageDisplay({
   return (
     <div className="space-y-4">
       {/* Image Container */}
-      <div className="relative bg-gray-800 rounded-2xl overflow-hidden aspect-square">
+      <div className="relative bg-muted rounded-2xl overflow-hidden aspect-square">
         <img
           src={imageUrl}
           alt="Current editing image"
@@ -70,7 +70,6 @@ export function ImageDisplay({
           variant="outline"
           onClick={onReset}
           disabled={isProcessing || isResetting}
-          className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600"
         >
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset to Original
@@ -79,7 +78,6 @@ export function ImageDisplay({
           variant="outline"
           onClick={onNewImage}
           disabled={isProcessing}
-          className="bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600"
         >
           <Plus className="w-4 h-4 mr-2" />
           New Image
@@ -87,10 +85,10 @@ export function ImageDisplay({
       </div>
 
       {/* Image Stats */}
-      <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+      <div className="bg-muted rounded-xl p-4 border border-border">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">Edits made:</span>
-          <span className="font-medium text-gray-200">{editCount}</span>
+          <span className="text-muted-foreground">Edits made:</span>
+          <span className="font-medium text-foreground">{editCount}</span>
         </div>
       </div>
     </div>

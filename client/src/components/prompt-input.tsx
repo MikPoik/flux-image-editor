@@ -43,7 +43,7 @@ export function PromptInput({ onSubmit, isProcessing, disabled }: PromptInputPro
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="prompt" className="flex items-center text-gray-300 mb-2">
+        <Label htmlFor="prompt" className="flex items-center text-foreground mb-2">
           <Wand2 className="w-4 h-4 mr-1" />
           Describe your edit
         </Label>
@@ -53,7 +53,7 @@ export function PromptInput({ onSubmit, isProcessing, disabled }: PromptInputPro
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="e.g., 'Add a sunset background' or 'Change the shirt color to blue'"
-          className="bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-500 focus:border-blue-500 resize-none"
+          className="bg-background border-input text-foreground placeholder-muted-foreground focus:border-blue-500 resize-none"
           rows={3}
           disabled={disabled || isProcessing}
         />
@@ -79,7 +79,7 @@ export function PromptInput({ onSubmit, isProcessing, disabled }: PromptInputPro
 
       {/* Quick Suggestions */}
       <div>
-        <p className="text-xs text-gray-500 mb-2">Quick suggestions:</p>
+        <p className="text-xs text-muted-foreground mb-2">Quick suggestions:</p>
         <div className="flex flex-wrap gap-2">
           {quickPrompts.map((quickPrompt, index) => (
             <Button
@@ -88,7 +88,7 @@ export function PromptInput({ onSubmit, isProcessing, disabled }: PromptInputPro
               size="sm"
               onClick={() => useQuickPrompt(quickPrompt)}
               disabled={disabled || isProcessing}
-              className="bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700 text-xs"
+              className="text-xs"
             >
               {quickPrompt}
             </Button>

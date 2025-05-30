@@ -28,7 +28,7 @@ export function ImageUpload({ onUpload, isUploading }: ImageUploadProps) {
   }, []);
 
   return (
-    <div className="relative bg-gray-900 rounded-2xl border-2 border-dashed border-gray-600 hover:border-blue-500 transition-colors">
+    <div className="relative bg-background rounded-2xl border-2 border-dashed border-muted-foreground hover:border-blue-500 transition-colors">
       <div
         className="p-8 text-center cursor-pointer"
         onDrop={handleDrop}
@@ -36,14 +36,14 @@ export function ImageUpload({ onUpload, isUploading }: ImageUploadProps) {
         onClick={() => document.getElementById('file-input')?.click()}
       >
         <div className="space-y-4">
-          <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto">
-            <Upload className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+            <Upload className="w-8 h-8 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-lg font-medium text-gray-300">
+            <p className="text-lg font-medium text-foreground">
               {isUploading ? 'Uploading...' : 'Upload an image to start editing'}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Drag and drop or click to browse
             </p>
           </div>
