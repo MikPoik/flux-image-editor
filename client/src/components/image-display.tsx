@@ -46,7 +46,14 @@ export function ImageDisplay({
   };
 
   const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.25, 0.25));
+    setZoom(prev => {
+      const newZoom = Math.max(prev - 0.25, 0.25);
+      // Reset pan when zoom is 100% or less
+      if (newZoom <= 1) {
+        setPan({ x: 0, y: 0 });
+      }
+      return newZoom;
+    });
   };
 
   const handleZoomReset = () => {
@@ -60,7 +67,12 @@ export function ImageDisplay({
       if (e.deltaY < 0) {
         handleZoomIn();
       } else {
-        handleZoomOut();
+        const newZoom = Math.max(zoom - 0.25, 0.25);
+        setZoom(newZoom);
+        // Reset pan when zoom is 100% or less
+        if (newZoom <= 1) {
+          setPan({ x: 0, y: 0 });
+        }
       }
     }
   };
