@@ -109,14 +109,12 @@ export default function Gallery() {
 
               <div className="flex items-center space-x-2 ml-4">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.profileImageUrl || ""} alt={user?.firstName || "User"} />
+                  <AvatarImage src="" alt="User" />
                   <AvatarFallback>
                     <User className="h-4 w-4" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm text-muted-foreground">
-                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
-                </span>
+                <span className="text-sm text-muted-foreground">User</span>
               </div>
               
               <Button 
@@ -137,16 +135,17 @@ export default function Gallery() {
             <p className="text-muted-foreground">View and manage your AI-edited images</p>
           </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="overflow-hidden">
-              <Skeleton className="aspect-square w-full" />
-              <CardContent className="p-4">
-                <Skeleton className="h-4 w-3/4 mb-2" />
-                <Skeleton className="h-3 w-1/2" />
-              </CardContent>
-            </Card>
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="aspect-square w-full" />
+                <CardContent className="p-4">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/2" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -194,14 +193,12 @@ export default function Gallery() {
 
             <div className="flex items-center space-x-2 ml-4">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.profileImageUrl || ""} alt={user?.firstName || "User"} />
+                <AvatarImage src="" alt="User" />
                 <AvatarFallback>
                   <User className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm text-muted-foreground">
-                {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
-              </span>
+              <span className="text-sm text-muted-foreground">User</span>
             </div>
             
             <Button 
