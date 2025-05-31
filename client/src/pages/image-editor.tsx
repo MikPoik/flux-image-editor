@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react';
+import { Download, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ImageUpload } from '@/components/image-upload';
 import { ImageDisplay } from '@/components/image-display';
