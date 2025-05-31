@@ -120,8 +120,7 @@ export default function Gallery() {
                   <img
                     src={image.currentUrl}
                     alt="AI edited image"
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105 cursor-pointer"
-                    onClick={() => handleEdit(image.id)}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none">
                     <Button
