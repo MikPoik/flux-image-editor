@@ -25,8 +25,8 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   subscriptionTier: varchar("subscription_tier"), // 'free', 'basic', 'premium'
-  editCount: serial("edit_count").notNull(),
-  editLimit: serial("edit_limit").notNull(),
+  editCount: integer("edit_count").default(0).notNull(),
+  editLimit: integer("edit_limit").default(10).notNull(),
   subscriptionStatus: varchar("subscription_status").default("active"), // 'active', 'canceled', 'past_due'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
