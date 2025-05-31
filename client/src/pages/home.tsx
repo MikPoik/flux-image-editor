@@ -1,67 +1,13 @@
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Wand2, Images, Plus } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Navigation } from "@/components/navigation";
+import { Images, Plus } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Home() {
-  const { user } = useAuth();
-  const [location] = useLocation();
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/">
-            <h1 className="text-2xl font-bold text-foreground cursor-pointer">AI Image Editor</h1>
-          </Link>
-          
-          <nav className="flex items-center space-x-4">
-            <Link href="/image-editor">
-              <Button 
-                variant={location === '/image-editor' ? 'default' : 'ghost'} 
-                size="sm"
-              >
-                <Wand2 className="h-4 w-4 mr-2" />
-                Editor
-              </Button>
-            </Link>
-            
-            <Link href="/gallery">
-              <Button 
-                variant={location === '/gallery' ? 'default' : 'ghost'} 
-                size="sm"
-              >
-                <Images className="h-4 w-4 mr-2" />
-                Gallery
-              </Button>
-            </Link>
-
-            <div className="flex items-center space-x-2 ml-4">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.profileImageUrl || ""} alt={user?.firstName || "User"} />
-                <AvatarFallback>
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-muted-foreground">
-                {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
-              </span>
-            </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.location.href = '/api/logout'}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <Navigation />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

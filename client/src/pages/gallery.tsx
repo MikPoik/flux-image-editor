@@ -2,21 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Navigation } from '@/components/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Trash2, Download, ImageIcon, Home, Wand2, Images, LogOut, User } from 'lucide-react';
-import { useLocation, Link } from 'wouter';
+import { Edit, Trash2, Download, ImageIcon } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/useAuth';
 import type { Image } from '@shared/schema';
 
 export default function Gallery() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   // Fetch user's images
   const { data: images = [], isLoading } = useQuery({
@@ -69,65 +67,7 @@ export default function Gallery() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="border-b border-border bg-card">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <Link href="/">
-              <h1 className="text-2xl font-bold text-foreground cursor-pointer">AI Image Editor</h1>
-            </Link>
-            
-            <nav className="flex items-center space-x-4">
-              <Link href="/">
-                <Button 
-                  variant={location === '/' ? 'default' : 'ghost'} 
-                  size="sm"
-                >
-                  <Home className="h-4 w-4 mr-2" />
-                  Home
-                </Button>
-              </Link>
-              
-              <Link href="/image-editor">
-                <Button 
-                  variant={location === '/image-editor' ? 'default' : 'ghost'} 
-                  size="sm"
-                >
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Editor
-                </Button>
-              </Link>
-              
-              <Link href="/gallery">
-                <Button 
-                  variant={location === '/gallery' ? 'default' : 'ghost'} 
-                  size="sm"
-                >
-                  <Images className="h-4 w-4 mr-2" />
-                  Gallery
-                </Button>
-              </Link>
-
-              <div className="flex items-center space-x-2 ml-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="" alt="User" />
-                  <AvatarFallback>
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-muted-foreground">User</span>
-              </div>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.location.href = '/api/logout'}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </nav>
-          </div>
-        </header>
+        <Navigation />
 
         <div className="max-w-6xl mx-auto p-4">
           <div className="mb-6">
@@ -153,65 +93,7 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/">
-            <h1 className="text-2xl font-bold text-foreground cursor-pointer">AI Image Editor</h1>
-          </Link>
-          
-          <nav className="flex items-center space-x-4">
-            <Link href="/">
-              <Button 
-                variant={location === '/' ? 'default' : 'ghost'} 
-                size="sm"
-              >
-                <Home className="h-4 w-4 mr-2" />
-                Home
-              </Button>
-            </Link>
-            
-            <Link href="/image-editor">
-              <Button 
-                variant={location === '/image-editor' ? 'default' : 'ghost'} 
-                size="sm"
-              >
-                <Wand2 className="h-4 w-4 mr-2" />
-                Editor
-              </Button>
-            </Link>
-            
-            <Link href="/gallery">
-              <Button 
-                variant={location === '/gallery' ? 'default' : 'ghost'} 
-                size="sm"
-              >
-                <Images className="h-4 w-4 mr-2" />
-                Gallery
-              </Button>
-            </Link>
-
-            <div className="flex items-center space-x-2 ml-4">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="" alt="User" />
-                <AvatarFallback>
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-muted-foreground">User</span>
-            </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.location.href = '/api/logout'}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <Navigation />
 
       <div className="max-w-6xl mx-auto p-4">
         <div className="mb-6">
