@@ -122,7 +122,7 @@ export default function Gallery() {
                     alt="AI edited image"
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none group-hover:pointer-events-auto">
                     <Button
                       size="sm"
                       variant="secondary"
@@ -130,7 +130,6 @@ export default function Gallery() {
                         e.stopPropagation();
                         handleEdit(image.id);
                       }}
-                      className="pointer-events-auto"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -141,7 +140,6 @@ export default function Gallery() {
                         e.stopPropagation();
                         handleDownload(image.currentUrl, image.id);
                       }}
-                      className="pointer-events-auto"
                     >
                       <Download className="w-4 h-4" />
                     </Button>
@@ -151,7 +149,6 @@ export default function Gallery() {
                           size="sm" 
                           variant="destructive"
                           onClick={(e) => e.stopPropagation()}
-                          className="pointer-events-auto"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
