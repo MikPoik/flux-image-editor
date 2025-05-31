@@ -302,9 +302,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If user already has a subscription, return existing subscription
       if (user.stripeSubscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+        const latestInvoice = typeof subscription.latest_invoice === 'string' 
+          ? await stripe.invoices.retrieve(subscription.latest_invoice)
+          : subscription.latest_invoice;
+        
         return res.json({
           subscriptionId: subscription.id,
-          clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+          clientSecret: typeof latestInvoice?.payment_intent === 'string' 
+            ? (await stripe.paymentIntents.retrieve(latestInvoice.payment_intent)).client_secret
+            : latestInvoice?.payment_intent?.client_secret,
         });
       }
 
@@ -345,9 +351,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user subscription details
       await storage.updateUserSubscription(userId, tier, editLimit);
 
+      const latestInvoice = typeof subscription.latest_invoice === 'string' 
+        ? await stripe.invoices.retrieve(subscription.latest_invoice)
+        : subscription.latest_invoice;
+      
       res.json({
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret: typeof latestInvoice?.payment_intent === 'string' 
+          ? (await stripe.paymentIntents.retrieve(latestInvoice.payment_intent)).client_secret
+          : latestInvoice?.payment_intent?.client_secret,
       });
     } catch (error: any) {
       console.error('Subscription creation error:', error);

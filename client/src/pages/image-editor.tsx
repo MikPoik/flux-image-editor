@@ -144,7 +144,7 @@ export default function ImageEditor() {
             <PromptInput
               onSubmit={handleEdit}
               isProcessing={isProcessing}
-              disabled={!hasImage}
+              disabled={!hasImage || isAtLimit}
             />
 
             {/* Edit History */}
