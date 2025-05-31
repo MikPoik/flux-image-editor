@@ -7,7 +7,7 @@ import {
   type UpsertUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -15,6 +15,11 @@ export interface IStorage {
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
+  updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User | undefined>;
+  updateUserSubscription(userId: string, tier: string, editLimit: number): Promise<User | undefined>;
+  incrementUserEditCount(userId: string): Promise<User | undefined>;
+  resetUserEditCount(userId: string): Promise<User | undefined>;
   
   // Image operations
   createImage(image: InsertImage): Promise<Image>;
@@ -81,6 +86,78 @@ export class DatabaseStorage implements IStorage {
       .where(eq(images.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async updateStripeCustomerId(userId: string, customerId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ stripeCustomerId: customerId })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ 
+          stripeCustomerId,
+          stripeSubscriptionId 
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error updating user stripe info:', error);
+      return undefined;
+    }
+  }
+
+  async updateUserSubscription(userId: string, tier: string, editLimit: number): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ 
+          subscriptionTier: tier,
+          editLimit: editLimit,
+          editCount: 0 // Reset edit count when upgrading
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error updating user subscription:', error);
+      return undefined;
+    }
+  }
+
+  async incrementUserEditCount(userId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ editCount: sql`${users.editCount} + 1` })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error incrementing user edit count:', error);
+      return undefined;
+    }
+  }
+
+  async resetUserEditCount(userId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ editCount: 0 })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error resetting user edit count:', error);
+      return undefined;
+    }
   }
 }
 

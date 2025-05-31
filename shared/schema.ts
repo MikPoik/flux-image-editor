@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, json, varchar, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, json, varchar, index, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -22,6 +22,12 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  subscriptionTier: varchar("subscription_tier"), // 'free', 'basic', 'premium'
+  editCount: serial("edit_count").notNull(),
+  editLimit: serial("edit_limit").notNull(),
+  subscriptionStatus: varchar("subscription_status").default("active"), // 'active', 'canceled', 'past_due'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
