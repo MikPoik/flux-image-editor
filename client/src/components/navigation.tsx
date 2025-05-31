@@ -80,7 +80,7 @@ export function Navigation() {
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm text-muted-foreground hidden lg:block">
-                  {user.email}
+                  {user?.email}
                 </span>
               </div>
               
@@ -165,7 +165,7 @@ export function Navigation() {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {user.email}
+                            {user?.email}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Signed in
