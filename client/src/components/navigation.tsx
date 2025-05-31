@@ -12,7 +12,8 @@ import {
   Images, 
   User, 
   LogOut,
-  X
+  X,
+  CreditCard
 } from "lucide-react";
 
 export function Navigation() {
@@ -37,6 +38,12 @@ export function Navigation() {
       href: "/gallery",
       label: "Gallery", 
       icon: Images,
+      show: !!user
+    },
+    {
+      href: "/subscription",
+      label: "Subscription",
+      icon: CreditCard,
       show: !!user
     }
   ];
