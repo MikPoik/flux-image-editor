@@ -21,6 +21,7 @@ export interface IStorage {
   getImage(id: number): Promise<Image | undefined>;
   getUserImages(userId: string): Promise<Image[]>;
   updateImage(id: number, updates: Partial<InsertImage>): Promise<Image | undefined>;
+  deleteImage(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -72,6 +73,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(images.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteImage(id: number): Promise<boolean> {
+    const result = await db
+      .delete(images)
+      .where(eq(images.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 

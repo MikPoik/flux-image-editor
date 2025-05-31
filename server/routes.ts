@@ -200,6 +200,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's images
+  app.get("/api/images", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const images = await storage.getUserImages(userId);
+      res.json(images);
+    } catch (error) {
+      console.error("Get user images error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to get images" 
+      });
+    }
+  });
+
   // Get image by ID
   app.get("/api/images/:id", async (req, res) => {
     try {
@@ -215,6 +229,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Get image error:", error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : "Failed to get image" 
+      });
+    }
+  });
+
+  // Delete image by ID
+  app.delete("/api/images/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // First check if the image exists and belongs to the user
+      const image = await storage.getImage(parseInt(id));
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      if (image.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized to delete this image" });
+      }
+      
+      const deleted = await storage.deleteImage(parseInt(id));
+      if (!deleted) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      res.json({ message: "Image deleted successfully" });
+    } catch (error) {
+      console.error("Delete image error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to delete image" 
       });
     }
   });

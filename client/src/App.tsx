@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import ImageEditor from "@/pages/image-editor";
+import Gallery from "@/pages/gallery";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +21,8 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/image-editor" component={ImageEditor} />
+          <Route path="/gallery" component={Gallery} />
         </>
       )}
       <Route component={NotFound} />
