@@ -54,6 +54,8 @@ export function useImageEditor() {
       editImage(imageId, prompt),
     onSuccess: (data) => {
       queryClient.setQueryData(['/api/images', data.id], data);
+      // Invalidate subscription query to refresh edit count
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription'] });
       toast({
         title: "Success",
         description: "Image edited successfully!",
