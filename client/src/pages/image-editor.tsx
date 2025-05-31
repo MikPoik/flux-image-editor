@@ -1,12 +1,17 @@
-import { Download, Wand2 } from 'lucide-react';
+import { Download, Wand2, LogOut, User, Images, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ImageUpload } from '@/components/image-upload';
 import { ImageDisplay } from '@/components/image-display';
 import { PromptInput } from '@/components/prompt-input';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useImageEditor } from '@/hooks/use-image-editor';
+import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation } from 'wouter';
 
 export default function ImageEditor() {
+  const { user } = useAuth();
+  const [location] = useLocation();
   const {
     imageData,
     isLoadingImage,
@@ -26,27 +31,66 @@ export default function ImageEditor() {
   const isProcessing = isEditing || isResetting || isReverting || isUploading || isLoadingImage;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border p-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Wand2 className="w-4 h-4 text-white" />
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <Link href="/">
+            <h1 className="text-2xl font-bold text-foreground cursor-pointer">AI Image Editor</h1>
+          </Link>
+          
+          <nav className="flex items-center space-x-4">
+            <Link href="/">
+              <Button 
+                variant={location === '/' ? 'default' : 'ghost'} 
+                size="sm"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+            
+            <Link href="/image-editor">
+              <Button 
+                variant={location === '/image-editor' ? 'default' : 'ghost'} 
+                size="sm"
+              >
+                <Wand2 className="h-4 w-4 mr-2" />
+                Editor
+              </Button>
+            </Link>
+            
+            <Link href="/gallery">
+              <Button 
+                variant={location === '/gallery' ? 'default' : 'ghost'} 
+                size="sm"
+              >
+                <Images className="h-4 w-4 mr-2" />
+                Gallery
+              </Button>
+            </Link>
+
+            <div className="flex items-center space-x-2 ml-4">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.profileImageUrl || ""} alt={user?.firstName || "User"} />
+                <AvatarFallback>
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-muted-foreground">
+                {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
+              </span>
             </div>
-            <h1 className="text-xl font-bold">FluxEdit</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            <ThemeToggle />
-            <Button
-              onClick={handleDownload}
-              disabled={!hasImage || isProcessing}
-              className="bg-green-600 hover:bg-green-700 text-white"
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/api/logout'}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Download
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
             </Button>
-          </div>
+          </nav>
         </div>
       </header>
 

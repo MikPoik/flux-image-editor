@@ -1,10 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { uploadImage, editImage, resetImage, revertImage, getImage } from '@/lib/flux-api';
 import { useToast } from '@/hooks/use-toast';
 
 export function useImageEditor() {
   const [currentImageId, setCurrentImageId] = useState<number | null>(null);
+  
+  // Check URL parameters for existing image ID
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const imageId = urlParams.get('id');
+    if (imageId && !isNaN(Number(imageId))) {
+      setCurrentImageId(Number(imageId));
+    }
+  }, []);
   const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
