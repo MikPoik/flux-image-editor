@@ -94,39 +94,26 @@ export class ObjectStorageService {
    */
   async getImageData(key: string): Promise<Buffer | null> {
     try {
-      console.log("Attempting to download:", key);
       const result = await this.client.downloadAsBytes(key);
-      console.log("Download result:", { ok: result.ok, error: result.error, valueType: typeof result.value, valueLength: result.value?.length });
 
       if (!result.ok) {
         console.error("Failed to download image:", result.error);
         return null;
       }
 
-      // Handle the returned value - it appears to be an array containing a Buffer
+      // Handle the returned value - Replit object storage returns an array containing a Buffer
       const { value } = result;
-      console.log("Value details:", {
-        type: typeof value,
-        isArray: Array.isArray(value),
-        length: value?.length,
-        constructor: value?.constructor?.name
-      });
       
-      // Based on the debug output, it's an array with a Buffer inside
       if (Array.isArray(value) && value.length > 0) {
-        const buffer = value[0];
-        console.log("Extracting buffer from array, buffer size:", buffer.length);
-        return buffer;
+        return value[0]; // Extract the Buffer from the array
       }
       
       // Fallback to other possible types
       if (Buffer.isBuffer(value)) {
-        console.log("Direct buffer, length:", value.length);
         return value;
       }
       
       if (value instanceof Uint8Array) {
-        console.log("Uint8Array, converting to buffer, length:", value.length);
         return Buffer.from(value);
       }
       
