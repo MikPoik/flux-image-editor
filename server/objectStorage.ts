@@ -1,8 +1,7 @@
 import { Client } from "@replit/object-storage";
 
 export class ObjectStorageService {
-  private client: Client;
-  private bucketName = "kontext-images";
+  public client: Client;
 
   constructor() {
     this.client = new Client();
