@@ -51,20 +51,38 @@ export default function Gallery() {
     deleteMutation.mutate(imageId);
   };
 
-  const handleDownload = (imageUrl: string, imageId: number) => {
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `flux-image-${imageId}.png`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "Success",
-      description: "Image downloaded!",
-    });
+  const handleDownload = (imageUrl: string, imageId: number, scale: number = 2) => {
+    // Use the upscaling API for downloads
+    upscaleMutation.mutate({ imageId, scale });
   };
+
+  // Upscale mutation for gallery downloads
+  const upscaleMutation = useMutation({
+    mutationFn: ({ imageId, scale }: { imageId: number; scale: number }) => 
+      apiRequest({ url: `/api/images/${imageId}/upscale`, method: 'POST', body: { scale } }),
+    onSuccess: (data) => {
+      // Automatically download the upscaled image
+      const link = document.createElement('a');
+      link.href = data.upscaledImageUrl;
+      link.download = `flux-upscaled-${Date.now()}.png`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Success",
+        description: "Image upscaled and downloaded!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Download Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   if (isLoading) {
     return (
