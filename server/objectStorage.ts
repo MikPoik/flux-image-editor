@@ -103,21 +103,35 @@ export class ObjectStorageService {
         return null;
       }
 
-      // Handle different possible return types
+      // Handle the returned value - it appears to be an array containing a Buffer
       const { value } = result;
-      if (value instanceof Uint8Array) {
-        console.log("Converting Uint8Array to Buffer, length:", value.length);
-        return Buffer.from(value);
-      } else if (Buffer.isBuffer(value)) {
-        console.log("Already a Buffer, length:", value.length);
-        return value;
-      } else if (ArrayBuffer.isView(value)) {
-        console.log("Converting ArrayBuffer view to Buffer, length:", value.byteLength);
-        return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
-      } else {
-        console.error("Unexpected value type:", typeof value, value);
-        return null;
+      console.log("Value details:", {
+        type: typeof value,
+        isArray: Array.isArray(value),
+        length: value?.length,
+        constructor: value?.constructor?.name
+      });
+      
+      // Based on the debug output, it's an array with a Buffer inside
+      if (Array.isArray(value) && value.length > 0) {
+        const buffer = value[0];
+        console.log("Extracting buffer from array, buffer size:", buffer.length);
+        return buffer;
       }
+      
+      // Fallback to other possible types
+      if (Buffer.isBuffer(value)) {
+        console.log("Direct buffer, length:", value.length);
+        return value;
+      }
+      
+      if (value instanceof Uint8Array) {
+        console.log("Uint8Array, converting to buffer, length:", value.length);
+        return Buffer.from(value);
+      }
+      
+      console.error("Could not handle value type:", typeof value);
+      return null;
     } catch (error) {
       console.error("Error getting image data:", error);
       return null;
