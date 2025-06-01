@@ -274,6 +274,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve images from object storage
+  app.get("/api/storage/*", async (req, res) => {
+    try {
+      const key = req.params[0]; // Get everything after /api/storage/
+      
+      if (!key) {
+        return res.status(400).json({ message: "Image key is required" });
+      }
+
+      const imageData = await objectStorage.getImageData(key);
+      
+      if (!imageData) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      // Set appropriate headers
+      res.set({
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+      });
+      
+      res.send(imageData);
+    } catch (error) {
+      console.error("Serve image error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to serve image" 
+      });
+    }
+  });
+
   // Delete image by ID
   app.delete("/api/images/:id", isAuthenticated, async (req: any, res) => {
     try {

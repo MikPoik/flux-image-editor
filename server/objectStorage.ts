@@ -29,8 +29,8 @@ export class ObjectStorageService {
       throw new Error(`Failed to upload image: ${error}`);
     }
 
-    // Return the storage URL
-    return `https://storage.replit.com/${this.bucketName}/${key}`;
+    // Return the storage URL that points to our server endpoint
+    return `/api/storage/${key}`;
   }
 
   /**
@@ -71,7 +71,7 @@ export class ObjectStorageService {
       throw new Error(`Failed to list images: ${error}`);
     }
 
-    return value.map((item: any) => `https://storage.replit.com/${this.bucketName}/${item.key || item}`);
+    return value.map((item: any) => `/api/storage/${item.key || item}`);
   }
 
   /**
@@ -91,10 +91,24 @@ export class ObjectStorageService {
   }
 
   /**
+   * Get image data from object storage
+   */
+  async getImageData(key: string): Promise<Uint8Array | null> {
+    const { ok, value, error } = await this.client.downloadAsBytes(key);
+
+    if (!ok) {
+      console.error("Failed to download image:", error);
+      return null;
+    }
+
+    return value;
+  }
+
+  /**
    * Extract the storage key from a full storage URL
    */
   private getKeyFromUrl(url: string): string | null {
-    const match = url.match(/https:\/\/storage\.replit\.com\/kontext-images\/(.+)$/);
+    const match = url.match(/\/api\/storage\/(.+)$/);
     return match ? match[1] : null;
   }
 
