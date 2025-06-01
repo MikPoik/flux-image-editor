@@ -290,6 +290,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized to delete this image" });
       }
       
+      // Delete from object storage first
+      try {
+        // Delete original image
+        await objectStorage.deleteImageByUrl(image.originalUrl);
+        
+        // Delete all edited versions from history
+        if (image.editHistory) {
+          for (const edit of image.editHistory) {
+            await objectStorage.deleteImageByUrl(edit.imageUrl);
+          }
+        }
+        
+        // Delete current image if different from original
+        if (image.currentUrl !== image.originalUrl) {
+          await objectStorage.deleteImageByUrl(image.currentUrl);
+        }
+      } catch (storageError) {
+        console.error("Error deleting from object storage:", storageError);
+        // Continue with database deletion even if storage cleanup fails
+      }
+      
       const deleted = await storage.deleteImage(parseInt(id));
       if (!deleted) {
         return res.status(404).json({ message: "Image not found" });
