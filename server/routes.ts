@@ -360,34 +360,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Image data not found" });
       }
 
-      // Convert buffer to base64 for FAL AI
-      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
-
-      // Call FAL AI ESRGAN endpoint
-      const falResponse = await fetch("https://fal.run/fal-ai/esrgan", {
-        method: "POST",
-        headers: {
-          "Authorization": `Key ${process.env.FAL_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image_url: base64Image,
-          model: "RealESRGAN_x4plus",
-          scale: scale
-        }),
+      // Upload image to FAL storage first (same as editing workflow)
+      const file = new File([imageBuffer], `image-${id}.png`, {
+        type: 'image/png',
       });
 
-      if (!falResponse.ok) {
-        const errorText = await falResponse.text();
-        console.error("FAL AI error:", errorText);
-        throw new Error(`FAL AI request failed: ${falResponse.status}`);
+      const falImageUrl = await fal.storage.upload(file);
+      console.log("Image uploaded to FAL storage for upscaling");
+
+      // Call FAL AI ESRGAN endpoint with the uploaded URL
+      const result = await fal.subscribe("fal-ai/esrgan", {
+        input: {
+          image_url: falImageUrl,
+          model: "RealESRGAN_x4plus",
+          scale: scale
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            update.logs?.map((log) => log.message).forEach(console.log);
+          }
+        },
+      });
+
+      if (!result.data?.image?.url) {
+        throw new Error("No upscaled image returned from FAL AI");
       }
 
-      const falResult = await falResponse.json();
       console.log("FAL AI upscale completed");
 
       // Return the upscaled image URL directly for download
-      res.json({ upscaledImageUrl: falResult.image.url });
+      res.json({ upscaledImageUrl: result.data.image.url });
 
     } catch (error) {
       console.error("Upscale error:", error);

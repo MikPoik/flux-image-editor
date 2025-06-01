@@ -58,8 +58,10 @@ export default function Gallery() {
 
   // Upscale mutation for gallery downloads
   const upscaleMutation = useMutation({
-    mutationFn: ({ imageId, scale }: { imageId: number; scale: number }) => 
-      apiRequest({ url: `/api/images/${imageId}/upscale`, method: 'POST', body: { scale } }),
+    mutationFn: async ({ imageId, scale }: { imageId: number; scale: number }) => {
+      const response = await apiRequest('POST', `/api/images/${imageId}/upscale`, { scale });
+      return response.json();
+    },
     onSuccess: (data) => {
       // Automatically download the upscaled image
       const link = document.createElement('a');
