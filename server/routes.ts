@@ -348,16 +348,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log(`Starting upscale for image ${id} with scale ${scale}x`);
+      console.log(`Image currentUrl: ${image.currentUrl}`);
+      console.log(`Image originalUrl: ${image.originalUrl}`);
 
-      // Get the current image data from storage
-      const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
-      if (!imageKey) {
-        return res.status(400).json({ message: "Invalid image URL" });
+      // Try to get image data from storage - handle both FAL URLs and our storage URLs
+      let imageBuffer: Buffer | null = null;
+
+      if (image.currentUrl.startsWith('/api/storage/')) {
+        // Our object storage URL
+        const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
+        if (imageKey) {
+          imageBuffer = await objectStorage.getImageData(imageKey);
+        }
+      } else if (image.originalUrl.startsWith('/api/storage/')) {
+        // Fall back to original URL if current is external (FAL URL)
+        const imageKey = image.originalUrl.match(/\/api\/storage\/(.+)$/)?.[1];
+        if (imageKey) {
+          imageBuffer = await objectStorage.getImageData(imageKey);
+        }
+      } else {
+        // Both URLs are external, need to download the image first
+        try {
+          const response = await fetch(image.currentUrl);
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            imageBuffer = Buffer.from(arrayBuffer);
+          }
+        } catch (error) {
+          console.error("Failed to download external image:", error);
+        }
       }
 
-      const imageBuffer = await objectStorage.getImageData(imageKey);
       if (!imageBuffer) {
-        return res.status(404).json({ message: "Image data not found" });
+        return res.status(404).json({ message: "Image data not found or could not be retrieved" });
       }
 
       // Upload image to FAL storage first (same as editing workflow)
