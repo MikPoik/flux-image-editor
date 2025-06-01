@@ -277,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve images from object storage
   app.get("/api/storage/*", async (req, res) => {
     try {
-      const key = req.params[0]; // Get everything after /api/storage/
+      const key = req.url.replace('/api/storage/', ''); // Get everything after /api/storage/
       
       if (!key) {
         return res.status(400).json({ message: "Image key is required" });

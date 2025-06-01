@@ -93,15 +93,21 @@ export class ObjectStorageService {
   /**
    * Get image data from object storage
    */
-  async getImageData(key: string): Promise<Uint8Array | null> {
-    const { ok, value, error } = await this.client.downloadAsBytes(key);
+  async getImageData(key: string): Promise<Buffer | null> {
+    try {
+      const { ok, value, error } = await this.client.downloadAsBytes(key);
 
-    if (!ok) {
-      console.error("Failed to download image:", error);
+      if (!ok) {
+        console.error("Failed to download image:", error);
+        return null;
+      }
+
+      // Convert the result to Buffer regardless of its current type
+      return Buffer.from(value as any);
+    } catch (error) {
+      console.error("Error getting image data:", error);
       return null;
     }
-
-    return value;
   }
 
   /**
