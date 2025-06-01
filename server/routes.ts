@@ -6,6 +6,7 @@ import { fal } from "@fal-ai/client";
 import multer from "multer";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import Stripe from "stripe";
+import { objectStorage } from "./objectStorage";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -52,18 +53,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.claims.sub;
 
-      // Upload image to Flux storage
+      // Upload image to Flux storage first for processing
       const file = new File([req.file.buffer], req.file.originalname, {
         type: req.file.mimetype,
       });
       
       const uploadedUrl = await fal.storage.upload(file);
 
-      // Create image record
+      // Also upload to Replit object storage for permanent storage
+      const permanentUrl = await objectStorage.uploadImage(
+        userId,
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+
+      // Create image record with both URLs
       const imageData = {
         userId,
-        originalUrl: uploadedUrl,
-        currentUrl: uploadedUrl,
+        originalUrl: permanentUrl, // Use permanent storage as original
+        currentUrl: uploadedUrl, // Keep FAL URL for processing
         editHistory: [],
       };
 
@@ -130,15 +139,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const editedImageUrl = result.data.images[0].url;
 
-      // Update image record with new URL and history
+      // Save edited image to permanent storage
+      const permanentEditedUrl = await objectStorage.uploadImageFromUrl(
+        userId,
+        editedImageUrl,
+        `edited-${Date.now()}.png`
+      );
+
+      // Update image record with permanent URL and history
       const newHistoryItem = {
         prompt,
-        imageUrl: editedImageUrl,
+        imageUrl: permanentEditedUrl, // Use permanent storage URL
         timestamp: new Date().toISOString(),
       };
 
       const updatedImage = await storage.updateImage(parseInt(id), {
-        currentUrl: editedImageUrl,
+        currentUrl: permanentEditedUrl, // Use permanent storage URL
         editHistory: [...(image.editHistory || []), newHistoryItem],
       });
 
