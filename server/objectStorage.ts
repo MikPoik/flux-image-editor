@@ -94,15 +94,30 @@ export class ObjectStorageService {
    */
   async getImageData(key: string): Promise<Buffer | null> {
     try {
-      const { ok, value, error } = await this.client.downloadAsBytes(key);
+      console.log("Attempting to download:", key);
+      const result = await this.client.downloadAsBytes(key);
+      console.log("Download result:", { ok: result.ok, error: result.error, valueType: typeof result.value, valueLength: result.value?.length });
 
-      if (!ok) {
-        console.error("Failed to download image:", error);
+      if (!result.ok) {
+        console.error("Failed to download image:", result.error);
         return null;
       }
 
-      // Convert the result to Buffer regardless of its current type
-      return Buffer.from(value as any);
+      // Handle different possible return types
+      const { value } = result;
+      if (value instanceof Uint8Array) {
+        console.log("Converting Uint8Array to Buffer, length:", value.length);
+        return Buffer.from(value);
+      } else if (Buffer.isBuffer(value)) {
+        console.log("Already a Buffer, length:", value.length);
+        return value;
+      } else if (ArrayBuffer.isView(value)) {
+        console.log("Converting ArrayBuffer view to Buffer, length:", value.byteLength);
+        return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+      } else {
+        console.error("Unexpected value type:", typeof value, value);
+        return null;
+      }
     } catch (error) {
       console.error("Error getting image data:", error);
       return null;
