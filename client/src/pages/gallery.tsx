@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Navigation } from '@/components/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -158,16 +159,35 @@ export default function Gallery() {
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(image.currentUrl, image.id);
-                      }}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={upscaleMutation.isPending}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Download className="w-4 h-4" />
+                          {upscaleMutation.isPending && (
+                            <div className="ml-1 animate-spin w-3 h-3 border-2 border-gray-400/30 border-t-gray-400 rounded-full"></div>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(image.currentUrl, image.id, 2);
+                        }}>
+                          Download 2x Enhanced
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(image.currentUrl, image.id, 4);
+                        }}>
+                          Download 4x Enhanced
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button 
