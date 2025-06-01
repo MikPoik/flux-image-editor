@@ -10,11 +10,13 @@ import { Edit, Trash2, Download, ImageIcon } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import type { Image } from '@shared/schema';
+import { useState } from 'react';
 
 export default function Gallery() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeImageId, setActiveImageId] = useState<number | null>(null);
 
   // Fetch user's images
   const { data: images = [], isLoading } = useQuery({
@@ -115,14 +117,17 @@ export default function Gallery() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(images as any[]).map((image: any) => (
-              <Card key={image.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+              <Card key={image.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative aspect-square overflow-hidden">
                   <img
                     src={image.currentUrl}
                     alt="AI edited image"
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform hover:scale-105 cursor-pointer"
+                    onClick={() => setActiveImageId(activeImageId === image.id ? null : image.id)}
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none group-hover:pointer-events-auto">
+                  <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2 ${
+                    activeImageId === image.id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                  }`}>
                     <Button
                       size="sm"
                       variant="secondary"
