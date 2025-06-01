@@ -247,11 +247,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const images = await storage.getUserImages(userId);
       
-      // Debug: Log object storage contents
+      // Debug: Log object storage contents and image URLs
       try {
         const { ok, value, error } = await objectStorage.client.list();
         if (ok) {
           console.log("Object storage contents:", value);
+          console.log("Database image URLs:", images.map(img => ({ id: img.id, original: img.originalUrl, current: img.currentUrl })));
         } else {
           console.log("Failed to list object storage:", error);
         }
