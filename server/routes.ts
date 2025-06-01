@@ -292,10 +292,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Image not found" });
       }
 
+      // Detect content type from file extension or buffer
+      let contentType = 'image/png'; // default
+      if (key.toLowerCase().endsWith('.jpg') || key.toLowerCase().endsWith('.jpeg')) {
+        contentType = 'image/jpeg';
+      } else if (key.toLowerCase().endsWith('.gif')) {
+        contentType = 'image/gif';
+      } else if (key.toLowerCase().endsWith('.webp')) {
+        contentType = 'image/webp';
+      }
+
       // Set appropriate headers
       res.set({
-        'Content-Type': 'image/png',
+        'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+        'Access-Control-Allow-Origin': '*', // Allow CORS for images
       });
       
       res.send(imageData);
