@@ -19,6 +19,7 @@ export default function ImageEditor() {
     isEditing,
     isResetting,
     isReverting,
+    isUpscaling,
     handleUpload,
     handleEdit,
     handleReset,
@@ -30,7 +31,7 @@ export default function ImageEditor() {
 
   const { subscription, isAtLimit, remainingEdits } = useSubscription();
 
-  const isProcessing = isEditing || isResetting || isReverting || isUploading || isLoadingImage;
+  const isProcessing = isEditing || isResetting || isReverting || isUploading || isLoadingImage || isUpscaling;
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,6 +134,7 @@ export default function ImageEditor() {
               onRevert={handleRevert}
               isResetting={isResetting}
               isReverting={isReverting}
+              isUpscaling={isUpscaling}
             />
           )}
         </div>

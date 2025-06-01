@@ -1,6 +1,7 @@
 import { Download, RotateCcw, Plus, ChevronDown, ChevronUp, Undo2, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState, useRef } from 'react';
 
 interface ImageDisplayProps {
@@ -15,10 +16,11 @@ interface ImageDisplayProps {
   originalUrl: string;
   onReset: () => void;
   onNewImage: () => void;
-  onDownload: () => void;
+  onDownload: (scale?: number) => void;
   onRevert: (historyIndex: number) => void;
   isResetting: boolean;
   isReverting: boolean;
+  isUpscaling: boolean;
 }
 
 // Helper function to create optimized image URLs
@@ -48,6 +50,7 @@ export function ImageDisplay({
   onRevert,
   isResetting,
   isReverting,
+  isUpscaling,
 }: ImageDisplayProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -328,15 +331,29 @@ export function ImageDisplay({
           >
             <RotateCcw className="w-4 h-4" />
           </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onDownload}
-            disabled={isProcessing}
-            className="bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white"
-          >
-            <Download className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={isProcessing || isUpscaling}
+                className="bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white"
+              >
+                <Download className="w-4 h-4" />
+                {isUpscaling && (
+                  <div className="ml-1 animate-spin w-3 h-3 border-2 border-gray-400/30 border-t-gray-400 rounded-full"></div>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => onDownload(2)}>
+                Download 2x Enhanced
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDownload(4)}>
+                Download 4x Enhanced
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Loading Overlay */}
