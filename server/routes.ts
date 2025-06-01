@@ -324,6 +324,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upscale image using ESRGAN
+  app.post("/api/images/:id/upscale", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { scale = 2 } = req.body;
+      const userId = req.user.claims.sub;
+
+      // Validate scale parameter
+      if (![2, 4].includes(scale)) {
+        return res.status(400).json({ message: "Scale must be 2 or 4" });
+      }
+
+      // Get the image from database
+      const image = await storage.getImage(parseInt(id));
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      // Check if user owns the image
+      if (image.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      console.log(`Starting upscale for image ${id} with scale ${scale}x`);
+
+      // Get the current image data from storage
+      const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
+      if (!imageKey) {
+        return res.status(400).json({ message: "Invalid image URL" });
+      }
+
+      const imageBuffer = await objectStorage.getImageData(imageKey);
+      if (!imageBuffer) {
+        return res.status(404).json({ message: "Image data not found" });
+      }
+
+      // Convert buffer to base64 for FAL AI
+      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+
+      // Call FAL AI ESRGAN endpoint
+      const falResponse = await fetch("https://fal.run/fal-ai/esrgan", {
+        method: "POST",
+        headers: {
+          "Authorization": `Key ${process.env.FAL_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image_url: base64Image,
+          model: "RealESRGAN_x4plus",
+          scale: scale
+        }),
+      });
+
+      if (!falResponse.ok) {
+        const errorText = await falResponse.text();
+        console.error("FAL AI error:", errorText);
+        throw new Error(`FAL AI request failed: ${falResponse.status}`);
+      }
+
+      const falResult = await falResponse.json();
+      console.log("FAL AI upscale completed");
+
+      // Return the upscaled image URL directly for download
+      res.json({ upscaledImageUrl: falResult.image.url });
+
+    } catch (error) {
+      console.error("Upscale error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to upscale image" 
+      });
+    }
+  });
+
   // Delete image by ID
   app.delete("/api/images/:id", isAuthenticated, async (req: any, res) => {
     try {

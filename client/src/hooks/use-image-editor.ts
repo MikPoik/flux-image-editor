@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, editImage, resetImage, revertImage, getImage } from '@/lib/flux-api';
+import { uploadImage, editImage, resetImage, revertImage, getImage, upscaleImage } from '@/lib/flux-api';
 import { useToast } from '@/hooks/use-toast';
 
 export function useImageEditor() {
@@ -109,6 +109,34 @@ export function useImageEditor() {
     },
   });
 
+  // Upscale mutation
+  const upscaleMutation = useMutation({
+    mutationFn: ({ imageId, scale }: { imageId: number; scale: number }) =>
+      upscaleImage(imageId, scale),
+    onSuccess: (data) => {
+      // Automatically download the upscaled image
+      const link = document.createElement('a');
+      link.href = data.upscaledImageUrl;
+      link.download = `flux-upscaled-${Date.now()}.png`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Success",
+        description: "Image upscaled and downloaded!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upscale Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Upload handler
   const handleUpload = useCallback((file: File) => {
     setIsUploading(true);
@@ -139,28 +167,17 @@ export function useImageEditor() {
     queryClient.removeQueries({ queryKey: ['/api/images'] });
   }, [queryClient]);
 
-  // Download handler
-  const handleDownload = useCallback(() => {
-    if (!imageData?.currentUrl) return;
+  // Download handler (now uses upscaling)
+  const handleDownload = useCallback((scale: number = 2) => {
+    if (!currentImageId) return;
+    upscaleMutation.mutate({ imageId: currentImageId, scale });
+  }, [currentImageId, upscaleMutation]);
 
-    // Create download URL with original quality for downloads
-    const downloadUrl = imageData.currentUrl.startsWith('/api/storage/') 
-      ? `${imageData.currentUrl}?q=100` // Original quality for download
-      : imageData.currentUrl;
-
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `flux-edited-image-${Date.now()}.png`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "Success",
-      description: "Image downloaded!",
-    });
-  }, [imageData?.currentUrl, toast]);
+  // Upscale handler
+  const handleUpscale = useCallback((scale: number) => {
+    if (!currentImageId) return;
+    upscaleMutation.mutate({ imageId: currentImageId, scale });
+  }, [currentImageId, upscaleMutation]);
 
   return {
     imageData,
@@ -169,12 +186,14 @@ export function useImageEditor() {
     isEditing: editMutation.isPending,
     isResetting: resetMutation.isPending,
     isReverting: revertMutation.isPending,
+    isUpscaling: upscaleMutation.isPending,
     handleUpload,
     handleEdit,
     handleReset,
     handleRevert,
     handleNewImage,
     handleDownload,
+    handleUpscale,
     hasImage: !!imageData,
   };
 }

@@ -59,3 +59,12 @@ export async function getImage(imageId: number): Promise<FluxEditResponse> {
   const response = await apiRequest('GET', `/api/images/${imageId}`);
   return response.json();
 }
+
+export interface UpscaleResponse {
+  upscaledImageUrl: string;
+}
+
+export async function upscaleImage(imageId: number, scale: number = 2): Promise<UpscaleResponse> {
+  const response = await apiRequest('POST', `/api/images/${imageId}/upscale`, { scale });
+  return response.json();
+}
