@@ -1,4 +1,5 @@
 import { Client } from "@replit/object-storage";
+import sharp from "sharp";
 
 export class ObjectStorageService {
   public client: Client;
@@ -87,6 +88,93 @@ export class ObjectStorageService {
     }
 
     return true;
+  }
+
+  /**
+   * Optimize image with specified dimensions and quality
+   */
+  async optimizeImage(
+    imageBuffer: Buffer,
+    width?: number,
+    height?: number,
+    quality: number = 80
+  ): Promise<Buffer> {
+    try {
+      let sharpInstance = sharp(imageBuffer);
+      
+      // Resize if dimensions are specified
+      if (width || height) {
+        sharpInstance = sharpInstance.resize(width, height, {
+          fit: 'inside',
+          withoutEnlargement: true
+        });
+      }
+      
+      // Convert to JPEG with specified quality for better compression
+      const optimized = await sharpInstance
+        .jpeg({ quality, progressive: true })
+        .toBuffer();
+      
+      return optimized;
+    } catch (error) {
+      console.error("Error optimizing image:", error);
+      return imageBuffer; // Return original if optimization fails
+    }
+  }
+
+  /**
+   * Get optimized image data from object storage
+   */
+  async getOptimizedImageData(
+    key: string,
+    width?: number,
+    height?: number,
+    quality: number = 80
+  ): Promise<{ buffer: Buffer; contentType: string } | null> {
+    try {
+      const result = await this.client.downloadAsBytes(key);
+
+      if (!result.ok) {
+        console.error("Failed to download image:", result.error);
+        return null;
+      }
+
+      const { value } = result;
+      let originalBuffer: Buffer;
+      
+      if (Array.isArray(value) && value.length > 0) {
+        originalBuffer = value[0];
+      } else if (Buffer.isBuffer(value)) {
+        originalBuffer = value;
+      } else if (value instanceof Uint8Array) {
+        originalBuffer = Buffer.from(value);
+      } else {
+        console.error("Could not handle value type:", typeof value);
+        return null;
+      }
+
+      // Optimize the image if dimensions or quality are specified
+      const shouldOptimize = width || height || quality < 100;
+      if (shouldOptimize) {
+        const optimizedBuffer = await this.optimizeImage(originalBuffer, width, height, quality);
+        return { buffer: optimizedBuffer, contentType: 'image/jpeg' };
+      }
+
+      // Return original with detected content type
+      let contentType = 'image/png';
+      if (key.toLowerCase().endsWith('.jpg') || key.toLowerCase().endsWith('.jpeg')) {
+        contentType = 'image/jpeg';
+      } else if (key.toLowerCase().endsWith('.gif')) {
+        contentType = 'image/gif';
+      } else if (key.toLowerCase().endsWith('.webp')) {
+        contentType = 'image/webp';
+      }
+
+      return { buffer: originalBuffer, contentType };
+    } catch (error) {
+      console.error("Error getting optimized image data:", error);
+      return null;
+    }
   }
 
   /**

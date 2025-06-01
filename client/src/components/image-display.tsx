@@ -21,6 +21,21 @@ interface ImageDisplayProps {
   isReverting: boolean;
 }
 
+// Helper function to create optimized image URLs
+function getOptimizedImageUrl(url: string, width?: number, height?: number, quality: number = 80): string {
+  if (!url.startsWith('/api/storage/')) {
+    return url; // Return original URL if not from our storage
+  }
+  
+  const params = new URLSearchParams();
+  if (width) params.set('w', width.toString());
+  if (height) params.set('h', height.toString());
+  if (quality !== 80) params.set('q', quality.toString());
+  
+  const queryString = params.toString();
+  return queryString ? `${url}?${queryString}` : url;
+}
+
 export function ImageDisplay({
   imageUrl,
   isProcessing,
@@ -260,7 +275,7 @@ export function ImageDisplay({
       >
         <img
           ref={imageRef}
-          src={imageUrl}
+          src={getOptimizedImageUrl(imageUrl, 1200, 800, 85)}
           alt="Current editing image"
           className="max-w-full max-h-[600px] object-contain"
           style={{ 
@@ -380,7 +395,7 @@ export function ImageDisplay({
                 <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
                   <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                     <img
-                      src={originalUrl}
+                      src={getOptimizedImageUrl(originalUrl, 64, 64, 70)}
                       alt="Original image"
                       className="w-full h-full object-cover"
                     />
@@ -406,7 +421,7 @@ export function ImageDisplay({
                   <div key={index} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
                     <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={edit.imageUrl}
+                        src={getOptimizedImageUrl(edit.imageUrl, 64, 64, 70)}
                         alt={`Edit ${index + 1}`}
                         className="w-full h-full object-cover"
                       />

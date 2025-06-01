@@ -57,7 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const file = new File([req.file.buffer], req.file.originalname, {
         type: req.file.mimetype,
       });
-      
+
       const uploadedUrl = await fal.storage.upload(file);
 
       // Also upload to Replit object storage for permanent storage
@@ -100,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const image = await storage.getImage(parseInt(id));
-      
+
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
@@ -199,7 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { historyIndex } = req.body;
-      
+
       if (typeof historyIndex !== 'number') {
         return res.status(400).json({ message: "History index is required" });
       }
@@ -246,9 +246,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const images = await storage.getUserImages(userId);
-      
 
-      
+
+
       res.json(images);
     } catch (error) {
       console.error("Get user images error:", error);
@@ -263,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const image = await storage.getImage(parseInt(id));
-      
+
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
@@ -277,39 +277,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve images from object storage
-  app.get("/api/storage/*", async (req, res) => {
+  // Serve images from object storage with optimization support
+  app.get("/api/storage/:key(*)", async (req, res) => {
     try {
-      const key = req.url.replace('/api/storage/', ''); // Get everything after /api/storage/
-      
-      if (!key) {
-        return res.status(400).json({ message: "Image key is required" });
+      const { key } = req.params;
+      const { w, h, q } = req.query;
+
+      // Parse optimization parameters
+      const width = w ? parseInt(w as string) : undefined;
+      const height = h ? parseInt(h as string) : undefined;
+      const quality = q ? parseInt(q as string) : 80;
+
+      // Validate parameters
+      if (width && (width < 1 || width > 4000)) {
+        return res.status(400).json({ message: "Width must be between 1 and 4000 pixels" });
+      }
+      if (height && (height < 1 || height > 4000)) {
+        return res.status(400).json({ message: "Height must be between 1 and 4000 pixels" });
+      }
+      if (quality < 1 || quality > 100) {
+        return res.status(400).json({ message: "Quality must be between 1 and 100" });
       }
 
-      const imageData = await objectStorage.getImageData(key);
-      
-      if (!imageData) {
+      const result = await objectStorage.getOptimizedImageData(key, width, height, quality);
+
+      if (!result) {
         return res.status(404).json({ message: "Image not found" });
       }
 
-      // Detect content type from file extension or buffer
-      let contentType = 'image/png'; // default
-      if (key.toLowerCase().endsWith('.jpg') || key.toLowerCase().endsWith('.jpeg')) {
-        contentType = 'image/jpeg';
-      } else if (key.toLowerCase().endsWith('.gif')) {
-        contentType = 'image/gif';
-      } else if (key.toLowerCase().endsWith('.webp')) {
-        contentType = 'image/webp';
-      }
+      const { buffer, contentType } = result;
 
       // Set appropriate headers
       res.set({
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
         'Access-Control-Allow-Origin': '*', // Allow CORS for images
+        'Vary': 'Accept-Encoding', // Vary on encoding for better caching
       });
-      
-      res.send(imageData);
+
+      res.send(buffer);
     } catch (error) {
       console.error("Serve image error:", error);
       res.status(500).json({ 
@@ -323,29 +329,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      
+
       // First check if the image exists and belongs to the user
       const image = await storage.getImage(parseInt(id));
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
       }
-      
+
       if (image.userId !== userId) {
         return res.status(403).json({ message: "Unauthorized to delete this image" });
       }
-      
+
       // Delete from object storage first
       try {
         // Delete original image
         await objectStorage.deleteImageByUrl(image.originalUrl);
-        
+
         // Delete all edited versions from history
         if (image.editHistory) {
           for (const edit of image.editHistory) {
             await objectStorage.deleteImageByUrl(edit.imageUrl);
           }
         }
-        
+
         // Delete current image if different from original
         if (image.currentUrl !== image.originalUrl) {
           await objectStorage.deleteImageByUrl(image.currentUrl);
@@ -354,12 +360,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error deleting from object storage:", storageError);
         // Continue with database deletion even if storage cleanup fails
       }
-      
+
       const deleted = await storage.deleteImage(parseInt(id));
       if (!deleted) {
         return res.status(404).json({ message: "Image not found" });
       }
-      
+
       res.json({ message: "Image deleted successfully" });
     } catch (error) {
       console.error("Delete image error:", error);
@@ -386,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const latestInvoice = typeof subscription.latest_invoice === 'string' 
           ? await stripe.invoices.retrieve(subscription.latest_invoice)
           : subscription.latest_invoice;
-        
+
         return res.json({
           subscriptionId: subscription.id,
           clientSecret: typeof latestInvoice?.payment_intent === 'string' 
@@ -421,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine subscription tier and edit limit based on price
       let tier = 'basic';
       let editLimit = 50;
-      
+
       // You'll need to create these price IDs in your Stripe dashboard
       // For now, I'll use placeholder logic - you can update this with your actual price IDs
       if (priceId.includes('premium') || priceId.includes('10')) {
@@ -433,9 +439,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateUserSubscription(userId, tier, editLimit);
 
       const latestInvoice = typeof subscription.latest_invoice === 'string' 
-        ? await stripe.invoices.retrieve(subscription.latest_invoice)
+        ? await stripe.invoices.retrieve(latestInvoice)
         : subscription.latest_invoice;
-      
+
       res.json({
         subscriptionId: subscription.id,
         clientSecret: typeof latestInvoice?.payment_intent === 'string' 

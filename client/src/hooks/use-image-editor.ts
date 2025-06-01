@@ -143,8 +143,13 @@ export function useImageEditor() {
   const handleDownload = useCallback(() => {
     if (!imageData?.currentUrl) return;
 
+    // Create download URL with original quality for downloads
+    const downloadUrl = imageData.currentUrl.startsWith('/api/storage/') 
+      ? `${imageData.currentUrl}?q=100` // Original quality for download
+      : imageData.currentUrl;
+
     const link = document.createElement('a');
-    link.href = imageData.currentUrl;
+    link.href = downloadUrl;
     link.download = `flux-edited-image-${Date.now()}.png`;
     link.target = '_blank';
     document.body.appendChild(link);
