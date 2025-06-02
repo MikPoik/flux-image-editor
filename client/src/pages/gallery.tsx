@@ -176,16 +176,16 @@ export default function Gallery() {
                       <DropdownMenuContent align="end" className="w-40">
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
-                          // Download original image directly
+                          // Download current image without upscaling
                           const link = document.createElement('a');
-                          link.href = image.originalUrl;
-                          link.download = `flux-original-${Date.now()}.png`;
+                          link.href = image.currentUrl;
+                          link.download = `flux-current-${Date.now()}.png`;
                           link.target = '_blank';
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
                         }}>
-                          Download Original
+                          Download Current
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
