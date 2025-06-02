@@ -153,7 +153,7 @@ export default function Subscription() {
       period: "/month",
       edits: 50,
       features: ["50 image edits per month", "High-quality AI processing", "Edit history", "Basic support"],
-      priceId: import.meta.env.STRIPE_PRICE_5, // Replace with your actual Stripe price ID
+      priceId: import.meta.env.VITE_STRIPE_PRICE_5, // Replace with your actual Stripe price ID
       popular: false,
     },
     {
@@ -163,7 +163,7 @@ export default function Subscription() {
       period: "/month",
       edits: 100,
       features: ["100 image edits per month", "Priority AI processing", "Advanced edit history", "Priority support"],
-      priceId: import.meta.env.STRIPE_PRICE_10, // Replace with your actual Stripe price ID
+      priceId: import.meta.env.VITE_STRIPE_PRICE_10, // Replace with your actual Stripe price ID
       popular: true,
     },
   ];

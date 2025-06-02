@@ -479,6 +479,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { priceId } = req.body;
       const userId = req.user.claims.sub;
+      
+      console.log('Create subscription request:', { priceId, userId });
+      
+      if (!priceId) {
+        return res.status(400).json({ message: "Price ID is required" });
+      }
+
       const user = await storage.getUser(userId);
 
       if (!user || !user.email) {
