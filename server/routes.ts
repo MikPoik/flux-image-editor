@@ -526,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items: [{ price: priceId }],
         payment_behavior: 'default_incomplete',
         payment_settings: { save_default_payment_method: 'on_subscription' },
-        expand: ['latest_invoice.payment_intent'],
+        expand: ['latest_invoice'],
       });
 
       // Update user with subscription info
@@ -547,14 +547,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateUserSubscription(userId, tier, editLimit);
 
       const latestInvoice = typeof subscription.latest_invoice === 'string' 
-        ? await stripe.invoices.retrieve(subscription.latest_invoice)
+        ? await stripe.invoices.retrieve(subscription.latest_invoice, {
+            expand: ['payment_intent']
+          })
         : subscription.latest_invoice;
+
+      let clientSecret = null;
+      if (latestInvoice?.payment_intent) {
+        if (typeof latestInvoice.payment_intent === 'string') {
+          const paymentIntent = await stripe.paymentIntents.retrieve(latestInvoice.payment_intent);
+          clientSecret = paymentIntent.client_secret;
+        } else {
+          clientSecret = latestInvoice.payment_intent.client_secret;
+        }
+      }
 
       res.json({
         subscriptionId: subscription.id,
-        clientSecret: typeof latestInvoice?.payment_intent === 'string' 
-          ? (await stripe.paymentIntents.retrieve(latestInvoice.payment_intent)).client_secret
-          : latestInvoice?.payment_intent?.client_secret,
+        clientSecret: clientSecret,
       });
     } catch (error: any) {
       console.error('Subscription creation error:', error);
