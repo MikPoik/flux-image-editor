@@ -119,11 +119,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Image not found" });
       }
 
+      // Get the current image data and upload to FAL storage for editing
+      let falImageUrl: string;
+      
+      if (image.currentUrl.startsWith('/api/storage/')) {
+        // Current image is in our storage, need to upload to FAL first
+        const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
+        if (!imageKey) {
+          throw new Error("Invalid storage URL format");
+        }
+        
+        const imageBuffer = await objectStorage.getImageData(imageKey);
+        if (!imageBuffer) {
+          throw new Error("Could not retrieve image data for editing");
+        }
+        
+        // Upload to FAL storage
+        const file = new File([imageBuffer], `image-${id}.png`, {
+          type: 'image/png',
+        });
+        
+        falImageUrl = await fal.storage.upload(file);
+        console.log("Current image uploaded to FAL storage for editing");
+      } else {
+        // Current image is already a FAL URL, use directly
+        falImageUrl = image.currentUrl;
+      }
+
       // Call Flux AI API
       const result = await fal.subscribe("fal-ai/flux-pro/kontext", {
         input: {
           prompt: prompt,
-          image_url: image.currentUrl,
+          image_url: falImageUrl,
         },
         logs: true,
         onQueueUpdate: (update) => {
