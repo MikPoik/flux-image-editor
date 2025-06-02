@@ -641,9 +641,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               let tier = 'basic';
               let editLimit = 50;
               
-              if (priceId.includes('premium') || priceId.includes('10')) {
+              // Map actual Stripe price IDs to subscription tiers
+              if (priceId === process.env.VITE_STRIPE_PRICE_10) {
                 tier = 'premium';
                 editLimit = 100;
+              } else if (priceId === process.env.VITE_STRIPE_PRICE_5) {
+                tier = 'basic';
+                editLimit = 50;
               }
               
               // Update user subscription details and reset edit count
