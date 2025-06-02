@@ -20,6 +20,7 @@ export interface IStorage {
   updateUserSubscription(userId: string, tier: string, editLimit: number): Promise<User | undefined>;
   incrementUserEditCount(userId: string): Promise<User | undefined>;
   resetUserEditCount(userId: string): Promise<User | undefined>;
+  getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined>;
   
   // Image operations
   createImage(image: InsertImage): Promise<Image>;
@@ -156,6 +157,20 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error('Error resetting user edit count:', error);
+      return undefined;
+    }
+  }
+
+  async getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.stripeSubscriptionId, subscriptionId))
+        .limit(1);
+      return user;
+    } catch (error) {
+      console.error('Error getting user by subscription ID:', error);
       return undefined;
     }
   }

@@ -75,15 +75,16 @@ const CheckoutForm = ({ priceId, onSuccess }: { priceId: string; onSuccess: () =
 };
 
 const SubscriptionCheckout = ({ priceId, onSuccess }: { priceId: string; onSuccess: () => void }) => {
-  const [clientSecret, setClientSecret] = useState("");
-
   const createSubscriptionMutation = useMutation({
     mutationFn: async (priceId: string) => {
       const response = await apiRequest("POST", "/api/create-subscription", { priceId });
       return response.json();
     },
     onSuccess: (data) => {
-      setClientSecret(data.clientSecret);
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url;
+      }
     },
     onError: (error) => {
       console.error("Subscription creation failed:", error);
@@ -94,24 +95,16 @@ const SubscriptionCheckout = ({ priceId, onSuccess }: { priceId: string; onSucce
     createSubscriptionMutation.mutate(priceId);
   };
 
-  if (!clientSecret) {
-    return (
-      <div className="space-y-4">
-        <Button 
-          onClick={handleStartSubscription} 
-          disabled={createSubscriptionMutation.isPending}
-          className="w-full"
-        >
-          {createSubscriptionMutation.isPending ? "Setting up..." : "Subscribe Now"}
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <CheckoutForm priceId={priceId} onSuccess={onSuccess} />
-    </Elements>
+    <div className="space-y-4">
+      <Button 
+        onClick={handleStartSubscription} 
+        disabled={createSubscriptionMutation.isPending}
+        className="w-full"
+      >
+        {createSubscriptionMutation.isPending ? "Setting up..." : "Subscribe Now"}
+      </Button>
+    </div>
   );
 };
 
@@ -123,6 +116,32 @@ export default function Subscription() {
   const { data: subscription, isLoading } = useQuery<SubscriptionInfo>({
     queryKey: ["/api/subscription"],
   });
+
+  // Handle success/cancel from Stripe checkout
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const canceled = urlParams.get('canceled');
+    const sessionId = urlParams.get('session_id');
+
+    if (success === 'true') {
+      toast({
+        title: "Subscription Successful!",
+        description: "Your subscription has been activated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+      // Clean up URL
+      window.history.replaceState({}, document.title, "/subscription");
+    } else if (canceled === 'true') {
+      toast({
+        title: "Subscription Canceled",
+        description: "You can try subscribing again at any time.",
+        variant: "destructive",
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, "/subscription");
+    }
+  }, [toast, queryClient]);
 
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async () => {

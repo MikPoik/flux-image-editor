@@ -474,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe subscription routes
+  // Stripe subscription routes - Create checkout session
   app.post('/api/create-subscription', isAuthenticated, async (req: any, res) => {
     try {
       const { priceId } = req.body;
@@ -492,21 +492,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User email not found" });
       }
 
-      // If user already has a subscription, return existing subscription
+      // If user already has an active subscription, return error
       if (user.stripeSubscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
         
-        // Check if subscription is active
         if (subscription.status === 'active') {
           return res.status(400).json({ 
             message: "User already has an active subscription",
             subscriptionId: subscription.id 
           });
         }
-        
-        // If subscription is not active, we can create a new one
-        // Clear the old subscription ID first
-        await storage.updateUserStripeInfo(userId, user.stripeCustomerId || '', '');
       }
 
       // Create Stripe customer if doesn't exist
@@ -520,66 +515,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateStripeCustomerId(userId, customerId);
       }
 
-      // Create subscription
-      const subscription = await stripe.subscriptions.create({
+      // Create checkout session for subscription
+      const session = await stripe.checkout.sessions.create({
         customer: customerId,
-        items: [{ price: priceId }],
-        payment_behavior: 'default_incomplete',
-        payment_settings: { save_default_payment_method: 'on_subscription' },
-        expand: ['latest_invoice'],
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${req.headers.origin}/subscription?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.origin}/subscription?canceled=true`,
+        metadata: {
+          userId: userId,
+          priceId: priceId,
+        },
       });
 
-      console.log('Subscription created:', subscription.id);
-      console.log('Latest invoice:', subscription.latest_invoice);
-
-      // Update user with subscription info
-      await storage.updateUserStripeInfo(userId, customerId, subscription.id);
-
-      // Determine subscription tier and edit limit based on price
-      let tier = 'basic';
-      let editLimit = 50;
-
-      // You'll need to create these price IDs in your Stripe dashboard
-      // For now, I'll use placeholder logic - you can update this with your actual price IDs
-      if (priceId.includes('premium') || priceId.includes('10')) {
-        tier = 'premium';
-        editLimit = 100;
-      }
-
-      // Update user subscription details
-      await storage.updateUserSubscription(userId, tier, editLimit);
-
-      let clientSecret = null;
-      
-      // Handle the invoice and payment intent retrieval
-      if (subscription.latest_invoice) {
-        try {
-          const latestInvoice = typeof subscription.latest_invoice === 'string' 
-            ? await stripe.invoices.retrieve(subscription.latest_invoice)
-            : subscription.latest_invoice;
-
-          console.log('Invoice retrieved:', latestInvoice.id, 'Status:', latestInvoice.status);
-          console.log('Payment intent ID:', latestInvoice.payment_intent);
-
-          // Only try to get payment intent if it exists
-          if (latestInvoice.payment_intent) {
-            const paymentIntent = typeof latestInvoice.payment_intent === 'string'
-              ? await stripe.paymentIntents.retrieve(latestInvoice.payment_intent)
-              : latestInvoice.payment_intent;
-            
-            clientSecret = paymentIntent.client_secret;
-            console.log('Payment intent retrieved:', paymentIntent.id, 'Status:', paymentIntent.status);
-          } else {
-            console.log('No payment intent found on invoice');
-          }
-        } catch (invoiceError) {
-          console.error('Error retrieving invoice or payment intent:', invoiceError);
-        }
-      }
+      console.log('Checkout session created:', session.id);
 
       res.json({
-        subscriptionId: subscription.id,
-        clientSecret: clientSecret,
+        sessionId: session.id,
+        url: session.url,
       });
     } catch (error: any) {
       console.error('Subscription creation error:', error);
@@ -631,6 +590,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add route to handle successful checkout session
+  app.get('/api/checkout-session/:sessionId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      res.json({
+        status: session.payment_status,
+        subscriptionId: session.subscription,
+      });
+    } catch (error: any) {
+      console.error('Error retrieving checkout session:', error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Stripe webhook endpoint for handling subscription events
   app.post('/api/stripe-webhook', async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -644,14 +619,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
+    console.log('Webhook event received:', event.type);
+
     // Handle the event
     switch (event.type) {
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted':
-        const subscription = event.data.object;
-        // Handle subscription status changes
-        console.log('Subscription event:', event.type, subscription.id);
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        console.log('Checkout session completed:', session.id);
+        
+        if (session.mode === 'subscription' && session.subscription) {
+          try {
+            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+            const userId = session.metadata?.userId;
+            const priceId = session.metadata?.priceId;
+            
+            if (userId && priceId) {
+              // Update user with subscription info
+              await storage.updateUserStripeInfo(userId, session.customer as string, subscription.id);
+              
+              // Determine subscription tier and edit limit based on price
+              let tier = 'basic';
+              let editLimit = 50;
+              
+              if (priceId.includes('premium') || priceId.includes('10')) {
+                tier = 'premium';
+                editLimit = 100;
+              }
+              
+              // Update user subscription details and reset edit count
+              await storage.updateUserSubscription(userId, tier, editLimit);
+              await storage.resetUserEditCount(userId);
+              
+              console.log(`Subscription activated for user ${userId}: ${tier} plan`);
+            }
+          } catch (error) {
+            console.error('Error processing subscription:', error);
+          }
+        }
         break;
+      }
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        console.log('Subscription updated:', subscription.id, 'Status:', subscription.status);
+        
+        // Handle subscription status changes (active, canceled, etc.)
+        if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+          // Find user by subscription ID and downgrade to free
+          try {
+            const users = await storage.getUserBySubscriptionId?.(subscription.id);
+            if (users) {
+              await storage.updateUserSubscription(users.id, 'free', 10);
+              await storage.updateUserStripeInfo(users.id, users.stripeCustomerId || '', '');
+              console.log(`Subscription canceled for user ${users.id}`);
+            }
+          } catch (error) {
+            console.error('Error handling subscription cancellation:', error);
+          }
+        }
+        break;
+      }
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+        console.log('Subscription deleted:', subscription.id);
+        
+        // Find user by subscription ID and downgrade to free
+        try {
+          const users = await storage.getUserBySubscriptionId?.(subscription.id);
+          if (users) {
+            await storage.updateUserSubscription(users.id, 'free', 10);
+            await storage.updateUserStripeInfo(users.id, users.stripeCustomerId || '', '');
+            console.log(`Subscription deleted for user ${users.id}`);
+          }
+        } catch (error) {
+          console.error('Error handling subscription deletion:', error);
+        }
+        break;
+      }
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
