@@ -529,6 +529,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expand: ['latest_invoice'],
       });
 
+      console.log('Subscription created:', subscription.id);
+      console.log('Latest invoice:', subscription.latest_invoice);
+
       // Update user with subscription info
       await storage.updateUserStripeInfo(userId, customerId, subscription.id);
 
@@ -546,19 +549,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user subscription details
       await storage.updateUserSubscription(userId, tier, editLimit);
 
-      const latestInvoice = typeof subscription.latest_invoice === 'string' 
-        ? await stripe.invoices.retrieve(subscription.latest_invoice, {
-            expand: ['payment_intent']
-          })
-        : subscription.latest_invoice;
-
       let clientSecret = null;
-      if (latestInvoice?.payment_intent) {
-        if (typeof latestInvoice.payment_intent === 'string') {
-          const paymentIntent = await stripe.paymentIntents.retrieve(latestInvoice.payment_intent);
-          clientSecret = paymentIntent.client_secret;
-        } else {
-          clientSecret = latestInvoice.payment_intent.client_secret;
+      
+      // Handle the invoice and payment intent retrieval
+      if (subscription.latest_invoice) {
+        try {
+          const latestInvoice = typeof subscription.latest_invoice === 'string' 
+            ? await stripe.invoices.retrieve(subscription.latest_invoice)
+            : subscription.latest_invoice;
+
+          console.log('Invoice retrieved:', latestInvoice.id, 'Status:', latestInvoice.status);
+          console.log('Payment intent ID:', latestInvoice.payment_intent);
+
+          // Only try to get payment intent if it exists
+          if (latestInvoice.payment_intent) {
+            const paymentIntent = typeof latestInvoice.payment_intent === 'string'
+              ? await stripe.paymentIntents.retrieve(latestInvoice.payment_intent)
+              : latestInvoice.payment_intent;
+            
+            clientSecret = paymentIntent.client_secret;
+            console.log('Payment intent retrieved:', paymentIntent.id, 'Status:', paymentIntent.status);
+          } else {
+            console.log('No payment intent found on invoice');
+          }
+        } catch (invoiceError) {
+          console.error('Error retrieving invoice or payment intent:', invoiceError);
         }
       }
 
