@@ -540,7 +540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateUserSubscription(userId, tier, editLimit);
 
       const latestInvoice = typeof subscription.latest_invoice === 'string' 
-        ? await stripe.invoices.retrieve(latestInvoice)
+        ? await stripe.invoices.retrieve(subscription.latest_invoice)
         : subscription.latest_invoice;
 
       res.json({
