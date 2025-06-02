@@ -346,6 +346,18 @@ export function ImageDisplay({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => {
+                // Download current image without upscaling
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `flux-original-${Date.now()}.png`;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}>
+                Download Original
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDownload(2)}>
                 Download 2x Enhanced
               </DropdownMenuItem>
