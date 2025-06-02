@@ -488,16 +488,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If user already has a subscription, return existing subscription
       if (user.stripeSubscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-        const latestInvoice = typeof subscription.latest_invoice === 'string' 
-          ? await stripe.invoices.retrieve(subscription.latest_invoice)
-          : subscription.latest_invoice;
-
-        return res.json({
-          subscriptionId: subscription.id,
-          clientSecret: typeof latestInvoice?.payment_intent === 'string' 
-            ? (await stripe.paymentIntents.retrieve(latestInvoice.payment_intent)).client_secret
-            : latestInvoice?.payment_intent?.client_secret,
-        });
+        
+        // Check if subscription is active
+        if (subscription.status === 'active') {
+          return res.status(400).json({ 
+            message: "User already has an active subscription",
+            subscriptionId: subscription.id 
+          });
+        }
+        
+        // If subscription is not active, we can create a new one
+        // Clear the old subscription ID first
+        await storage.updateUserStripeInfo(userId, user.stripeCustomerId || '', '');
       }
 
       // Create Stripe customer if doesn't exist
