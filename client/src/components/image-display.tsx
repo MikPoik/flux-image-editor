@@ -361,7 +361,9 @@ export function ImageDisplay({
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
             <div className="text-center text-white">
               <div className="animate-spin w-8 h-8 border-3 border-white/30 border-t-white rounded-full mx-auto mb-3"></div>
-              <p className="text-sm font-medium">AI is editing your image...</p>
+              <p className="text-sm font-medium">
+                {isUpscaling ? 'AI is upscaling your image for download...' : 'AI is editing your image...'}
+              </p>
               <p className="text-xs text-white/80 mt-1">This may take a few moments</p>
             </div>
           </div>
