@@ -176,6 +176,19 @@ export default function Gallery() {
                       <DropdownMenuContent align="end" className="w-40">
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
+                          // Download original image directly
+                          const link = document.createElement('a');
+                          link.href = image.originalUrl;
+                          link.download = `flux-original-${Date.now()}.png`;
+                          link.target = '_blank';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}>
+                          Download Original
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
                           handleDownload(image.currentUrl, image.id, 2);
                         }}>
                           Download 2x Enhanced
