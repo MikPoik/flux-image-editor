@@ -60,19 +60,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const uploadedUrl = await fal.storage.upload(file);
 
-      // Also upload to Replit object storage for permanent storage
-      const permanentUrl = await objectStorage.uploadImage(
+      // Download the FAL-processed image and save to permanent storage
+      // FAL optimizes the image for size and format
+      const permanentUrl = await objectStorage.uploadImageFromUrl(
         userId,
-        req.file.buffer,
-        req.file.originalname,
-        req.file.mimetype
+        uploadedUrl,
+        req.file.originalname
       );
 
       // Create image record with both URLs
       const imageData = {
         userId,
-        originalUrl: permanentUrl, // Use permanent storage as original
-        currentUrl: uploadedUrl, // Keep FAL URL for processing
+        originalUrl: permanentUrl, // Use FAL-processed image as original
+        currentUrl: permanentUrl, // Start with the same optimized image
         editHistory: [],
       };
 
