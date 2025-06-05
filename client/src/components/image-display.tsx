@@ -293,7 +293,7 @@ export function ImageDisplay({
 
         {/* Image Controls Overlay */}
         <div className="absolute top-3 right-3 flex space-x-2">
-          <div className="flex space-x-1 bg-white/90 backdrop-blur-sm rounded-md p-1">
+          <div className="flex space-x-1 bg-white/90 backdrop-blur-sm rounded-md p-1 hidden sm:flex">
             <Button
               size="sm"
               variant="ghost"
@@ -308,7 +308,7 @@ export function ImageDisplay({
               variant="ghost"
               onClick={handleZoomReset}
               disabled={zoom === 1}
-              className="h-8 px-2 text-xs text-gray-700 hover:bg-gray-100 hidden sm:inline-flex"
+              className="h-8 px-2 text-xs text-gray-700 hover:bg-gray-100"
             >
               {Math.round(zoom * 100)}%
             </Button>
