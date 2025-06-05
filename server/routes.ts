@@ -722,6 +722,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Handle the event
     switch (event.type) {
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        console.log('Invoice payment succeeded:', invoice.id);
+        
+        // Only reset for subscription invoices (not one-time payments)
+        if (invoice.subscription && invoice.billing_reason === 'subscription_cycle') {
+          try {
+            const user = await storage.getUserBySubscriptionId(invoice.subscription as string);
+            if (user) {
+              await storage.resetUserEditCount(user.id);
+              console.log(`Edit count reset for user ${user.id} at billing period start`);
+            }
+          } catch (error) {
+            console.error('Error resetting edit count for billing period:', error);
+          }
+        }
+        break;
+      }
       case 'checkout.session.completed': {
         const session = event.data.object;
         console.log('Checkout session completed:', session.id);
