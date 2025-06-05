@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useAuth } from "@/hooks/useAuth";
+import { Navigation } from "@/components/navigation";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import ImageEditor from "@/pages/image-editor";
@@ -27,13 +28,16 @@ function Router() {
           <Route path="*" component={Landing} />
         </>
       ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/image-editor" component={ImageEditor} />
-          <Route path="/gallery" component={Gallery} />
-          <Route path="/subscription" component={Subscription} />
-          <Route path="*" component={NotFound} />
-        </>
+        <div className="min-h-screen bg-background">
+          <Navigation />
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/image-editor" component={ImageEditor} />
+            <Route path="/gallery" component={Gallery} />
+            <Route path="/subscription" component={Subscription} />
+            <Route path="*" component={NotFound} />
+          </Switch>
+        </div>
       )}
     </Switch>
   );

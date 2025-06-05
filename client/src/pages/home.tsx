@@ -1,16 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Navigation } from "@/components/navigation";
 import { Images, Plus } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8">
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">Welcome to AI Image Editor</h2>
           <p className="text-muted-foreground mb-8">
@@ -58,6 +53,5 @@ export default function Home() {
           </div>
         </div>
       </main>
-    </div>
   );
 }
