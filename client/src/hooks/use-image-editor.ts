@@ -50,6 +50,8 @@ export function useImageEditor() {
     onSuccess: (data) => {
       setCurrentImageId(data.id);
       queryClient.setQueryData(['/api/images', data.id], data);
+      // Invalidate the gallery images list to show the new upload
+      queryClient.invalidateQueries({ queryKey: ['/api/images'] });
       toast({
         title: "Success",
         description: "Image uploaded successfully!",
