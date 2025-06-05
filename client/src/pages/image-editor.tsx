@@ -6,7 +6,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ImageUpload } from '@/components/image-upload';
 import { ImageDisplay } from '@/components/image-display';
 import { PromptInput } from '@/components/prompt-input';
-import { Navigation } from '@/components/navigation';
 import { useImageEditor } from '@/hooks/use-image-editor';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Link } from 'wouter';
@@ -34,10 +33,7 @@ export default function ImageEditor() {
   const isProcessing = isEditing || isResetting || isReverting || isUploading || isLoadingImage || isUpscaling;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-
-      <main className="max-w-4xl mx-auto p-4 space-y-6">
+    <main className="max-w-4xl mx-auto p-4 space-y-6">
 
         {/* Edit Limit Warning */}
         {isAtLimit && (
@@ -186,6 +182,5 @@ export default function ImageEditor() {
           </div>
         </div>
       </main>
-    </div>
   );
 }

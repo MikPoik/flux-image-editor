@@ -188,9 +188,7 @@ export default function Subscription() {
   }
 
   return (
-    <div>
-      <Navigation />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Subscription Plans</h1>
         <p className="text-muted-foreground">
@@ -338,7 +336,6 @@ export default function Subscription() {
         <p>All plans include secure payment processing and can be canceled anytime.</p>
         <p>Edit counts reset monthly on your billing date.</p>
       </div>
-    </div>
     </div>
   );
 }

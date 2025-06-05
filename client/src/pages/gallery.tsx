@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Navigation } from '@/components/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, Trash2, Download, ImageIcon } from 'lucide-react';
 import { useLocation } from 'wouter';
@@ -89,40 +88,33 @@ export default function Gallery() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-
-        <div className="max-w-6xl mx-auto p-4">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">My Gallery</h1>
-            <p className="text-muted-foreground">View and manage your AI-edited images</p>
-          </div>
-        
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="overflow-hidden">
-                <Skeleton className="aspect-square w-full" />
-                <CardContent className="p-4">
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-3 w-1/2" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">My Gallery</h1>
+          <p className="text-muted-foreground">View and manage your AI-edited images</p>
+        </div>
+      
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="aspect-square w-full" />
+              <CardContent className="p-4">
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-3 w-1/2" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">My Gallery</h1>
-          <p className="text-muted-foreground">View and manage your AI-edited images</p>
-        </div>
+    <div className="max-w-6xl mx-auto p-4">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">My Gallery</h1>
+        <p className="text-muted-foreground">View and manage your AI-edited images</p>
+      </div>
 
         {(images as any[]).length === 0 ? (
           <div className="text-center py-12">
@@ -256,7 +248,6 @@ export default function Gallery() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }
