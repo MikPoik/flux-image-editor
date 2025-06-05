@@ -725,18 +725,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
         console.log('Invoice payment succeeded:', invoice.id);
+        console.log('Invoice details:', {
+          subscription: invoice.subscription,
+          billing_reason: invoice.billing_reason,
+          amount_paid: invoice.amount_paid,
+          period_start: invoice.period_start,
+          period_end: invoice.period_end
+        });
         
-        // Only reset for subscription invoices (not one-time payments)
-        if (invoice.subscription && invoice.billing_reason === 'subscription_cycle') {
+        // Reset for subscription invoices (both subscription_cycle and subscription_create)
+        if (invoice.subscription && (invoice.billing_reason === 'subscription_cycle' || invoice.billing_reason === 'subscription_create')) {
           try {
             const user = await storage.getUserBySubscriptionId(invoice.subscription as string);
             if (user) {
               await storage.resetUserEditCount(user.id);
-              console.log(`Edit count reset for user ${user.id} at billing period start`);
+              console.log(`Edit count reset for user ${user.id} at billing period start (reason: ${invoice.billing_reason})`);
+            } else {
+              console.log(`No user found for subscription ${invoice.subscription}`);
             }
           } catch (error) {
             console.error('Error resetting edit count for billing period:', error);
           }
+        } else {
+          console.log('Invoice not processed for edit count reset:', {
+            hasSubscription: !!invoice.subscription,
+            billingReason: invoice.billing_reason
+          });
         }
         break;
       }
