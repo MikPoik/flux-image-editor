@@ -93,7 +93,6 @@ export default function ImageEditor() {
         {/* Prompt Section */}
         {hasImage && (
           <div className="bg-card rounded-xl p-6 border border-border">
-            <h2 className="text-lg font-semibold mb-4">Edit with AI</h2>
             <PromptInput
               onSubmit={handleEdit}
               isProcessing={isProcessing}
@@ -101,21 +100,7 @@ export default function ImageEditor() {
             />
 
             {/* Edit History */}
-            {imageData?.editHistory && imageData.editHistory.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Recent Edits</h3>
-                <div className="space-y-2">
-                  {imageData.editHistory.slice(-3).reverse().map((edit, index) => (
-                    <div key={index} className="bg-muted p-3 rounded-lg border border-border">
-                      <p className="text-sm text-foreground">{edit.prompt}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(edit.timestamp).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
         )}
 
