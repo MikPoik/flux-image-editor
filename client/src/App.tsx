@@ -24,7 +24,7 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route component={Landing} />
+          <Route path="*" component={Landing} />
         </>
       ) : (
         <>
@@ -32,7 +32,7 @@ function Router() {
           <Route path="/image-editor" component={ImageEditor} />
           <Route path="/gallery" component={Gallery} />
           <Route path="/subscription" component={Subscription} />
-          <Route component={NotFound} />
+          <Route path="*" component={NotFound} />
         </>
       )}
     </Switch>
