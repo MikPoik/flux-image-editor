@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export function useImageEditor() {
   const [currentImageId, setCurrentImageId] = useState<number | null>(null);
-  
+
   // Check URL parameters for existing image ID
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -189,10 +189,34 @@ export function useImageEditor() {
   }, [queryClient]);
 
   // Download handler (now uses upscaling)
-  const handleDownload = useCallback((scale: number = 2) => {
-    if (!currentImageId) return;
-    upscaleMutation.mutate({ imageId: currentImageId, scale });
-  }, [currentImageId, upscaleMutation]);
+  const handleDownload = async (scale: number = 2) => {
+    if (!imageData?.id) return;
+
+    try {
+      await upscaleMutation.mutateAsync({
+        imageId: imageData.id,
+        scale,
+      });
+    } catch (error: any) {
+      console.error('Download failed:', error);
+
+      // Handle subscription tier restrictions
+      if (error.message?.includes('not available on the free plan') || 
+          error.message?.includes('only available for premium users')) {
+        toast({
+          title: "Upgrade Required",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Download Failed",
+          description: error instanceof Error ? error.message : "Failed to process download",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   // Upscale handler
   const handleUpscale = useCallback((scale: number) => {

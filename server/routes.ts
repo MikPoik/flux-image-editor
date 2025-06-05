@@ -355,14 +355,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upscale image using ESRGAN
+  // Upscale image using ESRGAN or Aura-SR based on subscription tier
   app.post("/api/images/:id/upscale", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { scale = 2 } = req.body;
       const userId = req.user.claims.sub;
 
-      // Validate scale parameter
+      // Get user to check subscription tier
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check subscription tier restrictions
+      if (user.subscriptionTier === 'free') {
+        return res.status(403).json({ 
+          message: "Upscaling is not available on the free plan. Please upgrade to access this feature.",
+          requiresUpgrade: true
+        });
+      }
+
+      // Validate scale parameter based on subscription tier
+      if (user.subscriptionTier === 'basic' && scale !== 2) {
+        return res.status(403).json({ 
+          message: "4x upscaling is only available for premium users. Basic users can use 2x upscaling.",
+          requiresUpgrade: true
+        });
+      }
+
       if (![2, 4].includes(scale)) {
         return res.status(400).json({ message: "Scale must be 2 or 4" });
       }
@@ -378,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
-      console.log(`Starting upscale for image ${id} with scale ${scale}x`);
+      console.log(`Starting upscale for image ${id} with scale ${scale}x for ${user.subscriptionTier} user`);
       console.log(`Image currentUrl: ${image.currentUrl}`);
       console.log(`Image originalUrl: ${image.originalUrl}`);
 
@@ -422,20 +443,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const falImageUrl = await fal.storage.upload(file);
       console.log("Image uploaded to FAL storage for upscaling");
 
-      // Call FAL AI ESRGAN endpoint with the uploaded URL
-      const result = await fal.subscribe("fal-ai/esrgan", {
-        input: {
-          image_url: falImageUrl,
-          model: "RealESRGAN_x4plus",
-          scale: scale
-        },
-        logs: true,
-        onQueueUpdate: (update) => {
-          if (update.status === "IN_PROGRESS") {
-            update.logs?.map((log) => log.message).forEach(console.log);
-          }
-        },
-      });
+      let result;
+
+      // Use different upscaling models based on scale and subscription tier
+      if (scale === 4 && user.subscriptionTier === 'premium') {
+        // Premium users get Aura-SR for 4x upscaling
+        console.log("Using Aura-SR for 4x upscaling (premium user)");
+        result = await fal.subscribe("fal-ai/aura-sr", {
+          input: {
+            image_url: falImageUrl
+          },
+          logs: true,
+          onQueueUpdate: (update) => {
+            if (update.status === "IN_PROGRESS") {
+              update.logs?.map((log) => log.message).forEach(console.log);
+            }
+          },
+        });
+      } else {
+        // Basic and premium users get ESRGAN for 2x upscaling
+        console.log(`Using ESRGAN for ${scale}x upscaling`);
+        result = await fal.subscribe("fal-ai/esrgan", {
+          input: {
+            image_url: falImageUrl,
+            model: "RealESRGAN_x4plus",
+            scale: scale
+          },
+          logs: true,
+          onQueueUpdate: (update) => {
+            if (update.status === "IN_PROGRESS") {
+              update.logs?.map((log) => log.message).forEach(console.log);
+            }
+          },
+        });
+      }
 
       if (!result.data?.image?.url) {
         throw new Error("No upscaled image returned from FAL AI");

@@ -345,7 +345,7 @@ export function ImageDisplay({
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => {
                 // Download current image without upscaling
                 const link = document.createElement('a');
@@ -360,9 +360,11 @@ export function ImageDisplay({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDownload(2)}>
                 Download 2x Enhanced
+                <span className="text-xs text-muted-foreground ml-1">(Basic+)</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDownload(4)}>
                 Download 4x Enhanced
+                <span className="text-xs text-muted-foreground ml-1">(Premium)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
