@@ -131,6 +131,27 @@ export default function Subscription() {
     },
   });
 
+  const resumeSubscriptionMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/resume-subscription");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Subscription Resumed",
+        description: "Your subscription has been resumed and will continue.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Resume Failed",
+        description: "Failed to resume subscription. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const plans = [
     {
       id: "basic",
@@ -203,9 +224,19 @@ export default function Subscription() {
                     {subscription.hasActiveSubscription ? "Active" : "Free"}
                   </Badge>
                   {subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
-                    <Badge variant="destructive" className="text-xs">
-                      Cancels on {new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge variant="destructive" className="text-xs">
+                        Cancels on {new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => resumeSubscriptionMutation.mutate()}
+                        disabled={resumeSubscriptionMutation.isPending}
+                      >
+                        {resumeSubscriptionMutation.isPending ? "Resuming..." : "Resume"}
+                      </Button>
+                    </div>
                   )}
                   {subscription.hasActiveSubscription && !subscription.cancelAtPeriodEnd && (
                     <Button

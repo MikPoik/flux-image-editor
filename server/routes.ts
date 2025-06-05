@@ -640,6 +640,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Resume subscription
+  app.post('/api/resume-subscription', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user || !user.stripeSubscriptionId) {
+        return res.status(400).json({ message: "No active subscription found" });
+      }
+
+      // Get current subscription status first
+      const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+      
+      if (subscription.status === 'canceled') {
+        return res.status(400).json({ message: "Subscription is already canceled and cannot be resumed" });
+      }
+      
+      if (!subscription.cancel_at_period_end) {
+        return res.status(400).json({ message: "Subscription is not scheduled for cancellation" });
+      }
+
+      // Resume subscription by removing cancellation
+      await stripe.subscriptions.update(user.stripeSubscriptionId, {
+        cancel_at_period_end: false,
+      });
+
+      res.json({ message: "Subscription has been resumed successfully" });
+    } catch (error: any) {
+      console.error('Resume subscription error:', error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Add route to handle successful checkout session
   app.get('/api/checkout-session/:sessionId', isAuthenticated, async (req: any, res) => {
     try {
