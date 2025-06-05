@@ -143,8 +143,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageInput = image.currentUrl;
       }
 
+      // Determine which model to use based on subscription tier
+      const modelEndpoint = user.subscriptionTier === 'premium' 
+        ? "fal-ai/flux-pro/kontext/max"
+        : "fal-ai/flux-pro/kontext";
+
+      console.log(`Using model: ${modelEndpoint} for user tier: ${user.subscriptionTier}`);
+
       // Call Flux AI API
-      const result = await fal.subscribe("fal-ai/flux-pro/kontext", {
+      const result = await fal.subscribe(modelEndpoint, {
         input: {
           prompt: prompt,
           image_url: imageInput,

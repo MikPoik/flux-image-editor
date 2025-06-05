@@ -152,14 +152,21 @@ export default function ImageEditor() {
 
         {/* Feature Highlights */}
         <div className="bg-card rounded-xl p-6 border border-border">
-          <h2 className="text-lg font-semibold mb-4">Powered by Flux.ai Kontext</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            Powered by Flux.ai Kontext{subscription?.subscriptionTier === 'premium' ? ' Max' : ' Pro'}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4">
               <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Wand2 className="w-6 h-6 text-blue-400" />
               </div>
               <h3 className="font-medium text-foreground mb-2">AI-Powered</h3>
-              <p className="text-sm text-muted-foreground">State-of-the-art image editing using advanced AI models</p>
+              <p className="text-sm text-muted-foreground">
+                {subscription?.subscriptionTier === 'premium' 
+                  ? 'Highest quality image editing with Kontext Max model' 
+                  : 'State-of-the-art image editing using advanced AI models'
+                }
+              </p>
             </div>
             <div className="text-center p-4">
               <div className="w-12 h-12 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-3">
