@@ -17,7 +17,7 @@ interface SubscriptionInfo {
 
 
 
-const SubscriptionCheckout = ({ priceId, onSuccess }: { priceId: string; onSuccess: () => void }) => {
+const SubscriptionCheckout = ({ priceId }: { priceId: string }) => {
   const createSubscriptionMutation = useMutation({
     mutationFn: async (priceId: string) => {
       const response = await apiRequest("POST", "/api/create-subscription", { priceId });
@@ -45,7 +45,7 @@ const SubscriptionCheckout = ({ priceId, onSuccess }: { priceId: string; onSucce
         disabled={createSubscriptionMutation.isPending}
         className="w-full"
       >
-        {createSubscriptionMutation.isPending ? "Setting up..." : "Subscribe Now"}
+        {createSubscriptionMutation.isPending ? "Setting up..." : `Subscribe to ${priceId === import.meta.env.VITE_STRIPE_PRICE_10 ? 'Premium' : 'Basic'} Plan`}
       </Button>
     </div>
   );
@@ -54,7 +54,7 @@ const SubscriptionCheckout = ({ priceId, onSuccess }: { priceId: string; onSucce
 export default function Subscription() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  
 
   const { data: subscription, isLoading } = useQuery<SubscriptionInfo>({
     queryKey: ["/api/subscription"],
@@ -152,14 +152,7 @@ export default function Subscription() {
     },
   ];
 
-  const handleSubscriptionSuccess = () => {
-    setSelectedPlan(null);
-    queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
-    toast({
-      title: "Subscription Successful",
-      description: "Welcome to your new plan! You can now enjoy additional edits.",
-    });
-  };
+  
 
   if (isLoading) {
     return (
@@ -288,19 +281,9 @@ export default function Subscription() {
               </ul>
               {subscription?.subscriptionTier !== plan.id && (
                 <div className="pt-4">
-                  {selectedPlan === plan.id ? (
-                    <SubscriptionCheckout 
-                      priceId={plan.priceId} 
-                      onSuccess={handleSubscriptionSuccess}
-                    />
-                  ) : (
-                    <Button 
-                      className="w-full" 
-                      onClick={() => setSelectedPlan(plan.id)}
-                    >
-                      Subscribe to {plan.name}
-                    </Button>
-                  )}
+                  <SubscriptionCheckout 
+                    priceId={plan.priceId}
+                  />
                 </div>
               )}
             </CardContent>
