@@ -38,55 +38,6 @@ export default function ImageEditor() {
       <Navigation />
 
       <main className="max-w-4xl mx-auto p-4 space-y-6">
-        {/* Subscription Status */}
-        {subscription && (
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg">
-                    {subscription.subscriptionTier === 'premium' && <Crown className="h-5 w-5 text-yellow-500" />}
-                    {subscription.subscriptionTier === 'basic' && <Wand2 className="h-5 w-5 text-blue-500" />}
-                    {subscription.subscriptionTier !== 'free' ? `${subscription.subscriptionTier} Plan` : 'Free Plan'}
-                  </CardTitle>
-                  <Badge variant={subscription.hasActiveSubscription ? "default" : "secondary"}>
-                    {subscription.hasActiveSubscription ? "Active" : "Free"}
-                  </Badge>
-                </div>
-                {!subscription.hasActiveSubscription && (
-                  <Link href="/subscription">
-                    <Button size="sm">
-                      Upgrade
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {subscription.editCount} / {subscription.editLimit} edits used this month
-                  </p>
-                  <div className="w-full bg-secondary rounded-full h-2 mt-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all ${
-                        isAtLimit ? 'bg-destructive' : 
-                        remainingEdits <= 3 ? 'bg-yellow-500' : 'bg-primary'
-                      }`}
-                      style={{ width: `${Math.min((subscription.editCount / subscription.editLimit) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold">
-                    {remainingEdits} left
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Edit Limit Warning */}
         {isAtLimit && (
@@ -166,6 +117,56 @@ export default function ImageEditor() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Subscription Status */}
+        {subscription && (
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">
+                    {subscription.subscriptionTier === 'premium' && <Crown className="h-5 w-5 text-yellow-500" />}
+                    {subscription.subscriptionTier === 'basic' && <Wand2 className="h-5 w-5 text-blue-500" />}
+                    {subscription.subscriptionTier !== 'free' ? `${subscription.subscriptionTier} Plan` : 'Free Plan'}
+                  </CardTitle>
+                  <Badge variant={subscription.hasActiveSubscription ? "default" : "secondary"}>
+                    {subscription.hasActiveSubscription ? "Active" : "Free"}
+                  </Badge>
+                </div>
+                {!subscription.hasActiveSubscription && (
+                  <Link href="/subscription">
+                    <Button size="sm">
+                      Upgrade
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {subscription.editCount} / {subscription.editLimit} edits used this month
+                  </p>
+                  <div className="w-full bg-secondary rounded-full h-2 mt-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all ${
+                        isAtLimit ? 'bg-destructive' : 
+                        remainingEdits <= 3 ? 'bg-yellow-500' : 'bg-primary'
+                      }`}
+                      style={{ width: `${Math.min((subscription.editCount / subscription.editLimit) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold">
+                    {remainingEdits} left
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Feature Highlights */}
