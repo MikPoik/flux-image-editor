@@ -11,6 +11,9 @@ export function useSubscription() {
   const { data: subscription, isLoading, error } = useQuery<SubscriptionInfo>({
     queryKey: ["/api/subscription"],
     retry: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchIntervalInBackground: false,
   });
 
   return {

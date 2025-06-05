@@ -68,11 +68,23 @@ export default function Subscription() {
     const sessionId = urlParams.get('session_id');
 
     if (success === 'true') {
+      // Poll for subscription updates since webhook processing might be delayed
+      const pollForUpdates = async () => {
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          await queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+          const currentData = queryClient.getQueryData(["/api/subscription"]) as SubscriptionInfo | undefined;
+          if (currentData?.hasActiveSubscription) {
+            break; // Stop polling once subscription is active
+          }
+        }
+      };
+      
       toast({
         title: "Subscription Successful!",
         description: "Your subscription has been activated.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+      pollForUpdates();
       // Clean up URL
       window.history.replaceState({}, document.title, "/subscription");
     } else if (canceled === 'true') {
@@ -85,6 +97,16 @@ export default function Subscription() {
       window.history.replaceState({}, document.title, "/subscription");
     }
   }, [toast, queryClient]);
+
+  // Invalidate subscription cache when page gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [queryClient]);
 
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async () => {
