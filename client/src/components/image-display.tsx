@@ -308,7 +308,7 @@ export function ImageDisplay({
               variant="ghost"
               onClick={handleZoomReset}
               disabled={zoom === 1}
-              className="h-8 px-2 text-xs text-gray-700 hover:bg-gray-100"
+              className="h-8 px-2 text-xs text-gray-700 hover:bg-gray-100 hidden sm:inline-flex"
             >
               {Math.round(zoom * 100)}%
             </Button>
