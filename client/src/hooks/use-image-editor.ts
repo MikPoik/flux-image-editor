@@ -11,7 +11,9 @@ export function useImageEditor() {
     const urlParams = new URLSearchParams(window.location.search);
     const imageId = urlParams.get('id');
     if (imageId && !isNaN(Number(imageId))) {
-      setCurrentImageId(Number(imageId));
+      const id = Number(imageId);
+      setCurrentImageId(id);
+      console.log('Loading image with ID:', id);
     }
   }, []);
   const [isUploading, setIsUploading] = useState(false);
@@ -19,11 +21,28 @@ export function useImageEditor() {
   const { toast } = useToast();
 
   // Get current image data
-  const { data: imageData, isLoading: isLoadingImage } = useQuery({
+  const { data: imageData, isLoading: isLoadingImage, error } = useQuery({
     queryKey: ['/api/images', currentImageId],
-    queryFn: () => currentImageId ? getImage(currentImageId) : null,
+    queryFn: () => {
+      if (!currentImageId) return null;
+      console.log('Fetching image data for ID:', currentImageId);
+      return getImage(currentImageId);
+    },
     enabled: !!currentImageId,
+    retry: 3,
   });
+
+  // Log any errors for debugging
+  useEffect(() => {
+    if (error) {
+      console.error('Error loading image:', error);
+      toast({
+        title: "Error Loading Image",
+        description: "Failed to load the image. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
 
   // Upload mutation
   const uploadMutation = useMutation({
