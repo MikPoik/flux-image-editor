@@ -91,6 +91,24 @@ export class ObjectStorageService {
   }
 
   /**
+   * Auto-rotate image based on EXIF orientation data
+   */
+  async autoRotateImage(imageBuffer: Buffer): Promise<Buffer> {
+    try {
+      // Sharp automatically rotates based on EXIF orientation data
+      const rotatedBuffer = await sharp(imageBuffer)
+        .rotate() // This applies EXIF rotation automatically
+        .jpeg({ quality: 95 }) // High quality to preserve image fidelity
+        .toBuffer();
+      
+      return rotatedBuffer;
+    } catch (error) {
+      console.error("Error auto-rotating image:", error);
+      return imageBuffer; // Return original if rotation fails
+    }
+  }
+
+  /**
    * Optimize image with specified dimensions and quality
    */
   async optimizeImage(

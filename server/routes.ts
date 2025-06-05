@@ -53,8 +53,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.claims.sub;
 
+      // Auto-rotate image based on EXIF orientation data to preserve correct orientation
+      const orientedImageBuffer = await objectStorage.autoRotateImage(req.file.buffer);
+
       // Upload image to Flux storage first for processing
-      const file = new File([req.file.buffer], req.file.originalname, {
+      const file = new File([orientedImageBuffer], req.file.originalname, {
         type: req.file.mimetype,
       });
 
