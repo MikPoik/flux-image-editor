@@ -53,6 +53,7 @@ export function ImageDisplay({
   isUpscaling,
 }: ImageDisplayProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [showOverlayControls, setShowOverlayControls] = useState(true);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -291,82 +292,96 @@ export function ImageDisplay({
           draggable={false}
         />
 
-        {/* Image Controls Overlay */}
-        <div className="absolute top-3 right-3 flex space-x-2">
-          <div className="flex space-x-1 bg-white/90 backdrop-blur-sm rounded-md p-1 hidden sm:flex">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleZoomOut}
-              disabled={zoom <= 0.25}
-              className="h-8 w-8 p-0 text-gray-700 hover:bg-gray-100"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleZoomReset}
-              disabled={zoom === 1}
-              className="h-8 px-2 text-xs text-gray-700 hover:bg-gray-100"
-            >
-              {Math.round(zoom * 100)}%
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleZoomIn}
-              disabled={zoom >= 3}
-              className="h-8 w-8 p-0 text-gray-700 hover:bg-gray-100"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-          </div>
+        {/* Controls Toggle Button (Mobile) */}
+        <div className="absolute top-3 left-3 sm:hidden">
           <Button
             size="sm"
             variant="secondary"
-            onClick={onReset}
-            disabled={isProcessing || isResetting}
+            onClick={() => setShowOverlayControls(!showOverlayControls)}
             className="bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white"
           >
-            <RotateCcw className="w-4 h-4" />
+            {showOverlayControls ? '✕' : '⚙'}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+        </div>
+
+        {/* Image Controls Overlay */}
+        {showOverlayControls && (
+          <div className="absolute top-3 right-3 flex space-x-2">
+            <div className="flex space-x-1 bg-white/90 backdrop-blur-sm rounded-md p-1 hidden sm:flex">
               <Button
                 size="sm"
-                variant="secondary"
-                disabled={isProcessing || isUpscaling}
-                className="bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white"
+                variant="ghost"
+                onClick={handleZoomOut}
+                disabled={zoom <= 0.25}
+                className="h-8 w-8 p-0 text-gray-700 hover:bg-gray-100"
               >
-                <Download className="w-4 h-4" />
-                {isUpscaling && (
-                  <div className="ml-1 animate-spin w-3 h-3 border-2 border-gray-400/30 border-t-gray-400 rounded-full"></div>
-                )}
+                <ZoomOut className="w-4 h-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => {
-                // Download current image without upscaling
-                const link = document.createElement('a');
-                link.href = imageUrl;
-                link.download = `flux-original-${Date.now()}.png`;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}>
-                Download Original
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDownload(2)}>
-                Download 2x Enhanced
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDownload(4)}>
-                Download 4x Enhanced
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleZoomReset}
+                disabled={zoom === 1}
+                className="h-8 px-2 text-xs text-gray-700 hover:bg-gray-100"
+              >
+                {Math.round(zoom * 100)}%
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleZoomIn}
+                disabled={zoom >= 3}
+                className="h-8 w-8 p-0 text-gray-700 hover:bg-gray-100"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={onReset}
+              disabled={isProcessing || isResetting}
+              className="bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={isProcessing || isUpscaling}
+                  className="bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white"
+                >
+                  <Download className="w-4 h-4" />
+                  {isUpscaling && (
+                    <div className="ml-1 animate-spin w-3 h-3 border-2 border-gray-400/30 border-t-gray-400 rounded-full"></div>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => {
+                  // Download current image without upscaling
+                  const link = document.createElement('a');
+                  link.href = imageUrl;
+                  link.download = `flux-original-${Date.now()}.png`;
+                  link.target = '_blank';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}>
+                  Download Original
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDownload(2)}>
+                  Download 2x Enhanced
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDownload(4)}>
+                  Download 4x Enhanced
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
 
         {/* Loading Overlay */}
         {isProcessing && (
