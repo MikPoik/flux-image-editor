@@ -91,6 +91,30 @@ export class ObjectStorageService {
   }
 
   /**
+   * Detect image orientation and return orientation info
+   */
+  async getImageOrientation(imageBuffer: Buffer): Promise<{ orientation?: number; needsRotation: boolean }> {
+    try {
+      const metadata = await sharp(imageBuffer).metadata();
+      console.log("Original image metadata:", { 
+        format: metadata.format, 
+        orientation: metadata.orientation,
+        width: metadata.width,
+        height: metadata.height 
+      });
+
+      const needsRotation = metadata.orientation && metadata.orientation > 1;
+      return {
+        orientation: metadata.orientation,
+        needsRotation: Boolean(needsRotation)
+      };
+    } catch (error) {
+      console.error("Error getting image orientation:", error);
+      return { needsRotation: false };
+    }
+  }
+
+  /**
    * Auto-rotate image based on EXIF orientation data
    */
   async autoRotateImage(imageBuffer: Buffer): Promise<Buffer> {
@@ -138,6 +162,61 @@ export class ObjectStorageService {
     } catch (error) {
       console.error("Error auto-rotating image:", error);
       return imageBuffer; // Return original if rotation fails
+    }
+  }
+
+  /**
+   * Apply rotation correction to FAL-processed image
+   */
+  async correctFalImageOrientation(imageBuffer: Buffer, originalOrientation?: number): Promise<Buffer> {
+    try {
+      // If no original orientation info, return as-is
+      if (!originalOrientation || originalOrientation <= 1) {
+        console.log("No orientation correction needed");
+        return imageBuffer;
+      }
+
+      console.log("Applying orientation correction to FAL-processed image, original orientation:", originalOrientation);
+
+      let sharpInstance = sharp(imageBuffer);
+
+      // Apply specific rotation based on original EXIF orientation
+      switch (originalOrientation) {
+        case 2:
+          sharpInstance = sharpInstance.flop(); // horizontal flip
+          break;
+        case 3:
+          sharpInstance = sharpInstance.rotate(180);
+          break;
+        case 4:
+          sharpInstance = sharpInstance.flip(); // vertical flip
+          break;
+        case 5:
+          sharpInstance = sharpInstance.flip().rotate(90);
+          break;
+        case 6:
+          sharpInstance = sharpInstance.rotate(90);
+          break;
+        case 7:
+          sharpInstance = sharpInstance.flop().rotate(90);
+          break;
+        case 8:
+          sharpInstance = sharpInstance.rotate(270);
+          break;
+        default:
+          console.log("Unknown orientation value:", originalOrientation);
+          return imageBuffer;
+      }
+
+      const correctedBuffer = await sharpInstance
+        .jpeg({ quality: 98, mozjpeg: true })
+        .toBuffer();
+      
+      console.log("FAL image orientation correction completed");
+      return correctedBuffer;
+    } catch (error) {
+      console.error("Error correcting FAL image orientation:", error);
+      return imageBuffer; // Return original if correction fails
     }
   }
 

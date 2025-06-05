@@ -53,22 +53,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.claims.sub;
 
-      // Auto-rotate image based on EXIF orientation data to preserve correct orientation
-      const orientedImageBuffer = await objectStorage.autoRotateImage(req.file.buffer);
+      // Detect original orientation before sending to FAL
+      const orientationInfo = await objectStorage.getImageOrientation(req.file.buffer);
+      console.log("Detected orientation info:", orientationInfo);
 
-      // Upload image to Flux storage first for processing
-      const file = new File([orientedImageBuffer], req.file.originalname, {
+      // Upload original image to Flux storage WITHOUT rotation (let FAL process it)
+      const file = new File([req.file.buffer], req.file.originalname, {
         type: req.file.mimetype,
       });
 
       const uploadedUrl = await fal.storage.upload(file);
+      console.log("Image uploaded to FAL for processing");
 
-      // Download the FAL-processed image and save to permanent storage
-      // FAL optimizes the image for size and format
-      const permanentUrl = await objectStorage.uploadImageFromUrl(
+      // Download the FAL-processed image
+      const falResponse = await fetch(uploadedUrl);
+      if (!falResponse.ok) {
+        throw new Error("Failed to download FAL-processed image");
+      }
+      
+      const falImageBuffer = Buffer.from(await falResponse.arrayBuffer());
+      console.log("Downloaded FAL-processed image");
+
+      // Apply orientation correction to the FAL-processed image if needed
+      const correctedImageBuffer = await objectStorage.correctFalImageOrientation(
+        falImageBuffer, 
+        orientationInfo.orientation
+      );
+
+      // Upload corrected image to permanent storage
+      const permanentUrl = await objectStorage.uploadImage(
         userId,
-        uploadedUrl,
-        req.file.originalname
+        correctedImageBuffer,
+        req.file.originalname,
+        req.file.mimetype
       );
 
       // Create image record with both URLs
