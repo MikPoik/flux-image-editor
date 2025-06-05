@@ -516,15 +516,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User email not found" });
       }
 
-      // If user already has an active subscription, return error
+      // Check if user has an existing subscription for upgrade handling
+      let isUpgrade = false;
       if (user.stripeSubscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-        
         if (subscription.status === 'active') {
-          return res.status(400).json({ 
-            message: "User already has an active subscription",
-            subscriptionId: subscription.id 
-          });
+          isUpgrade = true;
         }
       }
 
@@ -555,6 +552,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: {
           userId: userId,
           priceId: priceId,
+          isUpgrade: isUpgrade.toString(),
+          existingSubscriptionId: user.stripeSubscriptionId || '',
         },
       });
 
@@ -664,13 +663,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (session.mode === 'subscription' && session.subscription) {
           try {
-            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
             const userId = session.metadata?.userId;
             const priceId = session.metadata?.priceId;
+            const isUpgrade = session.metadata?.isUpgrade === 'true';
+            const existingSubscriptionId = session.metadata?.existingSubscriptionId;
             
             if (userId && priceId) {
+              let finalSubscriptionId = session.subscription as string;
+              
+              // Handle subscription upgrade
+              if (isUpgrade && existingSubscriptionId) {
+                try {
+                  const existingSubscription = await stripe.subscriptions.retrieve(existingSubscriptionId);
+                  
+                  if (existingSubscription.status === 'active' && existingSubscription.items.data.length > 0) {
+                    // Update existing subscription with new price
+                    const updatedSubscription = await stripe.subscriptions.update(existingSubscriptionId, {
+                      items: [
+                        {
+                          id: existingSubscription.items.data[0].id,
+                          deleted: true,
+                        },
+                        {
+                          price: priceId,
+                        },
+                      ],
+                      proration_behavior: 'always_invoice',
+                    });
+                    
+                    // Cancel the new subscription created by checkout since we updated the existing one
+                    await stripe.subscriptions.cancel(session.subscription as string);
+                    
+                    finalSubscriptionId = existingSubscriptionId;
+                    console.log('Subscription upgraded:', existingSubscriptionId);
+                  }
+                } catch (upgradeError) {
+                  console.error('Subscription upgrade failed, using new subscription:', upgradeError);
+                  // If upgrade fails, we'll use the new subscription created by checkout
+                }
+              }
+              
               // Update user with subscription info
-              await storage.updateUserStripeInfo(userId, session.customer as string, subscription.id);
+              await storage.updateUserStripeInfo(userId, session.customer as string, finalSubscriptionId);
               
               // Determine subscription tier and edit limit based on price
               let tier = 'basic';
