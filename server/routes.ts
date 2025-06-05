@@ -602,6 +602,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No active subscription found" });
       }
 
+      // Get current subscription status first
+      const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+      
+      if (subscription.status === 'canceled') {
+        return res.status(400).json({ message: "Subscription is already canceled" });
+      }
+      
+      if (subscription.cancel_at_period_end) {
+        return res.status(400).json({ message: "Subscription is already scheduled for cancellation" });
+      }
+
       // Cancel subscription at period end
       await stripe.subscriptions.update(user.stripeSubscriptionId, {
         cancel_at_period_end: true,
