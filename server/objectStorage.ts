@@ -95,12 +95,45 @@ export class ObjectStorageService {
    */
   async autoRotateImage(imageBuffer: Buffer): Promise<Buffer> {
     try {
-      // Sharp automatically rotates based on EXIF orientation data
-      const rotatedBuffer = await sharp(imageBuffer)
-        .rotate() // This applies EXIF rotation automatically
-        .jpeg({ quality: 95 }) // High quality to preserve image fidelity
-        .toBuffer();
+      // Get image metadata to determine format
+      const metadata = await sharp(imageBuffer).metadata();
+      console.log("Image metadata:", { 
+        format: metadata.format, 
+        orientation: metadata.orientation,
+        width: metadata.width,
+        height: metadata.height 
+      });
+
+      let sharpInstance = sharp(imageBuffer);
+
+      // Only rotate if there's an orientation that needs correction
+      if (metadata.orientation && metadata.orientation > 1) {
+        console.log("Applying EXIF rotation for orientation:", metadata.orientation);
+        sharpInstance = sharpInstance.rotate(); // This applies EXIF rotation automatically
+      }
+
+      // Preserve original format and quality
+      let rotatedBuffer: Buffer;
+      if (metadata.format === 'jpeg') {
+        rotatedBuffer = await sharpInstance
+          .jpeg({ quality: 98, mozjpeg: true })
+          .toBuffer();
+      } else if (metadata.format === 'png') {
+        rotatedBuffer = await sharpInstance
+          .png({ quality: 95, compressionLevel: 6 })
+          .toBuffer();
+      } else if (metadata.format === 'webp') {
+        rotatedBuffer = await sharpInstance
+          .webp({ quality: 95 })
+          .toBuffer();
+      } else {
+        // Default to high-quality JPEG for other formats
+        rotatedBuffer = await sharpInstance
+          .jpeg({ quality: 98, mozjpeg: true })
+          .toBuffer();
+      }
       
+      console.log("Image auto-rotation completed successfully");
       return rotatedBuffer;
     } catch (error) {
       console.error("Error auto-rotating image:", error);
