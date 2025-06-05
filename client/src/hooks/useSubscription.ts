@@ -5,6 +5,8 @@ interface SubscriptionInfo {
   editCount: number;
   editLimit: number;
   hasActiveSubscription: boolean;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: number | null;
 }
 
 export function useSubscription() {

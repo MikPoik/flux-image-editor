@@ -579,11 +579,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      let cancelAtPeriodEnd = false;
+      let currentPeriodEnd = null;
+
+      // If user has a subscription, check its cancellation status
+      if (user.stripeSubscriptionId) {
+        try {
+          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          cancelAtPeriodEnd = subscription.cancel_at_period_end;
+          currentPeriodEnd = subscription.current_period_end;
+        } catch (error) {
+          console.error('Error retrieving subscription:', error);
+        }
+      }
+
       res.json({
         subscriptionTier: user.subscriptionTier || 'free',
         editCount: user.editCount || 0,
         editLimit: user.editLimit || 10,
         hasActiveSubscription: !!user.stripeSubscriptionId,
+        cancelAtPeriodEnd,
+        currentPeriodEnd,
       });
     } catch (error) {
       console.error('Get subscription error:', error);

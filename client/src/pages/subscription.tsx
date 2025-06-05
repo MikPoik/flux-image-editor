@@ -13,6 +13,8 @@ interface SubscriptionInfo {
   editCount: number;
   editLimit: number;
   hasActiveSubscription: boolean;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: number | null;
 }
 
 
@@ -196,20 +198,26 @@ export default function Subscription() {
                 </p>
               </div>
               <div className="text-right">
-                <Badge variant={subscription.hasActiveSubscription ? "default" : "secondary"}>
-                  {subscription.hasActiveSubscription ? "Active" : "Free"}
-                </Badge>
-                {subscription.hasActiveSubscription && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-2"
-                    onClick={() => cancelSubscriptionMutation.mutate()}
-                    disabled={cancelSubscriptionMutation.isPending}
-                  >
-                    {cancelSubscriptionMutation.isPending ? "Canceling..." : "Cancel"}
-                  </Button>
-                )}
+                <div className="flex flex-col items-end gap-2">
+                  <Badge variant={subscription.hasActiveSubscription ? "default" : "secondary"}>
+                    {subscription.hasActiveSubscription ? "Active" : "Free"}
+                  </Badge>
+                  {subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
+                    <Badge variant="destructive" className="text-xs">
+                      Cancels on {new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}
+                    </Badge>
+                  )}
+                  {subscription.hasActiveSubscription && !subscription.cancelAtPeriodEnd && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => cancelSubscriptionMutation.mutate()}
+                      disabled={cancelSubscriptionMutation.isPending}
+                    >
+                      {cancelSubscriptionMutation.isPending ? "Canceling..." : "Cancel"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
