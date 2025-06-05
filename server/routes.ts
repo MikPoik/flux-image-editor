@@ -587,15 +587,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.stripeSubscriptionId) {
         try {
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-          cancelAtPeriodEnd = subscription.cancel_at_period_end;
-          currentPeriodEnd = subscription.current_period_end;
-          hasActiveSubscription = subscription.status === 'active';
+          const subData = subscription as any; // Cast to access all properties
+          cancelAtPeriodEnd = subData.cancel_at_period_end || false;
+          currentPeriodEnd = subData.current_period_end || null;
+          hasActiveSubscription = subData.status === 'active';
           
           console.log(`Subscription status for user ${userId}:`, {
-            id: subscription.id,
-            status: subscription.status,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
-            currentPeriodEnd: subscription.current_period_end
+            id: subData.id,
+            status: subData.status,
+            cancelAtPeriodEnd: subData.cancel_at_period_end,
+            currentPeriodEnd: subData.current_period_end
           });
         } catch (error) {
           console.error('Error retrieving subscription:', error);

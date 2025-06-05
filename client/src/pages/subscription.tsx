@@ -223,10 +223,13 @@ export default function Subscription() {
                   <Badge variant={subscription.hasActiveSubscription ? "default" : "secondary"}>
                     {subscription.hasActiveSubscription ? "Active" : "Free"}
                   </Badge>
-                  {subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
+                  {subscription.cancelAtPeriodEnd && (
                     <div className="flex flex-col items-end gap-2">
                       <Badge variant="destructive" className="text-xs">
-                        Cancels on {new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}
+                        {subscription.currentPeriodEnd 
+                          ? `Cancels on ${new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}`
+                          : "Scheduled for cancellation"
+                        }
                       </Badge>
                       <Button
                         variant="outline"
