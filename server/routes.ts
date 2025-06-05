@@ -121,19 +121,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get the current image data and prepare for editing
       let imageInput: string;
-      
+
       if (image.currentUrl.startsWith('/api/storage/')) {
         // Current image is in our storage, convert to base64 data URI
         const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
         if (!imageKey) {
           throw new Error("Invalid storage URL format");
         }
-        
+
         const imageBuffer = await objectStorage.getImageData(imageKey);
         if (!imageBuffer) {
           throw new Error("Could not retrieve image data for editing");
         }
-        
+
         // Convert to base64 data URI for subsequent edits (more efficient)
         const base64Data = imageBuffer.toString('base64');
         imageInput = `data:image/png;base64,${base64Data}`;
@@ -503,9 +503,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { priceId } = req.body;
       const userId = req.user.claims.sub;
-      
+
       console.log('Create subscription request:', { priceId, userId });
-      
+
       if (!priceId) {
         return res.status(400).json({ message: "Price ID is required" });
       }
@@ -591,7 +591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cancelAtPeriodEnd = subData.cancel_at_period_end || false;
           currentPeriodEnd = subData.current_period_end || null;
           hasActiveSubscription = subData.status === 'active';
-          
+
           console.log(`Subscription status for user ${userId}:`, {
             id: subData.id,
             status: subData.status,
@@ -635,11 +635,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current subscription status first
       const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-      
+
       if (subscription.status === 'canceled') {
         return res.status(400).json({ message: "Subscription is already canceled" });
       }
-      
+
       if (subscription.cancel_at_period_end) {
         return res.status(400).json({ message: "Subscription is already scheduled for cancellation" });
       }
@@ -668,11 +668,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current subscription status first
       const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-      
+
       if (subscription.status === 'canceled') {
         return res.status(400).json({ message: "Subscription is already canceled and cannot be resumed" });
       }
-      
+
       if (!subscription.cancel_at_period_end) {
         return res.status(400).json({ message: "Subscription is not scheduled for cancellation" });
       }
@@ -694,7 +694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      
+
       res.json({
         status: session.payment_status,
         subscriptionId: session.subscription,
@@ -725,54 +725,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
         console.log('Invoice payment succeeded:', invoice.id);
-        console.log('Invoice details:', {
-          subscription: invoice.subscription,
-          billing_reason: invoice.billing_reason,
-          amount_paid: invoice.amount_paid,
-          period_start: invoice.period_start,
-          period_end: invoice.period_end
-        });
-        
-        // Reset for subscription invoices (both subscription_cycle and subscription_create)
-        if (invoice.subscription && (invoice.billing_reason === 'subscription_cycle' || invoice.billing_reason === 'subscription_create')) {
+
+        // Reset edit count for any subscription-related payment
+        if (invoice.subscription) {
           try {
             const user = await storage.getUserBySubscriptionId(invoice.subscription as string);
             if (user) {
               await storage.resetUserEditCount(user.id);
-              console.log(`Edit count reset for user ${user.id} at billing period start (reason: ${invoice.billing_reason})`);
+              console.log(`Edit count reset for user ${user.id} on payment success`);
             } else {
               console.log(`No user found for subscription ${invoice.subscription}`);
             }
           } catch (error) {
-            console.error('Error resetting edit count for billing period:', error);
+            console.error('Error resetting edit count on payment:', error);
           }
-        } else {
-          console.log('Invoice not processed for edit count reset:', {
-            hasSubscription: !!invoice.subscription,
-            billingReason: invoice.billing_reason
-          });
         }
         break;
       }
       case 'checkout.session.completed': {
         const session = event.data.object;
         console.log('Checkout session completed:', session.id);
-        
+
         if (session.mode === 'subscription' && session.subscription) {
           try {
             const userId = session.metadata?.userId;
             const priceId = session.metadata?.priceId;
             const isUpgrade = session.metadata?.isUpgrade === 'true';
             const existingSubscriptionId = session.metadata?.existingSubscriptionId;
-            
+
             if (userId && priceId) {
               let finalSubscriptionId = session.subscription as string;
-              
+
               // Handle subscription upgrade
               if (isUpgrade && existingSubscriptionId) {
                 try {
                   const existingSubscription = await stripe.subscriptions.retrieve(existingSubscriptionId);
-                  
+
                   if (existingSubscription.status === 'active' && existingSubscription.items.data.length > 0) {
                     // Update existing subscription with new price
                     const updatedSubscription = await stripe.subscriptions.update(existingSubscriptionId, {
@@ -787,10 +775,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       ],
                       proration_behavior: 'always_invoice',
                     });
-                    
+
                     // Cancel the new subscription created by checkout since we updated the existing one
                     await stripe.subscriptions.cancel(session.subscription as string);
-                    
+
                     finalSubscriptionId = existingSubscriptionId;
                     console.log('Subscription upgraded:', existingSubscriptionId);
                   }
@@ -799,14 +787,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   // If upgrade fails, we'll use the new subscription created by checkout
                 }
               }
-              
+
               // Update user with subscription info
               await storage.updateUserStripeInfo(userId, session.customer as string, finalSubscriptionId);
-              
+
               // Determine subscription tier and edit limit based on price
               let tier = 'basic';
               let editLimit = 50;
-              
+
               // Map actual Stripe price IDs to subscription tiers
               if (priceId === process.env.VITE_STRIPE_PRICE_10) {
                 tier = 'premium';
@@ -815,11 +803,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 tier = 'basic';
                 editLimit = 50;
               }
-              
+
               // Update user subscription details and reset edit count
               await storage.updateUserSubscription(userId, tier, editLimit);
               await storage.resetUserEditCount(userId);
-              
+
               console.log(`Subscription activated for user ${userId}: ${tier} plan`);
             }
           } catch (error) {
@@ -831,7 +819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
         console.log('Subscription updated:', subscription.id, 'Status:', subscription.status);
-        
+
         // Handle subscription status changes (active, canceled, etc.)
         if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
           // Find user by subscription ID and downgrade to free
@@ -851,7 +839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
         console.log('Subscription deleted:', subscription.id);
-        
+
         // Find user by subscription ID and downgrade to free
         try {
           const users = await storage.getUserBySubscriptionId?.(subscription.id);
