@@ -581,6 +581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let cancelAtPeriodEnd = false;
       let currentPeriodEnd = null;
+      let hasActiveSubscription = false;
 
       // If user has a subscription, check its cancellation status
       if (user.stripeSubscriptionId) {
@@ -588,19 +589,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
           cancelAtPeriodEnd = subscription.cancel_at_period_end;
           currentPeriodEnd = subscription.current_period_end;
+          hasActiveSubscription = subscription.status === 'active';
+          
+          console.log(`Subscription status for user ${userId}:`, {
+            id: subscription.id,
+            status: subscription.status,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            currentPeriodEnd: subscription.current_period_end
+          });
         } catch (error) {
           console.error('Error retrieving subscription:', error);
+          // If subscription retrieval fails, user probably doesn't have an active subscription
+          hasActiveSubscription = false;
         }
       }
 
-      res.json({
+      const response = {
         subscriptionTier: user.subscriptionTier || 'free',
         editCount: user.editCount || 0,
         editLimit: user.editLimit || 10,
-        hasActiveSubscription: !!user.stripeSubscriptionId,
+        hasActiveSubscription,
         cancelAtPeriodEnd,
         currentPeriodEnd,
-      });
+      };
+
+      console.log(`Subscription info response for user ${userId}:`, response);
+
+      res.json(response);
     } catch (error) {
       console.error('Get subscription error:', error);
       res.status(500).json({ message: "Failed to get subscription info" });

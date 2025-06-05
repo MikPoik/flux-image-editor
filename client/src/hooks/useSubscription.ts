@@ -16,6 +16,8 @@ export function useSubscription() {
     refetchOnWindowFocus: true,
     refetchInterval: 5000, // Refetch every 5 seconds
     refetchIntervalInBackground: false,
+    staleTime: 0, // Always treat data as stale to ensure fresh fetches
+    gcTime: 0, // Don't cache data to ensure fresh fetches
   });
 
   return {
