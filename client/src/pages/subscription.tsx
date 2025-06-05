@@ -321,7 +321,8 @@ export default function Subscription() {
                   </li>
                 ))}
               </ul>
-              {subscription?.subscriptionTier !== plan.id && (
+              {subscription?.subscriptionTier !== plan.id && 
+               !(subscription?.subscriptionTier === 'premium' && plan.id === 'basic') && (
                 <div className="pt-4">
                   <SubscriptionCheckout 
                     priceId={plan.priceId}
