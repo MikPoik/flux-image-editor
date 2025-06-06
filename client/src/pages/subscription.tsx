@@ -284,7 +284,7 @@ export default function Subscription() {
     {
       id: "basic",
       name: "Basic Plan",
-      price: "$5",
+      price: "$4.99",
       period: "/month",
       edits: 50,
       features: ["50 image edits per month", "Kontext Pro AI model", "2X image upscale"],
@@ -304,7 +304,7 @@ export default function Subscription() {
     {
       id: "premium-plus",
       name: "Premium Plus Plan", 
-      price: "$10",
+      price: "$14.99",
       period: "/month",
       edits: 100,
       features: ["100 image edits per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
