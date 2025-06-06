@@ -346,15 +346,27 @@ export function ImageDisplay({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => {
-                // Download current image without upscaling
-                const link = document.createElement('a');
-                link.href = imageUrl;
-                link.download = `flux-original-${Date.now()}.png`;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+              <DropdownMenuItem onClick={async () => {
+                try {
+                  // Fetch the image as a blob to force download
+                  const response = await fetch(imageUrl);
+                  const blob = await response.blob();
+                  
+                  // Create object URL and download
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `flux-original-${Date.now()}.png`;
+                  link.style.display = 'none';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  
+                  // Clean up object URL
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  console.error('Download error:', error);
+                }
               }}>
                 Download Original
               </DropdownMenuItem>
