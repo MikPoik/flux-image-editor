@@ -183,16 +183,28 @@ export default function Gallery() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem onClick={(e) => {
+                        <DropdownMenuItem onClick={async (e) => {
                           e.stopPropagation();
-                          // Download current image without upscaling
-                          const link = document.createElement('a');
-                          link.href = image.currentUrl;
-                          link.download = `flux-current-${Date.now()}.png`;
-                          link.target = '_blank';
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
+                          try {
+                            // Fetch the image as a blob to force download
+                            const response = await fetch(image.currentUrl);
+                            const blob = await response.blob();
+                            
+                            // Create object URL and download
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `flux-current-${Date.now()}.png`;
+                            link.style.display = 'none';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            // Clean up object URL
+                            window.URL.revokeObjectURL(url);
+                          } catch (error) {
+                            console.error('Download error:', error);
+                          }
                         }}>
                           Download Current
                         </DropdownMenuItem>
