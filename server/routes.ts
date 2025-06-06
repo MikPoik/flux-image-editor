@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let imageInput: string;
 
       if (image.currentUrl.startsWith('/api/storage/')) {
-        // Current image is in our storage, convert to base64 data URI
+        // Current image is in our storage, upload to FAL storage first
         const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
         if (!imageKey) {
           throw new Error("Invalid storage URL format");
@@ -135,12 +135,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw new Error("Could not retrieve image data for editing");
         }
 
-        // Convert to base64 data URI for subsequent edits (more efficient)
-        const base64Data = imageBuffer.toString('base64');
-        imageInput = `data:image/png;base64,${base64Data}`;
-        console.log("Current image converted to base64 data URI for editing");
+        // Upload to FAL storage (more efficient for large images than base64)
+        const file = new File([imageBuffer], `edit-input-${Date.now()}.png`, {
+          type: 'image/png',
+        });
+
+        const uploadedUrl = await fal.storage.upload(file);
+        imageInput = uploadedUrl;
+        console.log("Current image uploaded to FAL storage for editing");
       } else {
-        // Current image is already a FAL URL (first edit), use directly
+        // Current image is already a FAL URL (subsequent edit), use directly
         imageInput = image.currentUrl;
       }
 
