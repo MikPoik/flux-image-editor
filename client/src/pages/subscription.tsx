@@ -394,36 +394,8 @@ export default function Subscription() {
         </Card>
       )}
 
-      {/* Free Plan */}
+      {/* Paid Plans */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <Card className={subscription?.subscriptionTier === 'free' ? 'ring-2 ring-primary' : ''}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Free Plan
-              {subscription?.subscriptionTier === 'free' && <Badge>Current</Badge>}
-            </CardTitle>
-            <CardDescription>
-              <span className="text-2xl font-bold">$0</span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center">
-              <p className="text-lg font-semibold">10 edits</p>
-            </div>
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-500" />
-                10 image edits
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-500" />
-                Kontext Pro AI model
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Paid Plans */}
         {plans.map((plan) => (
           <Card key={plan.id} className={`relative ${plan.popular ? 'ring-2 ring-primary' : ''}`}>
             {plan.popular && (
