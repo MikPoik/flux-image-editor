@@ -26,7 +26,7 @@ export default function Gallery() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (imageId: number) => 
-      apiRequest({ url: `/api/images/${imageId}`, method: 'DELETE' }),
+      apiRequest('DELETE', `/api/images/${imageId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/images'] });
       toast({
