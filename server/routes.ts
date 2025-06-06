@@ -89,6 +89,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate image using Flux AI text-to-image
+  app.post("/api/images/generate", isAuthenticated, async (req: any, res) => {
+    try {
+      const { prompt } = req.body;
+
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user has reached their edit limit (generation counts as an edit)
+      if (user.editCount >= user.editLimit) {
+        return res.status(403).json({ 
+          message: "Edit limit reached. Please upgrade your subscription to continue generating images.",
+          editCount: user.editCount,
+          editLimit: user.editLimit
+        });
+      }
+
+      // Determine which model to use based on subscription tier
+      // Free and basic users get "pro" model, premium users get "max" model
+      const modelEndpoint = user.subscriptionTier === 'premium' 
+        ? "fal-ai/flux-pro/kontext/max/text-to-image"
+        : "fal-ai/flux-pro/kontext/text-to-image";
+
+      console.log(`Generating image with model: ${modelEndpoint} for user tier: ${user.subscriptionTier}`);
+
+      // Call Flux AI text-to-image API
+      const result = await fal.subscribe(modelEndpoint, {
+        input: {
+          prompt: prompt,
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            update.logs?.map((log) => log.message).forEach(console.log);
+          }
+        },
+      });
+
+      if (!result.data?.images?.[0]?.url) {
+        throw new Error("No generated image returned from Flux API");
+      }
+
+      const generatedImageUrl = result.data.images[0].url;
+      console.log("FAL AI generated image URL:", generatedImageUrl);
+
+      // Migrate the image to permanent storage
+      const permanentUrl = await objectStorage.migrateImageToPermanentStorage(
+        generatedImageUrl,
+        userId,
+        `generated-${Date.now()}`
+      );
+
+      // Create image record in database
+      const imageData = {
+        userId: userId,
+        originalUrl: permanentUrl,
+        currentUrl: permanentUrl,
+        editHistory: [{
+          prompt: `Generated: ${prompt}`,
+          imageUrl: permanentUrl,
+          timestamp: new Date().toISOString(),
+        }]
+      };
+
+      const validatedData = insertImageSchema.parse(imageData);
+      const image = await storage.createImage(validatedData);
+
+      // Increment user's edit count
+      await storage.incrementUserEditCount(userId);
+
+      res.json(image);
+    } catch (error) {
+      console.error("Generation error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to generate image" 
+      });
+    }
+  });
+
   // Edit image using Flux AI
   app.post("/api/images/:id/edit", isAuthenticated, async (req: any, res) => {
     try {

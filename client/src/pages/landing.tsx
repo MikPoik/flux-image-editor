@@ -28,9 +28,9 @@ export default function Landing() {
           <Card className="text-center">
             <CardHeader>
               <Upload className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle>Upload Your Image</CardTitle>
+              <CardTitle>Upload or Generate</CardTitle>
               <CardDescription>
-                Start by uploading any image you want to edit
+                Upload your own image or generate one from a text description
               </CardDescription>
             </CardHeader>
           </Card>
@@ -38,9 +38,9 @@ export default function Landing() {
           <Card className="text-center">
             <CardHeader>
               <Wand2 className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle>Describe Your Edit</CardTitle>
+              <CardTitle>Edit with Text</CardTitle>
               <CardDescription>
-                Use simple text prompts to describe how you want to change your image
+                Use simple prompts to modify your image or create new ones from scratch
               </CardDescription>
             </CardHeader>
           </Card>
@@ -48,9 +48,9 @@ export default function Landing() {
           <Card className="text-center">
             <CardHeader>
               <Sparkles className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle>Get AI Results</CardTitle>
+              <CardTitle>AI-Powered Results</CardTitle>
               <CardDescription>
-                Watch as AI transforms your image based on your instructions
+                Get high-quality images powered by advanced Flux AI models
               </CardDescription>
             </CardHeader>
           </Card>

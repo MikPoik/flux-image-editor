@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ImageUpload } from '@/components/image-upload';
+import { ImageInput } from '@/components/image-input';
 import { ImageDisplay } from '@/components/image-display';
 import { PromptInput } from '@/components/prompt-input';
 import { useImageEditor } from '@/hooks/use-image-editor';
@@ -16,11 +16,13 @@ export default function ImageEditor() {
     imageData,
     isLoadingImage,
     isUploading,
+    isGenerating,
     isEditing,
     isResetting,
     isReverting,
     isUpscaling,
     handleUpload,
+    handleGenerate,
     handleEdit,
     handleReset,
     handleRevert,
@@ -31,7 +33,7 @@ export default function ImageEditor() {
 
   const { subscription, isAtLimit, remainingEdits } = useSubscription();
 
-  const isProcessing = isEditing || isResetting || isReverting || isUploading || isLoadingImage || isUpscaling;
+  const isProcessing = isEditing || isResetting || isReverting || isUploading || isGenerating || isLoadingImage || isUpscaling;
 
   // Scroll to top when image is loaded or when page loads
   useEffect(() => {
@@ -72,9 +74,11 @@ export default function ImageEditor() {
         {/* Image Section */}
         <div className="bg-card rounded-xl p-6 border border-border">
           {!hasImage ? (
-            <ImageUpload 
+            <ImageInput 
               onUpload={handleUpload} 
+              onGenerate={handleGenerate}
               isUploading={isUploading}
+              isGenerating={isGenerating}
             />
           ) : (
             <ImageDisplay

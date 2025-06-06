@@ -12,7 +12,7 @@ export default function Home() {
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">Welcome to AI Image Editor</h2>
           <p className="text-muted-foreground mb-8">
-            Transform your images with AI-powered editing. Upload photos and use natural language prompts to make stunning modifications.
+            Generate new images from text or upload existing photos, then transform them with AI-powered editing using natural language prompts.
           </p>
           
           <div className="grid md:grid-cols-2 gap-6 mb-8">
