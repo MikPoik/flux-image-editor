@@ -139,29 +139,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Image not found" });
       }
 
-      // Get the current image data and prepare for editing
-      let imageInput: string;
+      // Get the current image data and prepare for editing - always use base64 data URI
+      let imageBuffer: Buffer | null = null;
 
       if (image.currentUrl.startsWith('/api/storage/')) {
-        // Current image is in our storage, convert to base64 data URI
+        // Current image is in our storage
         const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
         if (!imageKey) {
           throw new Error("Invalid storage URL format");
         }
 
-        const imageBuffer = await objectStorage.getImageData(imageKey);
-        if (!imageBuffer) {
-          throw new Error("Could not retrieve image data for editing");
-        }
-
-        // Convert to base64 data URI for subsequent edits (more efficient)
-        const base64Data = imageBuffer.toString('base64');
-        imageInput = `data:image/png;base64,${base64Data}`;
-        console.log("Current image converted to base64 data URI for editing");
+        imageBuffer = await objectStorage.getImageData(imageKey);
       } else {
-        // Current image is already a FAL URL (first edit), use directly
-        imageInput = image.currentUrl;
+        // Current image is external (FAL URL), download it first
+        try {
+          const response = await fetch(image.currentUrl);
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            imageBuffer = Buffer.from(arrayBuffer);
+          }
+        } catch (error) {
+          console.error("Failed to download external image for editing:", error);
+        }
       }
+
+      if (!imageBuffer) {
+        throw new Error("Could not retrieve image data for editing");
+      }
+
+      // Convert to base64 data URI for all edits (consistent and efficient)
+      const base64Data = imageBuffer.toString('base64');
+      const imageInput = `data:image/png;base64,${base64Data}`;
+      console.log("Image converted to base64 data URI for editing");
 
       // Determine which model to use based on subscription tier
       const modelEndpoint = user.subscriptionTier === 'premium' 
