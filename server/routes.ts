@@ -115,8 +115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Determine which model to use based on subscription tier
-      // Free and basic users get "pro" model, premium users get "max" model
-      const modelEndpoint = user.subscriptionTier === 'premium' 
+      // Free and basic users get "pro" model, premium and premium-plus users get "max" model
+      const modelEndpoint = (user.subscriptionTier === 'premium' || user.subscriptionTier === 'premium-plus')
         ? "fal-ai/flux-pro/kontext/max/text-to-image"
         : "fal-ai/flux-pro/kontext/text-to-image";
 
@@ -275,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Determine which model to use based on subscription tier
-      const modelEndpoint = user.subscriptionTier === 'premium' 
+      const modelEndpoint = (user.subscriptionTier === 'premium' || user.subscriptionTier === 'premium-plus')
         ? "fal-ai/flux-pro/kontext/max"
         : "fal-ai/flux-pro/kontext";
 
@@ -620,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let result;
 
       // Use different upscaling models based on scale and subscription tier
-      if (scale === 4 && user.subscriptionTier === 'premium') {
+      if (scale === 4 && (user.subscriptionTier === 'premium' || user.subscriptionTier === 'premium-plus')) {
         // Premium users get Aura-SR for 4x upscaling
         console.log("Using Aura-SR for 4x upscaling (premium user)");
         result = await fal.subscribe("fal-ai/aura-sr", {
@@ -952,8 +952,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let editLimit = 50;
 
       if (priceId === process.env.VITE_STRIPE_PRICE_10) {
-        tier = 'premium';
+        tier = 'premium-plus';
         editLimit = 100;
+      } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {
+        tier = 'premium';
+        editLimit = 50;
       } else if (priceId === process.env.VITE_STRIPE_PRICE_5) {
         tier = 'basic';
         editLimit = 50;
@@ -1084,8 +1087,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               // Map actual Stripe price IDs to subscription tiers
               if (priceId === process.env.VITE_STRIPE_PRICE_10) {
-                tier = 'premium';
+                tier = 'premium-plus';
                 editLimit = 100;
+              } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {
+                tier = 'premium';
+                editLimit = 50;
               } else if (priceId === process.env.VITE_STRIPE_PRICE_5) {
                 tier = 'basic';
                 editLimit = 50;

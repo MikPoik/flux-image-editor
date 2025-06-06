@@ -174,10 +174,10 @@ export default function ImageEditor() {
               </div>
               <h3 className="font-medium text-foreground mb-2">AI-Powered</h3>
               <p className="text-sm text-muted-foreground">
-                {subscription?.subscriptionTier === 'premium' 
-                  ? 'Highest quality image editing with Kontext Max model' 
-                  : 'State-of-the-art image editing using advanced AI models'
-                }
+                {(subscription?.subscriptionTier === 'premium' || subscription?.subscriptionTier === 'premium-plus')
+                    ? 'Highest quality image editing with Kontext Max model' 
+                    : 'State-of-the-art image editing using advanced AI models'
+                  }
               </p>
             </div>
             <div className="text-center p-4">

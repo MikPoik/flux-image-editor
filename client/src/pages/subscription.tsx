@@ -294,12 +294,22 @@ export default function Subscription() {
     {
       id: "premium",
       name: "Premium Plan", 
+      price: "$9.99",
+      period: "/month",
+      edits: 50,
+      features: ["50 image edits per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
+      priceId: import.meta.env.VITE_STRIPE_PRICE_999, // Replace with your actual Stripe price ID for $9.99 plan
+      popular: true,
+    },
+    {
+      id: "premium-plus",
+      name: "Premium Plus Plan", 
       price: "$10",
       period: "/month",
       edits: 100,
       features: ["100 image edits per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
       priceId: import.meta.env.VITE_STRIPE_PRICE_10, // Replace with your actual Stripe price ID
-      popular: true,
+      popular: false,
     },
   ];
 
@@ -448,8 +458,9 @@ export default function Subscription() {
                   {subscription?.hasActiveSubscription ? (
                     <>
                       {/* Show upgrade button for higher tier plans */}
-                      {((subscription.subscriptionTier === 'basic' && plan.id === 'premium') ||
-                        (subscription.subscriptionTier === 'free' && (plan.id === 'basic' || plan.id === 'premium'))) && (
+                      {((subscription.subscriptionTier === 'basic' && (plan.id === 'premium' || plan.id === 'premium-plus')) ||
+                        (subscription.subscriptionTier === 'premium' && plan.id === 'premium-plus') ||
+                        (subscription.subscriptionTier === 'free' && (plan.id === 'basic' || plan.id === 'premium' || plan.id === 'premium-plus'))) && (
                         <UpgradeButton 
                           priceId={plan.priceId}
                           planName={plan.name}
@@ -457,7 +468,8 @@ export default function Subscription() {
                         />
                       )}
                       {/* Show downgrade button for lower tier plans */}
-                      {subscription.subscriptionTier === 'premium' && plan.id === 'basic' && (
+                      {((subscription.subscriptionTier === 'premium' && plan.id === 'basic') ||
+                        (subscription.subscriptionTier === 'premium-plus' && (plan.id === 'basic' || plan.id === 'premium'))) && (
                         <DowngradeButton 
                           priceId={plan.priceId}
                           planName={plan.name}
