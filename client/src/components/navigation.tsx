@@ -120,8 +120,9 @@ export function Navigation() {
           <ThemeToggle />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="flex items-center">
                 <Menu className="h-5 w-5" />
+                <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] sm:w-[350px]">
