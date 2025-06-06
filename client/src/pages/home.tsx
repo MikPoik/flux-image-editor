@@ -25,7 +25,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Upload a photo and start editing with AI prompts
+                  Upload photos or generate images from text, then edit with AI prompts
                 </p>
                 <Link href="/image-editor">
                   <Button className="w-full">
