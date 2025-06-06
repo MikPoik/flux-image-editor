@@ -393,13 +393,9 @@ export class ObjectStorageService {
     filename?: string
   ): Promise<string | null> {
     try {
-      // Check if URL is still valid first
-      const isValid = await this.isUrlValid(imageUrl);
-      if (!isValid) {
-        console.log("URL is no longer valid:", imageUrl);
-        return null;
-      }
-
+      // Skip URL validation for FAL URLs and attempt direct download
+      console.log("Attempting to migrate image to permanent storage:", imageUrl);
+      
       // Download and upload to permanent storage
       const permanentUrl = await this.uploadImageFromUrl(userId, imageUrl, filename);
       console.log("Image migrated to permanent storage:", permanentUrl);
