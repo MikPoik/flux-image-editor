@@ -265,17 +265,17 @@ export default function Subscription() {
               {subscription?.subscriptionTier === 'free' && <Badge>Current</Badge>}
             </CardTitle>
             <CardDescription>
-              <span className="text-2xl font-bold">$0</span> /month
+              <span className="text-2xl font-bold">$0</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <p className="text-lg font-semibold">10 edits/month</p>
+              <p className="text-lg font-semibold">10 edits</p>
             </div>
             <ul className="space-y-2">
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-green-500" />
-                10 image edits per month
+                10 image edits
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-green-500" />
