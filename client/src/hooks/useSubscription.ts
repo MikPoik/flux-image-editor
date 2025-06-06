@@ -14,10 +14,9 @@ export function useSubscription() {
     queryKey: ["/api/subscription"],
     retry: false,
     refetchOnWindowFocus: true,
-    refetchInterval: 5000, // Refetch every 5 seconds
-    refetchIntervalInBackground: false,
-    staleTime: 0, // Always treat data as stale to ensure fresh fetches
-    gcTime: 0, // Don't cache data to ensure fresh fetches
+    // Remove automatic polling - only fetch when explicitly needed
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   return {
