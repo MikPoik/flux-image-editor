@@ -951,7 +951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let tier = 'basic';
       let editLimit = 50;
 
-      if (priceId === process.env.VITE_STRIPE_PRICE_10) {
+      if (priceId === process.env.VITE_STRIPE_PRICE_1499) {
         tier = 'premium-plus';
         editLimit = 100;
       } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {
@@ -1086,7 +1086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               let editLimit = 50;
 
               // Map actual Stripe price IDs to subscription tiers
-              if (priceId === process.env.VITE_STRIPE_PRICE_10) {
+              if (priceId === process.env.VITE_STRIPE_PRICE_1499) {
                 tier = 'premium-plus';
                 editLimit = 100;
               } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {

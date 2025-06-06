@@ -58,7 +58,7 @@ const SubscriptionCheckout = ({ priceId }: { priceId: string }) => {
         disabled={createSubscriptionMutation.isPending}
         className="w-full"
       >
-        {createSubscriptionMutation.isPending ? "Setting up..." : `Subscribe to ${priceId === import.meta.env.VITE_STRIPE_PRICE_10 ? 'Premium' : 'Basic'} Plan`}
+        {createSubscriptionMutation.isPending ? "Setting up..." : `Subscribe to ${priceId === import.meta.env.VITE_STRIPE_PRICE_1499 ? 'Premium' : 'Basic'} Plan`}
       </Button>
     </div>
   );
@@ -308,7 +308,7 @@ export default function Subscription() {
       period: "/month",
       edits: 100,
       features: ["100 image edits per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
-      priceId: import.meta.env.VITE_STRIPE_PRICE_10, // Replace with your actual Stripe price ID
+      priceId: import.meta.env.VITE_STRIPE_PRICE_1499, // Replace with your actual Stripe price ID
       popular: false,
     },
   ];
