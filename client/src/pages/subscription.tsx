@@ -58,7 +58,7 @@ const SubscriptionCheckout = ({ priceId }: { priceId: string }) => {
         disabled={createSubscriptionMutation.isPending}
         className="w-full"
       >
-        {createSubscriptionMutation.isPending ? "Setting up..." : `Subscribe to ${priceId === import.meta.env.VITE_STRIPE_PRICE_1499 ? 'Premium' : 'Basic'} Plan`}
+        {createSubscriptionMutation.isPending ? "Setting up..." : `Subscribe to ${priceId === import.meta.env.VITE_STRIPE_PRICE_1499 ? 'Premium Plus' : priceId === import.meta.env.VITE_STRIPE_PRICE_999 ? 'Premium' : 'Basic'} Plan`}
       </Button>
     </div>
   );
@@ -67,7 +67,7 @@ const SubscriptionCheckout = ({ priceId }: { priceId: string }) => {
 const UpgradeButton = ({ priceId, planName, currentTier }: { priceId: string, planName: string, currentTier: string }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const upgradeSubscriptionMutation = useMutation({
     mutationFn: async (priceId: string) => {
       const response = await apiRequest("POST", "/api/upgrade-subscription", { priceId });
@@ -125,7 +125,7 @@ const UpgradeButton = ({ priceId, planName, currentTier }: { priceId: string, pl
 const DowngradeButton = ({ priceId, planName, currentTier }: { priceId: string, planName: string, currentTier: string }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const downgradeSubscriptionMutation = useMutation({
     mutationFn: async (priceId: string) => {
       const response = await apiRequest("POST", "/api/upgrade-subscription", { priceId });
@@ -184,7 +184,7 @@ const DowngradeButton = ({ priceId, planName, currentTier }: { priceId: string, 
 export default function Subscription() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
 
   const { data: subscription, isLoading } = useQuery<SubscriptionInfo>({
     queryKey: ["/api/subscription"],
@@ -209,7 +209,7 @@ export default function Subscription() {
           }
         }
       };
-      
+
       toast({
         title: "Subscription Successful!",
         description: "Your subscription has been activated.",
@@ -313,7 +313,7 @@ export default function Subscription() {
     },
   ];
 
-  
+
 
   if (isLoading) {
     return (
