@@ -144,8 +144,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Migrate the image to permanent storage
       const permanentUrl = await objectStorage.migrateImageToPermanentStorage(
-        generatedImageUrl,
         userId,
+        generatedImageUrl,
         `generated-${Date.now()}`
       );
 
