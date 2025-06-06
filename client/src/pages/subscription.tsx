@@ -159,7 +159,7 @@ export default function Subscription() {
       price: "$5",
       period: "/month",
       edits: 50,
-      features: ["50 image edits per month", "Kontext Pro AI model", "Edit history", "Basic support"],
+      features: ["50 image edits per month", "Kontext Pro AI model", "2X image upscale"],
       priceId: import.meta.env.VITE_STRIPE_PRICE_5, // Replace with your actual Stripe price ID
       popular: false,
     },
@@ -169,7 +169,7 @@ export default function Subscription() {
       price: "$10",
       period: "/month",
       edits: 100,
-      features: ["100 image edits per month", "Kontext Max AI model (highest quality)", "Priority AI processing", "Advanced edit history", "Priority support"],
+      features: ["100 image edits per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
       priceId: import.meta.env.VITE_STRIPE_PRICE_10, // Replace with your actual Stripe price ID
       popular: true,
     },
@@ -280,10 +280,6 @@ export default function Subscription() {
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-green-500" />
                 Kontext Pro AI model
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-500" />
-                Standard support
               </li>
             </ul>
           </CardContent>
