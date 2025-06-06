@@ -962,8 +962,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         editLimit = 50;
       }
 
-      // Update user subscription details
-      await storage.updateUserSubscription(userId, tier, editLimit);
+      // Update user subscription details - preserve edit count for upgrades
+      await storage.updateUserSubscription(userId, tier, editLimit, true);
 
       console.log(`Subscription upgraded for user ${userId}: ${tier} plan`);
 
@@ -1102,8 +1102,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 editLimit = 50;
               }
 
-              // Update user subscription details and set billing period
-              await storage.updateUserSubscription(userId, tier, editLimit);
+              // Update user subscription details - preserve edit count for initial subscription/upgrades
+              await storage.updateUserSubscription(userId, tier, editLimit, true);
               
               // Get subscription details to set billing period
               const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
@@ -1130,7 +1130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             const users = await storage.getUserBySubscriptionId?.(subscription.id);
             if (users) {
-              await storage.updateUserSubscription(users.id, 'free', 10);
+              await storage.updateUserSubscription(users.id, 'free', 10, false);
               await storage.updateUserStripeInfo(users.id, users.stripeCustomerId || '', '');
               console.log(`Subscription canceled for user ${users.id}`);
             }
@@ -1148,7 +1148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const users = await storage.getUserBySubscriptionId?.(subscription.id);
           if (users) {
-            await storage.updateUserSubscription(users.id, 'free', 10);
+            await storage.updateUserSubscription(users.id, 'free', 10, false);
             await storage.updateUserStripeInfo(users.id, users.stripeCustomerId || '', '');
             console.log(`Subscription deleted for user ${users.id}`);
           }

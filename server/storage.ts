@@ -17,7 +17,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User | undefined>;
-  updateUserSubscription(userId: string, tier: string, editLimit: number): Promise<User | undefined>;
+  updateUserSubscription(userId: string, tier: string, editLimit: number, preserveEditCount?: boolean): Promise<User | undefined>;
   incrementUserEditCount(userId: string): Promise<User | undefined>;
   resetUserEditCount(userId: string): Promise<User | undefined>;
   getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined>;
@@ -115,15 +115,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateUserSubscription(userId: string, tier: string, editLimit: number): Promise<User | undefined> {
+  async updateUserSubscription(userId: string, tier: string, editLimit: number, preserveEditCount: boolean = true): Promise<User | undefined> {
     try {
+      const updateData: any = {
+        subscriptionTier: tier,
+        editLimit: editLimit,
+      };
+
+      // Only reset edit count if explicitly requested (e.g., on new billing periods)
+      // This prevents gaming the system by rapid plan changes
+      if (!preserveEditCount) {
+        updateData.editCount = 0;
+      }
+
       const [user] = await db
         .update(users)
-        .set({ 
-          subscriptionTier: tier,
-          editLimit: editLimit,
-          editCount: 0 // Reset edit count when upgrading
-        })
+        .set(updateData)
         .where(eq(users.id, userId))
         .returning();
       return user;
