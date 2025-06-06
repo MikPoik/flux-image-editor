@@ -174,13 +174,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const editedImageUrl = result.data.images[0].url;
+      console.log("FAL AI returned image URL:", editedImageUrl);
 
-      // Save edited image to permanent storage
+      // Immediately migrate edited image to permanent storage to avoid URL expiration
       const permanentEditedUrl = await objectStorage.uploadImageFromUrl(
         userId,
         editedImageUrl,
         `edited-${Date.now()}.png`
       );
+      console.log("Edited image migrated to permanent storage:", permanentEditedUrl);
 
       // Update image record with permanent URL and history
       const newHistoryItem = {
@@ -356,6 +358,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Serve image error:", error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : "Failed to serve image" 
+      });
+    }
+  });
+
+  // Fallback endpoint for expired FAL URLs
+  app.get("/api/image-fallback/:imageId", async (req, res) => {
+    try {
+      const { imageId } = req.params;
+      const { w, h, q } = req.query;
+
+      // Parse optimization parameters
+      const width = w ? parseInt(w as string) : undefined;
+      const height = h ? parseInt(h as string) : undefined;
+      const quality = q ? parseInt(q as string) : 80;
+
+      // Get image from database
+      const image = await storage.getImage(parseInt(imageId));
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      // Try to serve from our object storage (original image)
+      if (image.originalUrl.startsWith('/api/storage/')) {
+        const imageKey = image.originalUrl.match(/\/api\/storage\/(.+)$/)?.[1];
+        if (imageKey) {
+          const result = await objectStorage.getOptimizedImageData(imageKey, width, height, quality);
+          if (result) {
+            const { buffer, contentType } = result;
+            res.set({
+              'Content-Type': contentType,
+              'Cache-Control': 'public, max-age=31536000',
+              'Access-Control-Allow-Origin': '*',
+              'Vary': 'Accept-Encoding',
+            });
+            return res.send(buffer);
+          }
+        }
+      }
+
+      return res.status(404).json({ message: "No fallback image available" });
+    } catch (error) {
+      console.error("Fallback image error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to serve fallback image" 
       });
     }
   });

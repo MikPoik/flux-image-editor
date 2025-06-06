@@ -370,6 +370,45 @@ export class ObjectStorageService {
 
     return true;
   }
+
+  /**
+   * Check if a URL is accessible (not expired)
+   */
+  async isUrlValid(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.error("URL validation failed:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Migrate an external image URL to permanent storage
+   */
+  async migrateImageToPermanentStorage(
+    userId: string,
+    imageUrl: string,
+    filename?: string
+  ): Promise<string | null> {
+    try {
+      // Check if URL is still valid first
+      const isValid = await this.isUrlValid(imageUrl);
+      if (!isValid) {
+        console.log("URL is no longer valid:", imageUrl);
+        return null;
+      }
+
+      // Download and upload to permanent storage
+      const permanentUrl = await this.uploadImageFromUrl(userId, imageUrl, filename);
+      console.log("Image migrated to permanent storage:", permanentUrl);
+      return permanentUrl;
+    } catch (error) {
+      console.error("Error migrating image to permanent storage:", error);
+      return null;
+    }
+  }
 }
 
 export const objectStorage = new ObjectStorageService();
