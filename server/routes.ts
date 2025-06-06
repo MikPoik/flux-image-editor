@@ -122,9 +122,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get the current image data and prepare for editing
       let imageInput: string;
+      const isFirstEdit = !image.editHistory || image.editHistory.length === 0;
 
-      if (image.currentUrl.startsWith('/api/storage/')) {
-        // Current image is in our storage, upload to FAL storage first
+      if (isFirstEdit && image.currentUrl.startsWith('/api/storage/')) {
+        // First edit: Upload original (potentially large) image to FAL storage
         const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
         if (!imageKey) {
           throw new Error("Invalid storage URL format");
@@ -135,17 +136,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw new Error("Could not retrieve image data for editing");
         }
 
-        // Upload to FAL storage (more efficient for large images than base64)
+        // Upload to FAL storage for first edit (more efficient for large images)
         const file = new File([imageBuffer], `edit-input-${Date.now()}.png`, {
           type: 'image/png',
         });
 
         const uploadedUrl = await fal.storage.upload(file);
         imageInput = uploadedUrl;
-        console.log("Current image uploaded to FAL storage for editing");
+        console.log("First edit: Original image uploaded to FAL storage");
+      } else if (!isFirstEdit) {
+        // Subsequent edits: Use base64 encoding for smaller processed images
+        let imageBuffer: Buffer | null = null;
+
+        if (image.currentUrl.startsWith('/api/storage/')) {
+          // Get from our storage
+          const imageKey = image.currentUrl.match(/\/api\/storage\/(.+)$/)?.[1];
+          if (imageKey) {
+            imageBuffer = await objectStorage.getImageData(imageKey);
+          }
+        } else {
+          // Download from FAL URL
+          try {
+            const response = await fetch(image.currentUrl);
+            if (response.ok) {
+              const arrayBuffer = await response.arrayBuffer();
+              imageBuffer = Buffer.from(arrayBuffer);
+            }
+          } catch (error) {
+            console.error("Failed to download image for subsequent edit:", error);
+          }
+        }
+
+        if (!imageBuffer) {
+          throw new Error("Could not retrieve image data for editing");
+        }
+
+        // Convert to base64 for subsequent edits (processed images are smaller)
+        const base64Data = imageBuffer.toString('base64');
+        imageInput = `data:image/png;base64,${base64Data}`;
+        console.log("Subsequent edit: Using base64 encoding for processed image");
       } else {
-        // Current image is already a FAL URL (subsequent edit), use directly
+        // Current image is already a FAL URL (fallback), use directly
         imageInput = image.currentUrl;
+        console.log("Using existing FAL URL directly");
       }
 
       // Determine which model to use based on subscription tier
