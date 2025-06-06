@@ -161,6 +161,37 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) return undefined;
+
+      // Only reset edit count if this is a new billing period
+      const shouldResetEditCount = !user.currentPeriodStart || 
+        user.currentPeriodStart.getTime() !== periodStart.getTime();
+
+      const updateData: any = {
+        currentPeriodStart: periodStart,
+        currentPeriodEnd: periodEnd,
+      };
+
+      if (shouldResetEditCount) {
+        updateData.editCount = 0;
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set(updateData)
+        .where(eq(users.id, userId))
+        .returning();
+      
+      return updatedUser;
+    } catch (error) {
+      console.error('Error updating user billing period:', error);
+      return undefined;
+    }
+  }
+
   async getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined> {
     try {
       const [user] = await db

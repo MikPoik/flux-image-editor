@@ -1016,18 +1016,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const invoice = event.data.object;
         console.log('Invoice payment succeeded:', invoice.id);
 
-        // Reset edit count for any subscription-related payment
+        // Update billing period for subscription-related payments
         if (invoice.subscription) {
           try {
             const user = await storage.getUserBySubscriptionId(invoice.subscription as string);
             if (user) {
-              await storage.resetUserEditCount(user.id);
-              console.log(`Edit count reset for user ${user.id} on payment success`);
+              // Get subscription to get the current period
+              const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+              const periodStart = new Date(subscription.current_period_start * 1000);
+              const periodEnd = new Date(subscription.current_period_end * 1000);
+              
+              await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
+              console.log(`Billing period updated for user ${user.id} on payment success`);
             } else {
               console.log(`No user found for subscription ${invoice.subscription}`);
             }
           } catch (error) {
-            console.error('Error resetting edit count on payment:', error);
+            console.error('Error updating billing period on payment:', error);
           }
         }
         break;
@@ -1097,9 +1102,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 editLimit = 50;
               }
 
-              // Update user subscription details and reset edit count
+              // Update user subscription details and set billing period
               await storage.updateUserSubscription(userId, tier, editLimit);
-              await storage.resetUserEditCount(userId);
+              
+              // Get subscription details to set billing period
+              const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
+              const periodStart = new Date(subscription.current_period_start * 1000);
+              const periodEnd = new Date(subscription.current_period_end * 1000);
+              
+              await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
 
               console.log(`Subscription activated for user ${userId}: ${tier} plan`);
             }

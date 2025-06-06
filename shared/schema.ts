@@ -28,6 +28,8 @@ export const users = pgTable("users", {
   editCount: integer("edit_count").default(0).notNull(),
   editLimit: integer("edit_limit").default(10).notNull(),
   subscriptionStatus: varchar("subscription_status").default("active"), // 'active', 'canceled', 'past_due'
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
