@@ -68,3 +68,19 @@ export async function upscaleImage(imageId: number, scale: number = 2): Promise<
   const response = await apiRequest('POST', `/api/images/${imageId}/upscale`, { scale });
   return response.json();
 }
+
+export interface GenerateImageResponse {
+  id: number;
+  originalUrl: string;
+  currentUrl: string;
+  editHistory: Array<{
+    prompt: string;
+    imageUrl: string;
+    timestamp: string;
+  }>;
+}
+
+export async function generateImage(prompt: string): Promise<GenerateImageResponse> {
+  const response = await apiRequest('POST', '/api/images/generate', { prompt });
+  return response.json();
+}

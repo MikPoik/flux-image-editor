@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, editImage, resetImage, revertImage, getImage, upscaleImage } from '@/lib/flux-api';
+import { uploadImage, editImage, resetImage, revertImage, getImage, upscaleImage, generateImage } from '@/lib/flux-api';
 import { useToast } from '@/hooks/use-toast';
 
 export function useImageEditor() {
@@ -17,6 +17,7 @@ export function useImageEditor() {
     }
   }, []);
   const [isUploading, setIsUploading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -66,6 +67,33 @@ export function useImageEditor() {
     },
     onSettled: () => {
       setIsUploading(false);
+    },
+  });
+
+  // Generate mutation
+  const generateMutation = useMutation({
+    mutationFn: generateImage,
+    onSuccess: (data) => {
+      setCurrentImageId(data.id);
+      queryClient.setQueryData(['/api/images', data.id], data);
+      // Invalidate the gallery images list to show the new image
+      queryClient.invalidateQueries({ queryKey: ['/api/images'] });
+      // Invalidate subscription query to refresh edit count
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription'] });
+      toast({
+        title: "Success",
+        description: "Image generated successfully!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Generation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsGenerating(false);
     },
   });
 
@@ -181,6 +209,12 @@ export function useImageEditor() {
     uploadMutation.mutate(file);
   }, [uploadMutation]);
 
+  // Generate handler
+  const handleGenerate = useCallback((prompt: string) => {
+    setIsGenerating(true);
+    generateMutation.mutate(prompt);
+  }, [generateMutation]);
+
   // Edit handler
   const handleEdit = useCallback((prompt: string) => {
     if (!currentImageId) return;
@@ -245,11 +279,13 @@ export function useImageEditor() {
     imageData,
     isLoadingImage,
     isUploading,
+    isGenerating,
     isEditing: editMutation.isPending,
     isResetting: resetMutation.isPending,
     isReverting: revertMutation.isPending,
     isUpscaling: upscaleMutation.isPending,
     handleUpload,
+    handleGenerate,
     handleEdit,
     handleReset,
     handleRevert,
