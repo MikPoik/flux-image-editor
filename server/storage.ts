@@ -117,12 +117,30 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserSubscription(userId: string, tier: string, editLimit: number, preserveEditCount: boolean = true): Promise<User | undefined> {
     try {
+      // Get current user data to check for rapid plan changes
+      const currentUser = await this.getUser(userId);
+      if (!currentUser) return undefined;
+
+      // Anti-gaming protection: prevent rapid plan changes within 24 hours
+      // unless it's a cancellation (downgrade to free)
+      if (currentUser.lastSubscriptionChange && tier !== 'free') {
+        const timeSinceLastChange = Date.now() - currentUser.lastSubscriptionChange.getTime();
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        
+        if (timeSinceLastChange < twentyFourHours) {
+          console.warn(`Rapid subscription change attempt by user ${userId} blocked. Last change: ${currentUser.lastSubscriptionChange}`);
+          // Still allow the update but preserve edit count to prevent gaming
+          preserveEditCount = true;
+        }
+      }
+
       const updateData: any = {
         subscriptionTier: tier,
         editLimit: editLimit,
+        lastSubscriptionChange: new Date(),
       };
 
-      // Only reset edit count if explicitly requested (e.g., on new billing periods)
+      // Only reset edit count if explicitly requested (e.g., on new billing periods or cancellations)
       // This prevents gaming the system by rapid plan changes
       if (!preserveEditCount) {
         updateData.editCount = 0;
