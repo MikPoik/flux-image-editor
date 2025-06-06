@@ -428,7 +428,7 @@ export function ImageDisplay({
                 <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
                   <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                     <img
-                      src={getOptimizedImageUrl(originalUrl, 64, 64, 70)}
+                      src={getOptimizedImageUrl(originalUrl, 128, 128, 70)}
                       alt="Original image"
                       className="w-full h-full object-cover"
                     />
@@ -454,7 +454,7 @@ export function ImageDisplay({
                   <div key={index} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
                     <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={getOptimizedImageUrl(edit.imageUrl, 64, 64, 70)}
+                        src={getOptimizedImageUrl(edit.imageUrl, 128, 128, 70)}
                         alt={`Edit ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
