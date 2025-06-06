@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Download, Wand2, Crown, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,13 @@ export default function ImageEditor() {
   const { subscription, isAtLimit, remainingEdits } = useSubscription();
 
   const isProcessing = isEditing || isResetting || isReverting || isUploading || isLoadingImage || isUpscaling;
+
+  // Scroll to top when image is loaded or when page loads
+  useEffect(() => {
+    if (hasImage || (!hasImage && !isLoadingImage)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [hasImage, isLoadingImage]);
 
   return (
     <main className="max-w-4xl mx-auto p-4 space-y-6">
