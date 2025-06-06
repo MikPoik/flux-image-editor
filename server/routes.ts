@@ -455,13 +455,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Image data not found or could not be retrieved" });
       }
 
-      // Upload image to FAL storage first (same as editing workflow)
-      const file = new File([imageBuffer], `image-${id}.png`, {
-        type: 'image/png',
-      });
-
-      const falImageUrl = await fal.storage.upload(file);
-      console.log("Image uploaded to FAL storage for upscaling");
+      // Convert image buffer to base64 data URI for upscaling
+      const base64Data = imageBuffer.toString('base64');
+      const imageDataUri = `data:image/png;base64,${base64Data}`;
+      console.log("Image converted to base64 data URI for upscaling");
 
       let result;
 
@@ -471,7 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Using Aura-SR for 4x upscaling (premium user)");
         result = await fal.subscribe("fal-ai/aura-sr", {
           input: {
-            image_url: falImageUrl
+            image_url: imageDataUri
           },
           logs: true,
           onQueueUpdate: (update) => {
@@ -485,7 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Using ESRGAN for ${scale}x upscaling`);
         result = await fal.subscribe("fal-ai/esrgan", {
           input: {
-            image_url: falImageUrl,
+            image_url: imageDataUri,
             model: "RealESRGAN_x4plus",
             scale: scale
           },
