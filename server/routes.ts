@@ -53,34 +53,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = req.user.claims.sub;
 
-      // Detect original orientation before sending to FAL
+      // Process image locally - detect orientation and apply correction
       const orientationInfo = await objectStorage.getImageOrientation(req.file.buffer);
       console.log("Detected orientation info:", orientationInfo);
 
-      // Upload original image to Flux storage WITHOUT rotation (let FAL process it)
-      const file = new File([req.file.buffer], req.file.originalname, {
-        type: req.file.mimetype,
-      });
+      // Apply orientation correction directly to the uploaded image
+      const correctedImageBuffer = await objectStorage.autoRotateImage(req.file.buffer);
+      console.log("Image orientation corrected locally");
 
-      const uploadedUrl = await fal.storage.upload(file);
-      console.log("Image uploaded to FAL for processing");
-
-      // Download the FAL-processed image
-      const falResponse = await fetch(uploadedUrl);
-      if (!falResponse.ok) {
-        throw new Error("Failed to download FAL-processed image");
-      }
-      
-      const falImageBuffer = Buffer.from(await falResponse.arrayBuffer());
-      console.log("Downloaded FAL-processed image");
-
-      // Apply orientation correction to the FAL-processed image if needed
-      const correctedImageBuffer = await objectStorage.correctFalImageOrientation(
-        falImageBuffer, 
-        orientationInfo.orientation
-      );
-
-      // Upload corrected image to permanent storage
+      // Upload corrected image directly to permanent storage
       const permanentUrl = await objectStorage.uploadImage(
         userId,
         correctedImageBuffer,
@@ -88,11 +69,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.file.mimetype
       );
 
-      // Create image record with both URLs
+      // Create image record with processed image
       const imageData = {
         userId,
-        originalUrl: permanentUrl, // Use FAL-processed image as original
-        currentUrl: permanentUrl, // Start with the same optimized image
+        originalUrl: permanentUrl, // Use locally processed image as original
+        currentUrl: permanentUrl, // Start with the same processed image
         editHistory: [],
       };
 
