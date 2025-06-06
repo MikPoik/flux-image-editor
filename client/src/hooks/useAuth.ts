@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
@@ -9,11 +10,8 @@ export function useAuth() {
     refetchOnMount: false, // Don't refetch on component mount after initial load
   });
 
-  // Check if we got a 401 Unauthorized error
-  const isUnauthenticated = error && (
-    error.message?.includes('401') || 
-    error.message?.includes('Unauthorized')
-  );
+  // Check if we got a 401 Unauthorized error using the utility function
+  const isUnauthenticated = error && isUnauthorizedError(error);
   
   return {
     user,
