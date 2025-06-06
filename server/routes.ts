@@ -818,6 +818,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upgrade subscription endpoint
+  app.post('/api/upgrade-subscription', isAuthenticated, async (req: any, res) => {
+    try {
+      const { priceId } = req.body;
+      const userId = req.user.claims.sub;
+
+      console.log('Upgrade subscription request:', { priceId, userId });
+
+      if (!priceId) {
+        return res.status(400).json({ message: "Price ID is required" });
+      }
+
+      const user = await storage.getUser(userId);
+
+      if (!user || !user.stripeSubscriptionId) {
+        return res.status(400).json({ message: "No active subscription found to upgrade" });
+      }
+
+      // Get current subscription
+      const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+
+      if (subscription.status !== 'active') {
+        return res.status(400).json({ message: "Subscription is not active" });
+      }
+
+      // Update subscription with new price
+      const updatedSubscription = await stripe.subscriptions.update(user.stripeSubscriptionId, {
+        items: [
+          {
+            id: subscription.items.data[0].id,
+            price: priceId,
+          },
+        ],
+        proration_behavior: 'always_invoice',
+      });
+
+      // Determine subscription tier and edit limit based on price
+      let tier = 'basic';
+      let editLimit = 50;
+
+      if (priceId === process.env.VITE_STRIPE_PRICE_10) {
+        tier = 'premium';
+        editLimit = 100;
+      } else if (priceId === process.env.VITE_STRIPE_PRICE_5) {
+        tier = 'basic';
+        editLimit = 50;
+      }
+
+      // Update user subscription details
+      await storage.updateUserSubscription(userId, tier, editLimit);
+
+      console.log(`Subscription upgraded for user ${userId}: ${tier} plan`);
+
+      res.json({ 
+        message: "Subscription upgraded successfully",
+        tier,
+        editLimit 
+      });
+
+    } catch (error: any) {
+      console.error('Upgrade subscription error:', error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Add route to handle successful checkout session
   app.get('/api/checkout-session/:sessionId', isAuthenticated, async (req: any, res) => {
     try {

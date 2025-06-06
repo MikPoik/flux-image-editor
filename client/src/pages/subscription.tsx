@@ -7,6 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Zap } from "lucide-react";
 import { Navigation } from "@/components/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface SubscriptionInfo {
   subscriptionTier: string;
@@ -50,6 +61,64 @@ const SubscriptionCheckout = ({ priceId }: { priceId: string }) => {
         {createSubscriptionMutation.isPending ? "Setting up..." : `Subscribe to ${priceId === import.meta.env.VITE_STRIPE_PRICE_10 ? 'Premium' : 'Basic'} Plan`}
       </Button>
     </div>
+  );
+};
+
+const UpgradeButton = ({ priceId, planName, currentTier }: { priceId: string, planName: string, currentTier: string }) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const upgradeSubscriptionMutation = useMutation({
+    mutationFn: async (priceId: string) => {
+      const response = await apiRequest("POST", "/api/upgrade-subscription", { priceId });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Subscription Upgraded!",
+        description: `Your subscription has been upgraded to ${planName}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Upgrade Failed",
+        description: error.message || "Failed to upgrade subscription. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpgrade = () => {
+    upgradeSubscriptionMutation.mutate(priceId);
+  };
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button className="w-full">
+          Upgrade to {planName}
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Subscription Upgrade</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to upgrade from {currentTier} to {planName}? 
+            You'll be charged the prorated amount for the remainder of your billing period and your new rate will apply going forward.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleUpgrade} 
+            disabled={upgradeSubscriptionMutation.isPending}
+          >
+            {upgradeSubscriptionMutation.isPending ? "Upgrading..." : "Confirm Upgrade"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 
@@ -318,9 +387,17 @@ export default function Subscription() {
               {subscription?.subscriptionTier !== plan.id && 
                !(subscription?.subscriptionTier === 'premium' && plan.id === 'basic') && (
                 <div className="pt-4">
-                  <SubscriptionCheckout 
-                    priceId={plan.priceId}
-                  />
+                  {subscription?.hasActiveSubscription ? (
+                    <UpgradeButton 
+                      priceId={plan.priceId}
+                      planName={plan.name}
+                      currentTier={subscription.subscriptionTier}
+                    />
+                  ) : (
+                    <SubscriptionCheckout 
+                      priceId={plan.priceId}
+                    />
+                  )}
                 </div>
               )}
             </CardContent>
