@@ -134,20 +134,37 @@ export function useImageEditor() {
   const upscaleMutation = useMutation({
     mutationFn: ({ imageId, scale }: { imageId: number; scale: number }) =>
       upscaleImage(imageId, scale),
-    onSuccess: (data) => {
-      // Automatically download the upscaled image
-      const link = document.createElement('a');
-      link.href = data.upscaledImageUrl;
-      link.download = `flux-upscaled-${Date.now()}.png`;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    onSuccess: async (data) => {
+      try {
+        // Fetch the image as a blob to force download
+        const response = await fetch(data.upscaledImageUrl);
+        const blob = await response.blob();
+        
+        // Create object URL and download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `flux-upscaled-${Date.now()}.png`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up object URL
+        window.URL.revokeObjectURL(url);
 
-      toast({
-        title: "Success",
-        description: "Image upscaled and downloaded!",
-      });
+        toast({
+          title: "Success",
+          description: "Image upscaled and downloaded!",
+        });
+      } catch (error) {
+        console.error('Download error:', error);
+        toast({
+          title: "Download Failed", 
+          description: "Failed to download the upscaled image.",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
