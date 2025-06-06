@@ -9,8 +9,11 @@ export function useAuth() {
     refetchOnMount: false, // Don't refetch on component mount after initial load
   });
 
-  // If we get a 401 error, the user is not authenticated but loading should be false
-  const isUnauthenticated = error && error.message?.includes('401');
+  // Check if we got a 401 Unauthorized error
+  const isUnauthenticated = error && (
+    error.message?.includes('401') || 
+    error.message?.includes('Unauthorized')
+  );
   
   return {
     user,
