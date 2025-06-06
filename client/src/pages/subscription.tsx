@@ -122,6 +122,65 @@ const UpgradeButton = ({ priceId, planName, currentTier }: { priceId: string, pl
   );
 };
 
+const DowngradeButton = ({ priceId, planName, currentTier }: { priceId: string, planName: string, currentTier: string }) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const downgradeSubscriptionMutation = useMutation({
+    mutationFn: async (priceId: string) => {
+      const response = await apiRequest("POST", "/api/upgrade-subscription", { priceId });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Subscription Downgraded!",
+        description: `Your subscription has been downgraded to ${planName}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Downgrade Failed",
+        description: error.message || "Failed to downgrade subscription. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDowngrade = () => {
+    downgradeSubscriptionMutation.mutate(priceId);
+  };
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" className="w-full">
+          Downgrade to {planName}
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Subscription Downgrade</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to downgrade from {currentTier} to {planName}? 
+            You'll receive a prorated credit for the remainder of your billing period and your new rate will apply going forward.
+            Your edit limit will be reduced immediately.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleDowngrade} 
+            disabled={downgradeSubscriptionMutation.isPending}
+          >
+            {downgradeSubscriptionMutation.isPending ? "Downgrading..." : "Confirm Downgrade"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 export default function Subscription() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -384,15 +443,28 @@ export default function Subscription() {
                   </li>
                 ))}
               </ul>
-              {subscription?.subscriptionTier !== plan.id && 
-               !(subscription?.subscriptionTier === 'premium' && plan.id === 'basic') && (
+              {subscription?.subscriptionTier !== plan.id && (
                 <div className="pt-4">
                   {subscription?.hasActiveSubscription ? (
-                    <UpgradeButton 
-                      priceId={plan.priceId}
-                      planName={plan.name}
-                      currentTier={subscription.subscriptionTier}
-                    />
+                    <>
+                      {/* Show upgrade button for higher tier plans */}
+                      {((subscription.subscriptionTier === 'basic' && plan.id === 'premium') ||
+                        (subscription.subscriptionTier === 'free' && (plan.id === 'basic' || plan.id === 'premium'))) && (
+                        <UpgradeButton 
+                          priceId={plan.priceId}
+                          planName={plan.name}
+                          currentTier={subscription.subscriptionTier}
+                        />
+                      )}
+                      {/* Show downgrade button for lower tier plans */}
+                      {subscription.subscriptionTier === 'premium' && plan.id === 'basic' && (
+                        <DowngradeButton 
+                          priceId={plan.priceId}
+                          planName={plan.name}
+                          currentTier={subscription.subscriptionTier}
+                        />
+                      )}
+                    </>
                   ) : (
                     <SubscriptionCheckout 
                       priceId={plan.priceId}
