@@ -142,12 +142,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const generatedImageUrl = result.data.images[0].url;
       console.log("FAL AI generated image URL:", generatedImageUrl);
 
-      // Migrate the image to permanent storage
-      const permanentUrl = await objectStorage.migrateImageToPermanentStorage(
+      // Try to migrate the image to permanent storage, but use original URL if migration fails
+      let permanentUrl = await objectStorage.migrateImageToPermanentStorage(
         userId,
         generatedImageUrl,
         `generated-${Date.now()}`
       );
+
+      // If migration failed, use the original FAL URL directly
+      if (!permanentUrl) {
+        console.log("Migration failed, using original FAL URL");
+        permanentUrl = generatedImageUrl;
+      }
 
       // Create image record in database
       const imageData = {
