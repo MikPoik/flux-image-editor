@@ -17,7 +17,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User | undefined>;
-  updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount?: boolean): Promise<User | undefined>;
+  updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount?: boolean, subscriptionStatus?: string): Promise<User | undefined>;
   incrementUserEditCount(userId: string): Promise<User | undefined>;
   resetUserEditCount(userId: string): Promise<User | undefined>;
   incrementUserGenerationCount(userId: string): Promise<User | undefined>;
@@ -117,7 +117,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount: boolean = true): Promise<User | undefined> {
+  async updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount: boolean = true, subscriptionStatus: string = "active"): Promise<User | undefined> {
     try {
       // Get current user data to check for rapid plan changes
       const currentUser = await this.getUser(userId);

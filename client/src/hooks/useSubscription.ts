@@ -4,6 +4,8 @@ interface SubscriptionInfo {
   subscriptionTier: string;
   editCount: number;
   editLimit: number;
+  generationCount: number;
+  generationLimit: number;
   hasActiveSubscription: boolean;
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: number | null;
@@ -25,5 +27,7 @@ export function useSubscription() {
     error,
     isAtLimit: subscription ? subscription.editCount >= subscription.editLimit : false,
     remainingEdits: subscription ? Math.max(0, subscription.editLimit - subscription.editCount) : 0,
+    isAtGenerationLimit: subscription ? subscription.generationCount >= subscription.generationLimit : false,
+    remainingGenerations: subscription ? Math.max(0, subscription.generationLimit - subscription.generationCount) : 0,
   };
 }

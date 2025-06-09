@@ -31,7 +31,7 @@ export default function ImageEditor() {
     hasImage,
   } = useImageEditor();
 
-  const { subscription, isAtLimit, remainingEdits } = useSubscription();
+  const { subscription, isAtLimit, remainingEdits, isAtGenerationLimit, remainingGenerations } = useSubscription();
 
   const isProcessing = isEditing || isResetting || isReverting || isUploading || isGenerating || isLoadingImage || isUpscaling;
 
@@ -67,6 +67,32 @@ export default function ImageEditor() {
               <Link href="/subscription" className="underline ml-1">
                 Consider upgrading
               </Link> to get more edits.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Generation Limit Warning */}
+        {isAtGenerationLimit && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              You've reached your monthly generation limit. 
+              <Link href="/subscription" className="underline ml-1">
+                Upgrade your plan
+              </Link> to continue generating images.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Low Generation Warning */}
+        {!isAtGenerationLimit && remainingGenerations <= 3 && remainingGenerations > 0 && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              You have {remainingGenerations} generation{remainingGenerations !== 1 ? 's' : ''} remaining this month. 
+              <Link href="/subscription" className="underline ml-1">
+                Consider upgrading
+              </Link> to get more generations.
             </AlertDescription>
           </Alert>
         )}
