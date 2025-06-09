@@ -286,6 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         input: {
           prompt: prompt,
           image_url: imageInput,
+          safety_tolerance: 5,
         },
         logs: true,
         onQueueUpdate: (update) => {
@@ -1052,55 +1053,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fix subscription status for users with null status
-  app.post('/api/fix-subscription-status', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // If subscription status is null, determine the correct status
-      if (user.subscriptionStatus === null || user.subscriptionStatus === undefined) {
-        let newStatus = "active";
-
-        if (user.stripeSubscriptionId) {
-          try {
-            const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-            if (subscription.cancel_at_period_end) {
-              newStatus = "canceling";
-            } else if (subscription.status === 'canceled') {
-              newStatus = "canceled";
-            } else {
-              newStatus = subscription.status;
-            }
-          } catch (error) {
-            console.error('Error retrieving subscription for status fix:', error);
-            newStatus = user.subscriptionTier === 'free' ? "canceled" : "active";
-          }
-        } else {
-          newStatus = user.subscriptionTier === 'free' ? "canceled" : "active";
-        }
-
-        await storage.updateUserSubscriptionStatus(userId, newStatus);
-        res.json({ 
-          message: "Subscription status fixed",
-          oldStatus: user.subscriptionStatus,
-          newStatus: newStatus
-        });
-      } else {
-        res.json({ 
-          message: "Subscription status is already set",
-          currentStatus: user.subscriptionStatus
-        });
-      }
-    } catch (error) {
-      console.error('Fix subscription status error:', error);
-      res.status(500).json({ message: "Failed to fix subscription status" });
-    }
-  });
 
   // Stripe webhook endpoint for handling subscription events
   app.post('/api/stripe-webhook', async (req, res) => {
