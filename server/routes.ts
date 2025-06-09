@@ -1023,11 +1023,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (user) {
               // Get subscription to get the current period
               const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-              const periodStart = new Date(subscription.current_period_start * 1000);
-              const periodEnd = new Date(subscription.current_period_end * 1000);
               
-              await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
-              console.log(`Billing period updated for user ${user.id} on payment success`);
+              // Only update billing period if we have valid timestamps
+              if (subscription.current_period_start && subscription.current_period_end) {
+                const periodStart = new Date(subscription.current_period_start * 1000);
+                const periodEnd = new Date(subscription.current_period_end * 1000);
+                
+                await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
+                console.log(`Billing period updated for user ${user.id} on payment success`);
+              } else {
+                console.log(`Billing period update skipped - invalid timestamps for user ${user.id}`);
+              }
             } else {
               console.log(`No user found for subscription ${invoice.subscription}`);
             }
@@ -1107,10 +1113,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               // Get subscription details to set billing period
               const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
-              const periodStart = new Date(subscription.current_period_start * 1000);
-              const periodEnd = new Date(subscription.current_period_end * 1000);
               
-              await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+              // Only update billing period if we have valid timestamps
+              if (subscription.current_period_start && subscription.current_period_end) {
+                const periodStart = new Date(subscription.current_period_start * 1000);
+                const periodEnd = new Date(subscription.current_period_end * 1000);
+                
+                await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+              }
 
               console.log(`Subscription activated for user ${userId}: ${tier} plan`);
             }
