@@ -1025,14 +1025,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
               
               // Only update billing period if we have valid timestamps
-              if (subscription.current_period_start && subscription.current_period_end) {
-                const periodStart = new Date(subscription.current_period_start * 1000);
-                const periodEnd = new Date(subscription.current_period_end * 1000);
-                
-                await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
-                console.log(`Billing period updated for user ${user.id} on payment success`);
+              if (subscription.current_period_start && subscription.current_period_end && 
+                  typeof subscription.current_period_start === 'number' && 
+                  typeof subscription.current_period_end === 'number') {
+                try {
+                  const periodStart = new Date(subscription.current_period_start * 1000);
+                  const periodEnd = new Date(subscription.current_period_end * 1000);
+                  
+                  // Validate the dates are actually valid
+                  if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime())) {
+                    await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
+                    console.log(`Billing period updated for user ${user.id} on payment success`);
+                  } else {
+                    console.warn(`Invalid billing period dates for user ${user.id}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                  }
+                } catch (error) {
+                  console.error(`Error updating billing period for user ${user.id}:`, error);
+                }
               } else {
-                console.log(`Billing period update skipped - invalid timestamps for user ${user.id}`);
+                console.warn(`Missing or invalid billing period timestamps for user ${user.id}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
               }
             } else {
               console.log(`No user found for subscription ${invoice.subscription}`);
@@ -1115,11 +1126,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
               
               // Only update billing period if we have valid timestamps
-              if (subscription.current_period_start && subscription.current_period_end) {
-                const periodStart = new Date(subscription.current_period_start * 1000);
-                const periodEnd = new Date(subscription.current_period_end * 1000);
-                
-                await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+              if (subscription.current_period_start && subscription.current_period_end && 
+                  typeof subscription.current_period_start === 'number' && 
+                  typeof subscription.current_period_end === 'number') {
+                try {
+                  const periodStart = new Date(subscription.current_period_start * 1000);
+                  const periodEnd = new Date(subscription.current_period_end * 1000);
+                  
+                  // Validate the dates are actually valid
+                  if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime())) {
+                    await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+                  } else {
+                    console.warn(`Invalid billing period dates for user ${userId}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                  }
+                } catch (error) {
+                  console.error(`Error updating billing period for user ${userId}:`, error);
+                }
+              } else {
+                console.warn(`Missing or invalid billing period timestamps for user ${userId}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
               }
 
               console.log(`Subscription activated for user ${userId}: ${tier} plan`);
