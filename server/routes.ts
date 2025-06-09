@@ -901,6 +901,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancel_at_period_end: true,
       });
 
+      // Update database to reflect the cancellation status
+      await storage.updateUserSubscriptionStatus(userId, "canceling");
+
       res.json({ message: "Subscription will be canceled at the end of the billing period" });
     } catch (error: any) {
       console.error('Cancel subscription error:', error);
@@ -932,6 +935,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await stripe.subscriptions.update(user.stripeSubscriptionId, {
         cancel_at_period_end: false,
       });
+
+      // Update database to reflect the active status
+      await storage.updateUserSubscriptionStatus(userId, "active");
 
       res.json({ message: "Subscription has been resumed successfully" });
     } catch (error: any) {
@@ -1043,6 +1049,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Manual billing period reset error:', error);
       res.status(500).json({ message: "Failed to reset billing period" });
+    }
+  });
+
+  // Fix subscription status for users with null status
+  app.post('/api/fix-subscription-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // If subscription status is null, determine the correct status
+      if (user.subscriptionStatus === null || user.subscriptionStatus === undefined) {
+        let newStatus = "active";
+
+        if (user.stripeSubscriptionId) {
+          try {
+            const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+            if (subscription.cancel_at_period_end) {
+              newStatus = "canceling";
+            } else if (subscription.status === 'canceled') {
+              newStatus = "canceled";
+            } else {
+              newStatus = subscription.status;
+            }
+          } catch (error) {
+            console.error('Error retrieving subscription for status fix:', error);
+            newStatus = user.subscriptionTier === 'free' ? "canceled" : "active";
+          }
+        } else {
+          newStatus = user.subscriptionTier === 'free' ? "canceled" : "active";
+        }
+
+        await storage.updateUserSubscriptionStatus(userId, newStatus);
+        res.json({ 
+          message: "Subscription status fixed",
+          oldStatus: user.subscriptionStatus,
+          newStatus: newStatus
+        });
+      } else {
+        res.json({ 
+          message: "Subscription status is already set",
+          currentStatus: user.subscriptionStatus
+        });
+      }
+    } catch (error) {
+      console.error('Fix subscription status error:', error);
+      res.status(500).json({ message: "Failed to fix subscription status" });
     }
   });
 
@@ -1276,6 +1332,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           } catch (error) {
             console.error('Error handling subscription cancellation:', error);
+          }
+        } else if (subscription.status === 'active') {
+          // Handle active subscription status
+          try {
+            const users = await storage.getUserBySubscriptionId?.(subscription.id);
+            if (users) {
+              // Only update status if it's not already properly set
+              if (users.subscriptionStatus !== 'active') {
+                await storage.updateUserSubscriptionStatus(users.id, 'active');
+                console.log(`Subscription status updated to active for user ${users.id}`);
+              }
+            }
+          } catch (error) {
+            console.error('Error handling subscription activation:', error);
           }
         }
         break;

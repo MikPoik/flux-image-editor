@@ -115,7 +115,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateUserSubscription(userId: string, tier: string, editLimit: number, preserveEditCount: boolean = true): Promise<User | undefined> {
+  async updateUserSubscription(userId: string, tier: string, editLimit: number, preserveEditCount: boolean = true, subscriptionStatus: string = "active"): Promise<User | undefined> {
     try {
       // Get current user data to check for rapid plan changes
       const currentUser = await this.getUser(userId);
@@ -137,6 +137,7 @@ export class DatabaseStorage implements IStorage {
       const updateData: any = {
         subscriptionTier: tier,
         editLimit: editLimit,
+        subscriptionStatus: subscriptionStatus,
         lastSubscriptionChange: new Date(),
       };
 
