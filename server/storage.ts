@@ -218,6 +218,7 @@ export class DatabaseStorage implements IStorage {
 
       if (shouldResetEditCount) {
         updateData.editCount = 0;
+        console.log(`Resetting edit count for user ${userId} due to new billing period`);
       }
 
       const [updatedUser] = await db
@@ -229,6 +230,30 @@ export class DatabaseStorage implements IStorage {
       return updatedUser;
     } catch (error) {
       console.log('Skipping billing period update due to error:', error.message);
+      return undefined;
+    }
+  }
+
+  async triggerBillingPeriodReset(userId: string): Promise<User | undefined> {
+    try {
+      // Force a billing period reset by setting new period and resetting edit count
+      const now = new Date();
+      const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          currentPeriodStart: now,
+          currentPeriodEnd: nextMonth,
+          editCount: 0,
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      console.log(`Manual billing period reset triggered for user ${userId}`);
+      return updatedUser;
+    } catch (error) {
+      console.error('Error triggering billing period reset:', error);
       return undefined;
     }
   }

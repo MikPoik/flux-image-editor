@@ -995,6 +995,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual billing period reset endpoint (for testing)
+  app.post('/api/reset-billing-period', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.triggerBillingPeriodReset(userId);
+      
+      if (user) {
+        res.json({ 
+          message: "Billing period reset successfully",
+          editCount: user.editCount,
+          currentPeriodStart: user.currentPeriodStart,
+          currentPeriodEnd: user.currentPeriodEnd
+        });
+      } else {
+        res.status(500).json({ message: "Failed to reset billing period" });
+      }
+    } catch (error) {
+      console.error('Manual billing period reset error:', error);
+      res.status(500).json({ message: "Failed to reset billing period" });
+    }
+  });
+
   // Stripe webhook endpoint for handling subscription events
   app.post('/api/stripe-webhook', async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -1024,7 +1046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Get subscription to get the current period
               const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
               
-              // Only update billing period if we have valid timestamps
+              // Try to update billing period if we have valid timestamps
               if (subscription.current_period_start && subscription.current_period_end && 
                   typeof subscription.current_period_start === 'number' && 
                   typeof subscription.current_period_end === 'number' &&
@@ -1040,13 +1062,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
                     console.log(`Billing period updated for user ${user.id} on payment success`);
                   } else {
-                    console.log(`Skipping billing period update for user ${user.id} - invalid dates: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                    console.log(`Invalid billing period dates for user ${user.id}, falling back to edit count reset`);
+                    await storage.resetUserEditCount(user.id);
                   }
                 } catch (error) {
-                  console.log(`Skipping billing period update for user ${user.id} due to error:`, error.message);
+                  console.log(`Billing period update failed for user ${user.id}, falling back to edit count reset:`, error.message);
+                  await storage.resetUserEditCount(user.id);
                 }
               } else {
-                console.log(`Skipping billing period update for user ${user.id} - missing or invalid timestamps: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                // Fallback: If billing period timestamps are not available, reset edit count on payment success
+                console.log(`Missing billing period timestamps for user ${user.id}, resetting edit count on payment success`);
+                await storage.resetUserEditCount(user.id);
               }
             } else {
               console.log(`No user found for subscription ${invoice.subscription}`);
@@ -1128,7 +1154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Get subscription details to set billing period
               const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
               
-              // Only update billing period if we have valid timestamps
+              // Try to update billing period if we have valid timestamps
               if (subscription.current_period_start && subscription.current_period_end && 
                   typeof subscription.current_period_start === 'number' && 
                   typeof subscription.current_period_end === 'number' &&
@@ -1144,13 +1170,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
                     console.log(`Billing period updated for user ${userId} on checkout completion`);
                   } else {
-                    console.log(`Skipping billing period update for user ${userId} - invalid dates: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                    console.log(`Invalid billing period dates for user ${userId}, falling back to edit count reset`);
+                    await storage.resetUserEditCount(userId);
                   }
                 } catch (error) {
-                  console.log(`Skipping billing period update for user ${userId} due to error:`, error.message);
+                  console.log(`Billing period update failed for user ${userId}, falling back to edit count reset:`, error.message);
+                  await storage.resetUserEditCount(userId);
                 }
               } else {
-                console.log(`Skipping billing period update for user ${userId} - missing or invalid timestamps: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                // Fallback: If billing period timestamps are not available, reset edit count on subscription start
+                console.log(`Missing billing period timestamps for user ${userId}, resetting edit count on subscription activation`);
+                await storage.resetUserEditCount(userId);
               }
 
               console.log(`Subscription activated for user ${userId}: ${tier} plan`);
