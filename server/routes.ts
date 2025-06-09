@@ -832,6 +832,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // If subscription retrieval fails, user probably doesn't have an active subscription
           hasActiveSubscription = false;
         }
+      } else {
+        console.log(`User ${userId} has no subscription`);
+        // Still check if user has currentPeriodEnd in database (for canceled subscriptions)
+        if (user.currentPeriodEnd) {
+          currentPeriodEnd = Math.floor(user.currentPeriodEnd.getTime() / 1000);
+        }
       }
 
       const response = {
