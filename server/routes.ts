@@ -170,8 +170,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertImageSchema.parse(imageData);
       const image = await storage.createImage(validatedData);
 
-      // Increment user's edit count
-      await storage.incrementUserEditCount(userId);
+      // Increment user's generation count
+      await storage.incrementUserGenerationCount(userId);
 
       res.json(image);
     } catch (error) {
@@ -998,8 +998,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         editLimit = 50;
       }
 
+      // Set generation limits based on tier (Free: 10, Others: 25)
+      const generationLimit = tier === 'free' ? 10 : 25;
+      
       // Update user subscription details - preserve edit count for upgrades
-      await storage.updateUserSubscription(userId, tier, editLimit, true, "active");
+      await storage.updateUserSubscription(userId, tier, editLimit, generationLimit, true, "active");
 
       console.log(`Subscription upgraded for user ${userId}: ${tier} plan`);
 
@@ -1214,8 +1217,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 editLimit = 50;
               }
 
+              // Set generation limits based on tier (Free: 10, Others: 25)
+              const generationLimit = tier === 'free' ? 10 : 25;
+              
               // Update user subscription details - preserve edit count for initial subscription/upgrades
-              await storage.updateUserSubscription(userId, tier, editLimit, true, "active");
+              await storage.updateUserSubscription(userId, tier, editLimit, generationLimit, true, "active");
 
               // Get subscription details to set billing period
               const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
@@ -1282,7 +1288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             const users = await storage.getUserBySubscriptionId?.(subscription.id);
             if (users) {
-              await storage.updateUserSubscription(users.id, 'free', 10, false, 'canceled');
+              await storage.updateUserSubscription(users.id, 'free', 10, 10, false, 'canceled');
               await storage.updateUserStripeInfo(users.id, users.stripeCustomerId || '', '');
               console.log(`Subscription canceled for user ${users.id}`);
             }
@@ -1314,7 +1320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const users = await storage.getUserBySubscriptionId?.(subscription.id);
           if (users) {
-            await storage.updateUserSubscription(users.id, 'free', 10, false, 'canceled');
+            await storage.updateUserSubscription(users.id, 'free', 10, 10, false, 'canceled');
             await storage.updateUserStripeInfo(users.id, users.stripeCustomerId || '', '');
             console.log(`Subscription deleted for user ${users.id}`);
           }
