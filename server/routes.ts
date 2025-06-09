@@ -424,13 +424,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get image by ID
-  app.get("/api/images/:id", async (req, res) => {
+  app.get("/api/images/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims.sub;
       const image = await storage.getImage(parseInt(id));
 
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
+      }
+
+      // Check if user owns the image
+      if (image.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized to access this image" });
       }
 
       res.json(image);
@@ -443,10 +449,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve images from object storage with optimization support
-  app.get("/api/storage/:key(*)", async (req, res) => {
+  app.get("/api/storage/:key(*)", isAuthenticated, async (req: any, res) => {
     try {
       const { key } = req.params;
       const { w, h, q } = req.query;
+      const userId = req.user.claims.sub;
+
+      // Extract user ID from key path and verify ownership
+      const keyUserId = key.split('/')[0];
+      if (keyUserId !== userId) {
+        return res.status(403).json({ message: "Unauthorized to access this image" });
+      }
 
       // Parse optimization parameters
       const width = w ? parseInt(w as string) : undefined;
@@ -490,10 +503,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Fallback endpoint for expired FAL URLs
-  app.get("/api/image-fallback/:imageId", async (req, res) => {
+  app.get("/api/image-fallback/:imageId", isAuthenticated, async (req: any, res) => {
     try {
       const { imageId } = req.params;
       const { w, h, q } = req.query;
+      const userId = req.user.claims.sub;
 
       // Parse optimization parameters
       const width = w ? parseInt(w as string) : undefined;
@@ -504,6 +518,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const image = await storage.getImage(parseInt(imageId));
       if (!image) {
         return res.status(404).json({ message: "Image not found" });
+      }
+
+      // Check if user owns the image
+      if (image.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized to access this image" });
       }
 
       // Try to serve from our object storage (original image)
