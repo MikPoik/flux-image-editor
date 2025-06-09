@@ -809,10 +809,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.stripeSubscriptionId) {
         try {
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-          const subData = subscription as any; // Cast to access all properties
-          cancelAtPeriodEnd = subData.cancel_at_period_end || false;
-          currentPeriodEnd = subData.current_period_end || null;
-          hasActiveSubscription = subData.status === 'active';
+          cancelAtPeriodEnd = subscription.cancel_at_period_end || false;
+          currentPeriodEnd = subscription.current_period_end || null;
+          hasActiveSubscription = subscription.status === 'active';
 
           console.log(`Subscription status for user ${userId}:`, {
             id: subData.id,
