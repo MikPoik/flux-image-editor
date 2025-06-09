@@ -813,10 +813,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hasActiveSubscription = subscription.status === 'active';
 
           // Use database current_period_end as primary source, fallback to Stripe
+          console.log(`Debug currentPeriodEnd for user ${userId}:`, {
+            databaseValue: user.currentPeriodEnd,
+            databaseType: typeof user.currentPeriodEnd,
+            stripeValue: subscription.current_period_end,
+            stripePeriodEnd: subscription.items?.data?.[0]?.current_period_end
+          });
+
           if (user.currentPeriodEnd) {
             currentPeriodEnd = Math.floor(user.currentPeriodEnd.getTime() / 1000);
           } else if (subscription.current_period_end) {
             currentPeriodEnd = subscription.current_period_end;
+            
+            // Update database with the period end from Stripe if it's missing
+            try {
+              const periodStart = new Date((subscription.current_period_start || subscription.created) * 1000);
+              const periodEnd = new Date(subscription.current_period_end * 1000);
+              await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+              console.log(`Updated missing billing period for user ${userId}`);
+            } catch (error) {
+              console.error('Failed to update missing billing period:', error);
+            }
           }
 
           console.log(`Subscription status for user ${userId}:`, {
