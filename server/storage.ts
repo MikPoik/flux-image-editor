@@ -188,6 +188,12 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined> {
     try {
+      // Validate dates before proceeding
+      if (!periodStart || !periodEnd || isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
+        console.error('Invalid dates provided to updateUserBillingPeriod:', { periodStart, periodEnd });
+        return undefined;
+      }
+
       const user = await this.getUser(userId);
       if (!user) return undefined;
 
