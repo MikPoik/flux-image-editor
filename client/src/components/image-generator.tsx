@@ -6,9 +6,10 @@ import { Wand2, Sparkles } from 'lucide-react';
 interface ImageGeneratorProps {
   onGenerate: (prompt: string) => void;
   isGenerating: boolean;
+  isDisabled?: boolean;
 }
 
-export function ImageGenerator({ onGenerate, isGenerating }: ImageGeneratorProps) {
+export function ImageGenerator({ onGenerate, isGenerating, isDisabled = false }: ImageGeneratorProps) {
   const [prompt, setPrompt] = useState('');
 
   const handleSubmit = useCallback(() => {
@@ -60,12 +61,12 @@ export function ImageGenerator({ onGenerate, isGenerating }: ImageGeneratorProps
               onChange={(e) => setPrompt(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="A beautiful sunset over mountains..."
-              disabled={isGenerating}
+              disabled={isGenerating || isDisabled}
               className="w-full pr-12"
             />
             <Button
               onClick={handleSubmit}
-              disabled={!prompt.trim() || isGenerating}
+              disabled={!prompt.trim() || isGenerating || isDisabled}
               size="sm"
               className="absolute right-1 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700"
             >
@@ -79,7 +80,7 @@ export function ImageGenerator({ onGenerate, isGenerating }: ImageGeneratorProps
 
           <Button 
             onClick={handleSubmit}
-            disabled={!prompt.trim() || isGenerating}
+            disabled={!prompt.trim() || isGenerating || isDisabled}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
             {isGenerating ? (

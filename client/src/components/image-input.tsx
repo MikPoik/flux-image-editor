@@ -9,9 +9,10 @@ interface ImageInputProps {
   onGenerate: (prompt: string) => void;
   isUploading: boolean;
   isGenerating: boolean;
+  isGenerationDisabled?: boolean;
 }
 
-export function ImageInput({ onUpload, onGenerate, isUploading, isGenerating }: ImageInputProps) {
+export function ImageInput({ onUpload, onGenerate, isUploading, isGenerating, isGenerationDisabled = false }: ImageInputProps) {
   const [activeTab, setActiveTab] = useState('upload');
 
   return (
@@ -38,6 +39,7 @@ export function ImageInput({ onUpload, onGenerate, isUploading, isGenerating }: 
         <ImageGenerator 
           onGenerate={onGenerate} 
           isGenerating={isGenerating}
+          isDisabled={isGenerationDisabled}
         />
       </TabsContent>
     </Tabs>

@@ -105,6 +105,7 @@ export default function ImageEditor() {
               onGenerate={handleGenerate}
               isUploading={isUploading}
               isGenerating={isGenerating}
+              isGenerationDisabled={isAtGenerationLimit}
             />
           ) : (
             <ImageDisplay
