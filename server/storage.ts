@@ -188,14 +188,24 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined> {
     try {
-      // Validate dates before proceeding
-      if (!periodStart || !periodEnd || isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime())) {
-        console.error('Invalid dates provided to updateUserBillingPeriod:', { periodStart, periodEnd });
+      // Validate dates before proceeding - be extra strict
+      if (!periodStart || !periodEnd || 
+          isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime()) ||
+          periodStart.getTime() <= 0 || periodEnd.getTime() <= 0) {
+        console.log('Invalid dates provided to updateUserBillingPeriod, skipping update:', { 
+          periodStart: periodStart?.toString(), 
+          periodEnd: periodEnd?.toString(),
+          startTime: periodStart?.getTime(),
+          endTime: periodEnd?.getTime()
+        });
         return undefined;
       }
 
       const user = await this.getUser(userId);
-      if (!user) return undefined;
+      if (!user) {
+        console.log('User not found for billing period update:', userId);
+        return undefined;
+      }
 
       // Only reset edit count if this is a new billing period
       const shouldResetEditCount = !user.currentPeriodStart || 
@@ -218,7 +228,7 @@ export class DatabaseStorage implements IStorage {
       
       return updatedUser;
     } catch (error) {
-      console.error('Error updating user billing period:', error);
+      console.log('Skipping billing period update due to error:', error.message);
       return undefined;
     }
   }

@@ -1028,24 +1028,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (subscription.current_period_start && subscription.current_period_end && 
                   typeof subscription.current_period_start === 'number' && 
                   typeof subscription.current_period_end === 'number' &&
-                  subscription.current_period_start > 0 && subscription.current_period_end > 0) {
+                  subscription.current_period_start > 0 && subscription.current_period_end > 0 &&
+                  !isNaN(subscription.current_period_start) && !isNaN(subscription.current_period_end)) {
                 try {
                   const periodStart = new Date(subscription.current_period_start * 1000);
                   const periodEnd = new Date(subscription.current_period_end * 1000);
                   
-                  // Validate the dates are actually valid
+                  // Validate the dates are actually valid before attempting database update
                   if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
                       periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
                     console.log(`Billing period updated for user ${user.id} on payment success`);
                   } else {
-                    console.warn(`Invalid billing period dates for user ${user.id}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                    console.log(`Skipping billing period update for user ${user.id} - invalid dates: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
                   }
                 } catch (error) {
-                  console.error(`Error updating billing period for user ${user.id}:`, error);
+                  console.log(`Skipping billing period update for user ${user.id} due to error:`, error.message);
                 }
               } else {
-                console.warn(`Missing or invalid billing period timestamps for user ${user.id}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                console.log(`Skipping billing period update for user ${user.id} - missing or invalid timestamps: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
               }
             } else {
               console.log(`No user found for subscription ${invoice.subscription}`);
@@ -1131,23 +1132,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (subscription.current_period_start && subscription.current_period_end && 
                   typeof subscription.current_period_start === 'number' && 
                   typeof subscription.current_period_end === 'number' &&
-                  subscription.current_period_start > 0 && subscription.current_period_end > 0) {
+                  subscription.current_period_start > 0 && subscription.current_period_end > 0 &&
+                  !isNaN(subscription.current_period_start) && !isNaN(subscription.current_period_end)) {
                 try {
                   const periodStart = new Date(subscription.current_period_start * 1000);
                   const periodEnd = new Date(subscription.current_period_end * 1000);
                   
-                  // Validate the dates are actually valid
+                  // Validate the dates are actually valid before attempting database update
                   if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
                       periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+                    console.log(`Billing period updated for user ${userId} on checkout completion`);
                   } else {
-                    console.warn(`Invalid billing period dates for user ${userId}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                    console.log(`Skipping billing period update for user ${userId} - invalid dates: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
                   }
                 } catch (error) {
-                  console.error(`Error updating billing period for user ${userId}:`, error);
+                  console.log(`Skipping billing period update for user ${userId} due to error:`, error.message);
                 }
               } else {
-                console.warn(`Missing or invalid billing period timestamps for user ${userId}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+                console.log(`Skipping billing period update for user ${userId} - missing or invalid timestamps: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
               }
 
               console.log(`Subscription activated for user ${userId}: ${tier} plan`);
