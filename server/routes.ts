@@ -1061,6 +1061,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 periodEndTimestamp = subscription.current_period_end || periodEndTimestamp;
               }
 
+              // Final fallback: use invoice period if subscription doesn't have billing period
+              if (!periodStartTimestamp || !periodEndTimestamp) {
+                periodStartTimestamp = invoice.period_start || periodStartTimestamp;
+                periodEndTimestamp = invoice.period_end || periodEndTimestamp;
+                console.log(`Using invoice period as fallback: start=${invoice.period_start}, end=${invoice.period_end}`);
+              }
+
+              console.log(`Billing period extraction result: start=${periodStartTimestamp}, end=${periodEndTimestamp}`);
+
               // Only update billing period if we have valid timestamps
               if (periodStartTimestamp && periodEndTimestamp && 
                   typeof periodStartTimestamp === 'number' && 
@@ -1074,7 +1083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
                       periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
-                    console.log(`Billing period updated for user ${user.id} on payment success`);
+                    console.log(`Billing period updated for user ${user.id} on payment success: ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
                   } else {
                     console.log(`Invalid billing period dates for user ${user.id}, falling back to edit count reset`);
                     await storage.resetUserEditCount(user.id);
@@ -1085,7 +1094,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               } else {
                 // Fallback: If billing period timestamps are not available, reset edit count on payment success
-                console.log(`Missing billing period timestamps for user ${user.id}, resetting edit count on payment success`);
+                console.log(`Missing or invalid billing period timestamps for user ${user.id} - start=${periodStartTimestamp}, end=${periodEndTimestamp}`);
+                console.log(`Falling back to edit count reset on payment success`);
                 await storage.resetUserEditCount(user.id);
               }
             } else {
