@@ -1045,15 +1045,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Get subscription to get the current period
               const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
 
-              // Get billing period timestamps from subscription or fallback to items
-              let periodStartTimestamp = subscription.current_period_start;
-              let periodEndTimestamp = subscription.current_period_end;
+              // Get billing period timestamps from subscription items (primary source)
+              let periodStartTimestamp = null;
+              let periodEndTimestamp = null;
 
-              // Fallback to subscription items if main subscription doesn't have the fields
-              if ((!periodStartTimestamp || !periodEndTimestamp) && subscription.items?.data?.[0]) {
+              if (subscription.items?.data?.[0]) {
                 const firstItem = subscription.items.data[0];
-                periodStartTimestamp = firstItem.current_period_start || periodStartTimestamp;
-                periodEndTimestamp = firstItem.current_period_end || periodEndTimestamp;
+                periodStartTimestamp = firstItem.current_period_start;
+                periodEndTimestamp = firstItem.current_period_end;
+              }
+
+              // Fallback to root subscription if items don't have the fields
+              if (!periodStartTimestamp || !periodEndTimestamp) {
+                periodStartTimestamp = subscription.current_period_start || periodStartTimestamp;
+                periodEndTimestamp = subscription.current_period_end || periodEndTimestamp;
               }
 
               // Only update billing period if we have valid timestamps
@@ -1163,15 +1168,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Get subscription details to set billing period
               const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
 
-              // Get billing period timestamps from subscription or fallback to items
-              let periodStartTimestamp = subscription.current_period_start;
-              let periodEndTimestamp = subscription.current_period_end;
+              // Get billing period timestamps from subscription items (primary source)
+              let periodStartTimestamp = null;
+              let periodEndTimestamp = null;
 
-              // Fallback to subscription items if main subscription doesn't have the fields
-              if ((!periodStartTimestamp || !periodEndTimestamp) && subscription.items?.data?.[0]) {
+              if (subscription.items?.data?.[0]) {
                 const firstItem = subscription.items.data[0];
-                periodStartTimestamp = firstItem.current_period_start || periodStartTimestamp;
-                periodEndTimestamp = firstItem.current_period_end || periodEndTimestamp;
+                periodStartTimestamp = firstItem.current_period_start;
+                periodEndTimestamp = firstItem.current_period_end;
+              }
+
+              // Fallback to root subscription if items don't have the fields
+              if (!periodStartTimestamp || !periodEndTimestamp) {
+                periodStartTimestamp = subscription.current_period_start || periodStartTimestamp;
+                periodEndTimestamp = subscription.current_period_end || periodEndTimestamp;
               }
 
               // Only update billing period if we have valid timestamps
