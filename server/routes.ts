@@ -812,11 +812,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cancelAtPeriodEnd = subscription.cancel_at_period_end || false;
           hasActiveSubscription = subscription.status === 'active';
 
-          // Try to get period end from Stripe subscription items first, fallback to database
-          if (subscription.items?.data?.[0]?.current_period_end) {
-            currentPeriodEnd = subscription.items.data[0].current_period_end;
-          } else if (user.currentPeriodEnd) {
+          // Use database current_period_end as primary source, fallback to Stripe
+          if (user.currentPeriodEnd) {
             currentPeriodEnd = Math.floor(user.currentPeriodEnd.getTime() / 1000);
+          } else if (subscription.current_period_end) {
+            currentPeriodEnd = subscription.current_period_end;
           }
 
           console.log(`Subscription status for user ${userId}:`, {
