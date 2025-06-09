@@ -1027,13 +1027,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Only update billing period if we have valid timestamps
               if (subscription.current_period_start && subscription.current_period_end && 
                   typeof subscription.current_period_start === 'number' && 
-                  typeof subscription.current_period_end === 'number') {
+                  typeof subscription.current_period_end === 'number' &&
+                  subscription.current_period_start > 0 && subscription.current_period_end > 0) {
                 try {
                   const periodStart = new Date(subscription.current_period_start * 1000);
                   const periodEnd = new Date(subscription.current_period_end * 1000);
                   
                   // Validate the dates are actually valid
-                  if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime())) {
+                  if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
+                      periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
                     console.log(`Billing period updated for user ${user.id} on payment success`);
                   } else {
@@ -1128,13 +1130,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Only update billing period if we have valid timestamps
               if (subscription.current_period_start && subscription.current_period_end && 
                   typeof subscription.current_period_start === 'number' && 
-                  typeof subscription.current_period_end === 'number') {
+                  typeof subscription.current_period_end === 'number' &&
+                  subscription.current_period_start > 0 && subscription.current_period_end > 0) {
                 try {
                   const periodStart = new Date(subscription.current_period_start * 1000);
                   const periodEnd = new Date(subscription.current_period_end * 1000);
                   
                   // Validate the dates are actually valid
-                  if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime())) {
+                  if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
+                      periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
                   } else {
                     console.warn(`Invalid billing period dates for user ${userId}: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
