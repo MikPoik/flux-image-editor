@@ -363,7 +363,7 @@ export default function Subscription() {
                     <div className="flex flex-col items-end gap-2">
                       <Badge variant="destructive" className="text-xs">
                         {subscription.currentPeriodEnd 
-                          ? `Cancels on ${new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}`
+                          ? `Cancels ${new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}`
                           : "Scheduled for cancellation"
                         }
                       </Badge>
