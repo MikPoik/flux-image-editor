@@ -23,6 +23,8 @@ interface SubscriptionInfo {
   subscriptionTier: string;
   editCount: number;
   editLimit: number;
+  generationCount: number;
+  generationLimit: number;
   hasActiveSubscription: boolean;
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: number | null;
@@ -287,7 +289,7 @@ export default function Subscription() {
       price: "$4.99",
       period: "/month",
       edits: 50,
-      features: ["50 image edits per month", "Kontext Pro AI model", "2X image upscale"],
+      features: ["50 image edits per month", "25 image generations per month", "Kontext Pro AI model", "2X image upscale"],
       priceId: import.meta.env.VITE_STRIPE_PRICE_5, // Replace with your actual Stripe price ID
       popular: false,
     },
@@ -297,7 +299,7 @@ export default function Subscription() {
       price: "$9.99",
       period: "/month",
       edits: 50,
-      features: ["50 image edits per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
+      features: ["50 image edits per month", "25 image generations per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
       priceId: import.meta.env.VITE_STRIPE_PRICE_999, // Replace with your actual Stripe price ID for $9.99 plan
       popular: true,
     },
@@ -352,6 +354,9 @@ export default function Subscription() {
                 </p>
                 <p className="text-muted-foreground">
                   {subscription.editCount} / {subscription.editLimit} edits used this month
+                </p>
+                <p className="text-muted-foreground">
+                  {subscription.generationCount} / {subscription.generationLimit} generations used this month
                 </p>
               </div>
               <div className="text-right">

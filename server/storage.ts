@@ -274,7 +274,8 @@ export class DatabaseStorage implements IStorage {
 
       if (shouldResetEditCount) {
         updateData.editCount = 0;
-        console.log(`Resetting edit count for user ${userId} due to new billing period`);
+        updateData.generationCount = 0;
+        console.log(`Resetting edit and generation counts for user ${userId} due to new billing period`);
       }
 
       const [updatedUser] = await db
@@ -302,6 +303,7 @@ export class DatabaseStorage implements IStorage {
           currentPeriodStart: now,
           currentPeriodEnd: nextMonth,
           editCount: 0,
+          generationCount: 0,
         })
         .where(eq(users.id, userId))
         .returning();

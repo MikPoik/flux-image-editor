@@ -862,6 +862,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscriptionTier: user.subscriptionTier || 'free',
         editCount: user.editCount || 0,
         editLimit: user.editLimit || 10,
+        generationCount: user.generationCount || 0,
+        generationLimit: user.generationLimit || 10,
         hasActiveSubscription,
         cancelAtPeriodEnd,
         currentPeriodEnd,
