@@ -1046,6 +1046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ 
           message: "Billing period reset successfully",
           editCount: user.editCount,
+          generationCount: user.generationCount,
           currentPeriodStart: user.currentPeriodStart,
           currentPeriodEnd: user.currentPeriodEnd
         });

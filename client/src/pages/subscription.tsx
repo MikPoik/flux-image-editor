@@ -309,7 +309,7 @@ export default function Subscription() {
       price: "$14.99",
       period: "/month",
       edits: 100,
-      features: ["100 image edits per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
+      features: ["100 image edits per month", "25 image generations per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
       priceId: import.meta.env.VITE_STRIPE_PRICE_1499, // Replace with your actual Stripe price ID
       popular: false,
     },
