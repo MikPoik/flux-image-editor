@@ -105,12 +105,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has reached their edit limit (generation counts as an edit)
-      if (user.editCount >= user.editLimit) {
+      // Check if user has reached their generation limit
+      if (user.generationCount >= user.generationLimit) {
         return res.status(403).json({ 
-          message: "Edit limit reached. Please upgrade your subscription to continue generating images.",
-          editCount: user.editCount,
-          editLimit: user.editLimit
+          message: "Generation limit reached. Please upgrade your subscription to continue generating images.",
+          generationCount: user.generationCount,
+          generationLimit: user.generationLimit
         });
       }
 

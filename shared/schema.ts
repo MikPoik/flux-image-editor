@@ -27,6 +27,8 @@ export const users = pgTable("users", {
   subscriptionTier: varchar("subscription_tier"), // 'free', 'basic', 'premium'
   editCount: integer("edit_count").default(0).notNull(),
   editLimit: integer("edit_limit").default(10).notNull(),
+  generationCount: integer("generation_count").default(0).notNull(),
+  generationLimit: integer("generation_limit").default(10).notNull(), // Free: 10, Others: 25
   subscriptionStatus: varchar("subscription_status").default("active"), // 'active', 'canceled', 'past_due'
   currentPeriodStart: timestamp("current_period_start"),
   currentPeriodEnd: timestamp("current_period_end"),

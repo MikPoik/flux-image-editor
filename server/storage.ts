@@ -17,9 +17,11 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User | undefined>;
-  updateUserSubscription(userId: string, tier: string, editLimit: number, preserveEditCount?: boolean): Promise<User | undefined>;
+  updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount?: boolean): Promise<User | undefined>;
   incrementUserEditCount(userId: string): Promise<User | undefined>;
   resetUserEditCount(userId: string): Promise<User | undefined>;
+  incrementUserGenerationCount(userId: string): Promise<User | undefined>;
+  resetUserGenerationCount(userId: string): Promise<User | undefined>;
   getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined>;
 
   // Image operations
@@ -115,7 +117,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateUserSubscription(userId: string, tier: string, editLimit: number, preserveEditCount: boolean = true, subscriptionStatus: string = "active"): Promise<User | undefined> {
+  async updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount: boolean = true, subscriptionStatus: string = "active"): Promise<User | undefined> {
     try {
       // Get current user data to check for rapid plan changes
       const currentUser = await this.getUser(userId);
@@ -142,6 +144,7 @@ export class DatabaseStorage implements IStorage {
       const updateData: any = {
         subscriptionTier: tier,
         editLimit: editLimit,
+        generationLimit: generationLimit,
         subscriptionStatus: subscriptionStatus,
         lastSubscriptionChange: new Date(),
       };
@@ -150,6 +153,7 @@ export class DatabaseStorage implements IStorage {
       // This prevents gaming the system by rapid plan changes
       if (!preserveEditCount) {
         updateData.editCount = 0;
+        updateData.generationCount = 0;
       }
 
       const [user] = await db
@@ -188,6 +192,34 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error('Error resetting user edit count:', error);
+      return undefined;
+    }
+  }
+
+  async incrementUserGenerationCount(userId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ generationCount: sql`${users.generationCount} + 1` })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error incrementing user generation count:', error);
+      return undefined;
+    }
+  }
+
+  async resetUserGenerationCount(userId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ generationCount: 0 })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error resetting user generation count:', error);
       return undefined;
     }
   }
