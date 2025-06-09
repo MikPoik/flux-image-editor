@@ -1122,6 +1122,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
                     console.log(`Billing period updated for user ${user.id} on payment success: ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
+                    
+                    // Always reset edit count on successful payment (new billing period)
+                    await storage.resetUserEditCount(user.id);
+                    console.log(`Edit count reset for user ${user.id} on new billing period`);
                   } else {
                     console.log(`Invalid billing period dates for user ${user.id}, falling back to edit count reset`);
                     await storage.resetUserEditCount(user.id);

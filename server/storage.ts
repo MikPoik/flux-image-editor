@@ -121,15 +121,20 @@ export class DatabaseStorage implements IStorage {
       const currentUser = await this.getUser(userId);
       if (!currentUser) return undefined;
 
+      // Check if this is a billing period reset (new billing cycle)
+      const isBillingPeriodReset = currentUser.currentPeriodStart && 
+        currentUser.currentPeriodEnd && 
+        Date.now() > currentUser.currentPeriodEnd.getTime();
+
       // Anti-gaming protection: prevent rapid plan changes within 24 hours
-      // unless it's a cancellation (downgrade to free)
-      if (currentUser.lastSubscriptionChange && tier !== 'free') {
+      // unless it's a cancellation (downgrade to free) or a billing period reset
+      if (currentUser.lastSubscriptionChange && tier !== 'free' && !isBillingPeriodReset) {
         const timeSinceLastChange = Date.now() - currentUser.lastSubscriptionChange.getTime();
         const twentyFourHours = 24 * 60 * 60 * 1000;
 
         if (timeSinceLastChange < twentyFourHours) {
-          console.warn(`Rapid subscription change attempt by user ${userId} blocked. Last change: ${currentUser.lastSubscriptionChange}`);
-          // Still allow the update but preserve edit count to prevent gaming
+          console.log(`Rapid subscription change attempt by user ${userId} blocked. Last change: ${currentUser.lastSubscriptionChange}`);
+          // Force preserve edit count for rapid changes to prevent gaming
           preserveEditCount = true;
         }
       }
