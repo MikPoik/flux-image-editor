@@ -881,8 +881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Resume subscription
   app.post('/api/resume-subscription', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const userId = req.user.claims.sub;      const user = await storage.getUser(userId);
 
       if (!user || !user.stripeSubscriptionId) {
         return res.status(400).json({ message: "No active subscription found" });
@@ -1000,7 +999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.triggerBillingPeriodReset(userId);
-      
+
       if (user) {
         res.json({ 
           message: "Billing period reset successfully",
@@ -1045,18 +1044,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (user) {
               // Get subscription to get the current period
               const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-              
-              // Try to update billing period if we have valid timestamps
-              if (subscription.current_period_start && subscription.current_period_end && 
-                  typeof subscription.current_period_start === 'number' && 
-                  typeof subscription.current_period_end === 'number' &&
-                  subscription.current_period_start > 0 && subscription.current_period_end > 0 &&
-                  !isNaN(subscription.current_period_start) && !isNaN(subscription.current_period_end)) {
+
+              // Get billing period timestamps from subscription or fallback to items
+              let periodStartTimestamp = subscription.current_period_start;
+              let periodEndTimestamp = subscription.current_period_end;
+
+              // Fallback to subscription items if main subscription doesn't have the fields
+              if ((!periodStartTimestamp || !periodEndTimestamp) && subscription.items?.data?.[0]) {
+                const firstItem = subscription.items.data[0];
+                periodStartTimestamp = firstItem.current_period_start || periodStartTimestamp;
+                periodEndTimestamp = firstItem.current_period_end || periodEndTimestamp;
+              }
+
+              // Only update billing period if we have valid timestamps
+              if (periodStartTimestamp && periodEndTimestamp && 
+                  typeof periodStartTimestamp === 'number' && 
+                  typeof periodEndTimestamp === 'number' &&
+                  periodStartTimestamp > 0 && periodEndTimestamp > 0) {
                 try {
-                  const periodStart = new Date(subscription.current_period_start * 1000);
-                  const periodEnd = new Date(subscription.current_period_end * 1000);
-                  
-                  // Validate the dates are actually valid before attempting database update
+                  const periodStart = new Date(periodStartTimestamp * 1000);
+                  const periodEnd = new Date(periodEndTimestamp * 1000);
+
+                  // Validate the dates are actually valid
                   if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
                       periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
@@ -1150,21 +1159,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               // Update user subscription details - preserve edit count for initial subscription/upgrades
               await storage.updateUserSubscription(userId, tier, editLimit, true);
-              
+
               // Get subscription details to set billing period
               const subscription = await stripe.subscriptions.retrieve(finalSubscriptionId);
-              
-              // Try to update billing period if we have valid timestamps
-              if (subscription.current_period_start && subscription.current_period_end && 
-                  typeof subscription.current_period_start === 'number' && 
-                  typeof subscription.current_period_end === 'number' &&
-                  subscription.current_period_start > 0 && subscription.current_period_end > 0 &&
-                  !isNaN(subscription.current_period_start) && !isNaN(subscription.current_period_end)) {
+
+              // Get billing period timestamps from subscription or fallback to items
+              let periodStartTimestamp = subscription.current_period_start;
+              let periodEndTimestamp = subscription.current_period_end;
+
+              // Fallback to subscription items if main subscription doesn't have the fields
+              if ((!periodStartTimestamp || !periodEndTimestamp) && subscription.items?.data?.[0]) {
+                const firstItem = subscription.items.data[0];
+                periodStartTimestamp = firstItem.current_period_start || periodStartTimestamp;
+                periodEndTimestamp = firstItem.current_period_end || periodEndTimestamp;
+              }
+
+              // Only update billing period if we have valid timestamps
+              if (periodStartTimestamp && periodEndTimestamp && 
+                  typeof periodStartTimestamp === 'number' && 
+                  typeof periodEndTimestamp === 'number' &&
+                  periodStartTimestamp > 0 && periodEndTimestamp > 0) {
                 try {
-                  const periodStart = new Date(subscription.current_period_start * 1000);
-                  const periodEnd = new Date(subscription.current_period_end * 1000);
-                  
-                  // Validate the dates are actually valid before attempting database update
+                  const periodStart = new Date(periodStartTimestamp * 1000);
+                  const periodEnd = new Date(periodEndTimestamp * 1000);
+
+                  // Validate the dates are actually valid
                   if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
                       periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
