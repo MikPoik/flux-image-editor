@@ -164,25 +164,48 @@ export default function ImageEditor() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {subscription.editCount} / {subscription.editLimit} edits used this month
-                  </p>
-                  <div className="w-full bg-secondary rounded-full h-2 mt-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all ${
-                        isAtLimit ? 'bg-destructive' : 
-                        remainingEdits <= 3 ? 'bg-yellow-500' : 'bg-primary'
-                      }`}
-                      style={{ width: `${Math.min((subscription.editCount / subscription.editLimit) * 100, 100)}%` }}
-                    />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {subscription.editCount} / {subscription.editLimit} edits used this month
+                    </p>
+                    <div className="w-full bg-secondary rounded-full h-2 mt-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all ${
+                          isAtLimit ? 'bg-destructive' : 
+                          remainingEdits <= 3 ? 'bg-yellow-500' : 'bg-primary'
+                        }`}
+                        style={{ width: `${Math.min((subscription.editCount / subscription.editLimit) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold">
+                      {remainingEdits} left
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold">
-                    {remainingEdits} left
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {subscription.generationCount} / {subscription.generationLimit} generations used this month
+                    </p>
+                    <div className="w-full bg-secondary rounded-full h-2 mt-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all ${
+                          isAtGenerationLimit ? 'bg-destructive' : 
+                          remainingGenerations <= 3 ? 'bg-yellow-500' : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min((subscription.generationCount / subscription.generationLimit) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold">
+                      {remainingGenerations} left
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
