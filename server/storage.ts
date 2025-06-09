@@ -21,7 +21,7 @@ export interface IStorage {
   incrementUserEditCount(userId: string): Promise<User | undefined>;
   resetUserEditCount(userId: string): Promise<User | undefined>;
   getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined>;
-  
+
   // Image operations
   createImage(image: InsertImage): Promise<Image>;
   getImage(id: number): Promise<Image | undefined>;
@@ -126,7 +126,7 @@ export class DatabaseStorage implements IStorage {
       if (currentUser.lastSubscriptionChange && tier !== 'free') {
         const timeSinceLastChange = Date.now() - currentUser.lastSubscriptionChange.getTime();
         const twentyFourHours = 24 * 60 * 60 * 1000;
-        
+
         if (timeSinceLastChange < twentyFourHours) {
           console.warn(`Rapid subscription change attempt by user ${userId} blocked. Last change: ${currentUser.lastSubscriptionChange}`);
           // Still allow the update but preserve edit count to prevent gaming
@@ -186,6 +186,24 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async updateUserSubscriptionStatus(userId: string, status: string): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          subscriptionStatus: status,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      return updatedUser;
+    } catch (error) {
+      console.error("Error updating user subscription status:", error);
+      return undefined;
+    }
+  }
+
   async updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined> {
     try {
       // Validate dates before proceeding - be extra strict
@@ -226,7 +244,7 @@ export class DatabaseStorage implements IStorage {
         .set(updateData)
         .where(eq(users.id, userId))
         .returning();
-      
+
       return updatedUser;
     } catch (error) {
       console.log('Skipping billing period update due to error:', error.message);
@@ -239,7 +257,7 @@ export class DatabaseStorage implements IStorage {
       // Force a billing period reset by setting new period and resetting edit count
       const now = new Date();
       const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      
+
       const [updatedUser] = await db
         .update(users)
         .set({
@@ -249,7 +267,7 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(users.id, userId))
         .returning();
-      
+
       console.log(`Manual billing period reset triggered for user ${userId}`);
       return updatedUser;
     } catch (error) {
