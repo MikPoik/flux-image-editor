@@ -56,7 +56,7 @@ export function Navigation() {
         {/* Logo */}
         <Link href="/">
           <h1 className="text-xl md:text-2xl font-bold text-foreground cursor-pointer">
-            AI Image Editor
+            Flux Image Editor
           </h1>
         </Link>
 
