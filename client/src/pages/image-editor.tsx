@@ -1,15 +1,31 @@
-import { useEffect } from 'react';
-import { Download, Wand2, Crown, AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Download, Wand2, Crown, AlertTriangle, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ImageInput } from '@/components/image-input';
 import { ImageDisplay } from '@/components/image-display';
 import { PromptInput } from '@/components/prompt-input';
 import { useImageEditor } from '@/hooks/use-image-editor';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Link } from 'wouter';
+
+// Helper function to create optimized image URLs
+function getOptimizedImageUrl(url: string, width?: number, height?: number, quality: number = 80): string {
+  if (!url.startsWith('/api/storage/')) {
+    return url; // Return original URL if not from our storage
+  }
+  
+  const params = new URLSearchParams();
+  if (width) params.set('w', width.toString());
+  if (height) params.set('h', height.toString());
+  if (quality !== 80) params.set('q', quality.toString());
+  
+  const queryString = params.toString();
+  return queryString ? `${url}?${queryString}` : url;
+}
 
 export default function ImageEditor() {
   const {
@@ -32,6 +48,7 @@ export default function ImageEditor() {
   } = useImageEditor();
 
   const { subscription, isAtLimit, remainingEdits, isAtGenerationLimit, remainingGenerations } = useSubscription();
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const isProcessing = isEditing || isResetting || isReverting || isUploading || isGenerating || isLoadingImage || isUpscaling;
 
@@ -135,7 +152,88 @@ export default function ImageEditor() {
             />
 
             {/* Edit History */}
+            <div className="mt-6">
+              <Collapsible open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+                <div className="bg-muted rounded-xl p-4 border border-border">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full p-0 h-auto justify-between">
+                      <div className="flex items-center justify-between text-sm w-full">
+                        <span className="text-muted-foreground">Edits made:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-foreground">{imageData?.editHistory?.length || 0}</span>
+                          {(imageData?.editHistory?.length || 0) > 0 && (
+                            isHistoryOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          )}
+                        </div>
+                      </div>
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="mt-4">
+                    {imageData?.editHistory && imageData.editHistory.length > 0 && (
+                      <div className="space-y-3">
+                        {/* Original Image */}
+                        <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
+                          <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                            <img
+                              src={getOptimizedImageUrl(imageData.originalUrl, 128, 128, 70)}
+                              alt="Original image"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground">Original Image</p>
+                            <p className="text-xs text-muted-foreground">Starting point</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRevert(-1)}
+                            disabled={isProcessing || isReverting}
+                            className="flex-shrink-0"
+                          >
+                            <Undo2 className="w-3 h-3 mr-1" />
+                            Revert
+                          </Button>
+                        </div>
 
+                        {/* Edit History Items */}
+                        {imageData.editHistory.map((edit, index) => (
+                          <div key={index} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
+                            <div className="relative w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                              <img
+                                src={getOptimizedImageUrl(edit.imageUrl, 128, 128, 70)}
+                                alt={`Edit ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground">Edit {index + 1}</p>
+                              <p className="text-xs text-muted-foreground truncate">{edit.prompt}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(edit.timestamp).toLocaleString()}
+                              </p>
+                            </div>
+                            {index < imageData.editHistory.length - 1 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRevert(index)}
+                                disabled={isProcessing || isReverting}
+                                className="flex-shrink-0"
+                              >
+                                <Undo2 className="w-3 h-3 mr-1" />
+                                Revert
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            </div>
           </div>
         )}
 
