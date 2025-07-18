@@ -165,7 +165,7 @@ export default function Landing() {
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                     Before
                   </p>
-                  <div className="aspect-video bg-gradient-to-br from-green-200 to-blue-200 rounded-lg flex items-center justify-center">
+                  <div className="aspect-square bg-gradient-to-br from-green-200 to-blue-200 rounded-lg flex items-center justify-center">
                     <img
                       src="/flux-robot.png"
                       alt="Robot smiling"
@@ -177,7 +177,7 @@ export default function Landing() {
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                     After
                   </p>
-                  <div className="aspect-video bg-gradient-to-br from-green-200 via-purple-200 to-pink-200 rounded-lg flex items-center justify-center">
+                  <div className="aspect-square bg-gradient-to-br from-green-200 via-purple-200 to-pink-200 rounded-lg flex items-center justify-center">
                     <img
                       src="/flux-robot-dancing.png"
                       alt="Robot dancing"
