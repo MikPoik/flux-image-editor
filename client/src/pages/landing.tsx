@@ -106,7 +106,7 @@ export default function Landing() {
                     </p>
                     <div className="aspect-square bg-gradient-to-br from-blue-200 to-purple-300 rounded-lg flex items-center justify-center">
                       <img
-                        src="/woman-smiling-futuristic.png"
+                        src="/flux-woman-smiling-futuristic.png"
                         alt="Same person now in futuristic city"
                         className="w-full h-full object-cover rounded-lg"
                       />
@@ -130,7 +130,7 @@ export default function Landing() {
                     </p>
                     <div className="aspect-square bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 rounded-lg flex items-center justify-center">
                       <img
-                        src="/flux-garden-daylight.png"
+                        src="/flux-garden-daylight.jpg"
                         alt="Simple sketch-style drawing of a basic house with plain lines and no color details"
                         className="w-full h-full object-cover rounded-lg"
                       />
