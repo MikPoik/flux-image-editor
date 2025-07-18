@@ -32,7 +32,7 @@ export function Navigation() {
       href: "/image-editor",
       label: "Editor",
       icon: Wand2,
-      show: true
+      show: !!user
     },
     {
       href: "/gallery",
