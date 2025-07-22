@@ -182,6 +182,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multi-image generation using Flux AI
+  app.post("/api/images/multi-generate", isAuthenticated, upload.array('images', 5), async (req: any, res) => {
+    try {
+      const { prompt } = req.body;
+      const files = req.files as Express.Multer.File[];
+
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      if (!files || files.length < 2) {
+        return res.status(400).json({ message: "At least 2 images are required for multi-image generation" });
+      }
+
+      if (files.length > 5) {
+        return res.status(400).json({ message: "Maximum 5 images allowed" });
+      }
+
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user has reached their generation limit
+      if (user.generationCount >= user.generationLimit) {
+        return res.status(403).json({ 
+          message: "Generation limit reached. Please upgrade your subscription to continue generating images.",
+          generationCount: user.generationCount,
+          generationLimit: user.generationLimit
+        });
+      }
+
+      // Upload all images to temporary storage and get URLs
+      const imageUrls: string[] = [];
+      for (const file of files) {
+        // Process image locally - detect orientation and apply correction
+        const correctedImageBuffer = await objectStorage.autoRotateImage(file.buffer);
+        
+        // Upload to temporary storage for Flux AI processing
+        const tempUrl = await objectStorage.uploadTempImage(
+          correctedImageBuffer,
+          file.originalname,
+          file.mimetype
+        );
+        imageUrls.push(tempUrl);
+      }
+
+      console.log(`Multi-image generation with ${imageUrls.length} images for user tier: ${user.subscriptionTier}`);
+
+      // Call Flux AI multi-image API
+      const result = await fal.subscribe("fal-ai/flux-pro/kontext/max/multi", {
+        input: {
+          prompt: prompt,
+          image_urls: imageUrls,
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            update.logs?.map((log) => log.message).forEach(console.log);
+          }
+        },
+      });
+
+      if (!result.data?.images?.[0]?.url) {
+        throw new Error("No generated image returned from Flux API");
+      }
+
+      const generatedImageUrl = result.data.images[0].url;
+      console.log("FAL AI generated multi-image URL:", generatedImageUrl);
+
+      // Try to migrate the image to permanent storage
+      let permanentUrl = await objectStorage.migrateImageToPermanentStorage(
+        userId,
+        generatedImageUrl,
+        `multi-generated-${Date.now()}`
+      );
+
+      // If migration failed, use the original FAL URL directly
+      if (!permanentUrl) {
+        console.log("Migration failed, using original FAL URL");
+        permanentUrl = generatedImageUrl;
+      }
+
+      // Create image record in database
+      const imageData = {
+        userId: userId,
+        originalUrl: permanentUrl,
+        currentUrl: permanentUrl,
+        editHistory: [{
+          prompt: `Multi-image generated: ${prompt}`,
+          imageUrl: permanentUrl,
+          timestamp: new Date().toISOString(),
+        }]
+      };
+
+      const validatedData = insertImageSchema.parse(imageData);
+      const image = await storage.createImage(validatedData);
+
+      // Increment user's generation count
+      await storage.incrementUserGenerationCount(userId);
+
+      res.json(image);
+    } catch (error) {
+      console.error("Multi-image generation error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to generate multi-image" 
+      });
+    }
+  });
+
   // Edit image using Flux AI
   app.post("/api/images/:id/edit", isAuthenticated, async (req: any, res) => {
     try {
@@ -455,10 +567,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { w, h, q } = req.query;
       const userId = req.user.claims.sub;
 
-      // Extract user ID from key path and verify ownership
-      const keyUserId = key.split('/')[0];
-      if (keyUserId !== userId) {
-        return res.status(403).json({ message: "Unauthorized to access this image" });
+      // Allow temp images to be accessed without user verification (for API processing)
+      const isTemp = key.startsWith('temp/');
+      if (!isTemp) {
+        // Extract user ID from key path and verify ownership for non-temp images
+        const keyUserId = key.split('/')[0];
+        if (keyUserId !== userId) {
+          return res.status(403).json({ message: "Unauthorized to access this image" });
+        }
       }
 
       // Parse optimization parameters

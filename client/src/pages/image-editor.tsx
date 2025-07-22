@@ -33,12 +33,14 @@ export default function ImageEditor() {
     isLoadingImage,
     isUploading,
     isGenerating,
+    isMultiGenerating,
     isEditing,
     isResetting,
     isReverting,
     isUpscaling,
     handleUpload,
     handleGenerate,
+    handleMultiGenerate,
     handleEdit,
     handleReset,
     handleRevert,
@@ -50,7 +52,7 @@ export default function ImageEditor() {
   const { subscription, isAtLimit, remainingEdits, isAtGenerationLimit, remainingGenerations } = useSubscription();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
-  const isProcessing = isEditing || isResetting || isReverting || isUploading || isGenerating || isLoadingImage || isUpscaling;
+  const isProcessing = isEditing || isResetting || isReverting || isUploading || isGenerating || isMultiGenerating || isLoadingImage || isUpscaling;
 
   // Scroll to top when image is loaded or when page loads
   useEffect(() => {
@@ -120,8 +122,10 @@ export default function ImageEditor() {
             <ImageInput 
               onUpload={handleUpload} 
               onGenerate={handleGenerate}
+              onMultiGenerate={handleMultiGenerate}
               isUploading={isUploading}
               isGenerating={isGenerating}
+              isMultiGenerating={isMultiGenerating}
               isGenerationDisabled={isAtGenerationLimit}
             />
           ) : (

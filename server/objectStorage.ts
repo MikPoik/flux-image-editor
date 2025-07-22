@@ -34,6 +34,30 @@ export class ObjectStorageService {
   }
 
   /**
+   * Upload an image buffer to temporary storage for API processing
+   */
+  async uploadTempImage(
+    imageBuffer: Buffer,
+    filename: string,
+    contentType: string
+  ): Promise<string> {
+    const key = `temp/${Date.now()}-${filename}`;
+    
+    const { ok, error } = await this.client.uploadFromBytes(
+      key,
+      imageBuffer
+    );
+
+    if (!ok) {
+      console.error("Temp object storage upload failed:", error);
+      throw new Error(`Failed to upload temp image: ${error}`);
+    }
+
+    // Return the full URL that can be accessed externally
+    return `https://${process.env.REPL_ID || 'unknown'}.replit.app/api/storage/${key}`;
+  }
+
+  /**
    * Download image from a URL and upload to object storage
    */
   async uploadImageFromUrl(

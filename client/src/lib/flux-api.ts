@@ -84,3 +84,35 @@ export async function generateImage(prompt: string): Promise<GenerateImageRespon
   const response = await apiRequest('POST', '/api/images/generate', { prompt });
   return response.json();
 }
+
+export interface MultiImageGenerateResponse {
+  id: number;
+  originalUrl: string;
+  currentUrl: string;
+  editHistory: Array<{
+    prompt: string;
+    imageUrl: string;
+    timestamp: string;
+  }>;
+}
+
+export async function generateMultiImage(files: File[], prompt: string): Promise<MultiImageGenerateResponse> {
+  const formData = new FormData();
+  files.forEach((file, index) => {
+    formData.append('images', file);
+  });
+  formData.append('prompt', prompt);
+
+  const response = await fetch('/api/images/multi-generate', {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || 'Failed to generate multi-image');
+  }
+
+  return response.json();
+}

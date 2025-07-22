@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, editImage, resetImage, revertImage, getImage, upscaleImage, generateImage } from '@/lib/flux-api';
+import { uploadImage, editImage, resetImage, revertImage, getImage, upscaleImage, generateImage, generateMultiImage } from '@/lib/flux-api';
 import { useToast } from '@/hooks/use-toast';
 
 export function useImageEditor() {
@@ -18,6 +18,7 @@ export function useImageEditor() {
   }, []);
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isMultiGenerating, setIsMultiGenerating] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -94,6 +95,39 @@ export function useImageEditor() {
     },
     onSettled: () => {
       setIsGenerating(false);
+    },
+  });
+
+  // Multi-image generate mutation
+  const multiGenerateMutation = useMutation({
+    mutationFn: ({ files, prompt }: { files: File[], prompt: string }) => generateMultiImage(files, prompt),
+    onSuccess: (data) => {
+      setCurrentImageId(data.id);
+      queryClient.setQueryData(['/api/images', data.id], data);
+      // Invalidate the gallery images list to show the new image
+      queryClient.invalidateQueries({ queryKey: ['/api/images'] });
+      // Invalidate subscription query to refresh edit count
+      queryClient.invalidateQueries({ queryKey: ['/api/subscription'] });
+      
+      // Update URL to include image ID
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', data.id.toString());
+      window.history.pushState({}, '', url.toString());
+      
+      toast({
+        title: "Success",
+        description: "Multi-image generated successfully!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Multi-Image Generation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsMultiGenerating(false);
     },
   });
 
@@ -215,6 +249,12 @@ export function useImageEditor() {
     generateMutation.mutate(prompt);
   }, [generateMutation]);
 
+  // Multi-image generate handler
+  const handleMultiGenerate = useCallback((files: File[], prompt: string) => {
+    setIsMultiGenerating(true);
+    multiGenerateMutation.mutate({ files, prompt });
+  }, [multiGenerateMutation]);
+
   // Edit handler
   const handleEdit = useCallback((prompt: string) => {
     if (!currentImageId) return;
@@ -280,12 +320,14 @@ export function useImageEditor() {
     isLoadingImage,
     isUploading,
     isGenerating,
+    isMultiGenerating,
     isEditing: editMutation.isPending,
     isResetting: resetMutation.isPending,
     isReverting: revertMutation.isPending,
     isUpscaling: upscaleMutation.isPending,
     handleUpload,
     handleGenerate,
+    handleMultiGenerate,
     handleEdit,
     handleReset,
     handleRevert,
