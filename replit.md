@@ -8,6 +8,12 @@ This is a full-stack AI-powered image editing application built with React, Expr
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### January 2025
+- **Multi-Image Editing Feature (January 22, 2025)**: Added third navigation option for combining multiple images using Flux AI's "fal-ai/flux-pro/kontext/max/multi" model. Users can upload 2-5 images, view thumbnails, and generate combined results with custom prompts.
+- **Mobile-Responsive Navigation (January 22, 2025)**: Implemented responsive tab system that converts to dropdown menu on mobile devices while maintaining full functionality across all screen sizes.
+
 ## System Architecture
 
 ### Frontend Architecture
