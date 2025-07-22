@@ -216,19 +216,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Upload all images to temporary storage and get URLs
+      // Upload all images to Fal storage and get URLs
       const imageUrls: string[] = [];
       for (const file of files) {
         // Process image locally - detect orientation and apply correction
         const correctedImageBuffer = await objectStorage.autoRotateImage(file.buffer);
         
-        // Upload to temporary storage for Flux AI processing
-        const tempUrl = await objectStorage.uploadTempImage(
-          correctedImageBuffer,
-          file.originalname,
-          file.mimetype
-        );
-        imageUrls.push(tempUrl);
+        // Create a File object and upload to FAL storage
+        const fileObj = new File([correctedImageBuffer], file.originalname, {
+          type: file.mimetype,
+        });
+        
+        const falUrl = await fal.storage.upload(fileObj);
+        imageUrls.push(falUrl);
+        console.log("Uploaded image to FAL storage:", falUrl);
       }
 
       console.log(`Multi-image generation with ${imageUrls.length} images for user tier: ${user.subscriptionTier}`);
