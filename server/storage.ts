@@ -23,6 +23,7 @@ export interface IStorage {
   incrementUserGenerationCount(userId: string): Promise<User | undefined>;
   resetUserGenerationCount(userId: string): Promise<User | undefined>;
   getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined>;
+  getUserByCustomerId(customerId: string): Promise<User | undefined>;
 
   // Image operations
   createImage(image: InsertImage): Promise<Image>;
@@ -326,6 +327,20 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error('Error getting user by subscription ID:', error);
+      return undefined;
+    }
+  }
+
+  async getUserByCustomerId(customerId: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.stripeCustomerId, customerId))
+        .limit(1);
+      return user;
+    } catch (error) {
+      console.error('Error getting user by customer ID:', error);
       return undefined;
     }
   }

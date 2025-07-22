@@ -11,6 +11,13 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### January 2025
+- **Modular Routes Architecture (January 22, 2025)**: Refactored the monolithic server/routes.ts file (1479 lines) into organized modules with separation of concerns:
+  - `routes/auth.ts` - Authentication and user management routes
+  - `routes/images.ts` - Image upload, editing, generation, and management routes
+  - `routes/storage.ts` - Object storage and image serving routes
+  - `routes/subscriptions.ts` - Stripe payment and subscription management routes
+  - `routes/webhooks.ts` - Stripe webhook handling routes
+  - `routes/index.ts` - Central route registration and organization
 - **Multi-Image Editing Feature (January 22, 2025)**: Added third navigation option for combining multiple images using Flux AI's "fal-ai/flux-pro/kontext/max/multi" model. Users can upload 2-5 images, view thumbnails, and generate combined results with custom prompts.
 - **Mobile-Responsive Navigation (January 22, 2025)**: Implemented responsive tab system that converts to dropdown menu on mobile devices while maintaining full functionality across all screen sizes.
 
@@ -26,7 +33,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Express.js** server with TypeScript
-- **RESTful API** design with route-based organization
+- **Modular route organization** with separation of concerns across multiple files
+- **RESTful API** design with organized route modules for different functionalities
 - **Middleware-based** request processing with logging and error handling
 - **Session-based authentication** using express-session with PostgreSQL storage
 
