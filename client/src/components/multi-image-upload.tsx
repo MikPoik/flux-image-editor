@@ -74,7 +74,18 @@ export function MultiImageUpload({ onGenerate, isGenerating, isDisabled = false 
   const isSubmitDisabled = selectedFiles.length < 2 || !prompt.trim() || isGenerating || isDisabled;
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* Processing Overlay for entire component */}
+      {isGenerating && (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+          <div className="text-center text-white">
+            <div className="animate-spin w-8 h-8 border-3 border-white/30 border-t-white rounded-full mx-auto mb-3"></div>
+            <p className="text-sm font-medium">AI is combining your images...</p>
+            <p className="text-xs text-white/80 mt-1">This may take a few moments</p>
+          </div>
+        </div>
+      )}
+      
       {/* File Upload Area */}
       <div className="relative bg-background rounded-2xl border-2 border-dashed border-muted-foreground hover:border-blue-500 transition-colors">
         <div
