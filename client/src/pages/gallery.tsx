@@ -178,7 +178,7 @@ export default function Gallery() {
                       setFailedImages(prev => new Set(prev.add(image.id)));
                     }}
                     onClick={() => setActiveImageId(activeImageId === image.id ? null : image.id)}
-                  /></div>
+                  />
                   <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2 ${
                     activeImageId === image.id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                   }`}>
