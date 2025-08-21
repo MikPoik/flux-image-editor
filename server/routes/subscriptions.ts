@@ -102,12 +102,6 @@ export function setupSubscriptionRoutes(app: Express) {
           hasActiveSubscription = subscription.status === 'active';
 
           // Use database current_period_end as primary source, fallback to Stripe
-          console.log(`Debug currentPeriodEnd for user ${userId}:`, {
-            databaseValue: user.currentPeriodEnd,
-            databaseType: typeof user.currentPeriodEnd,
-            stripeValue: subscription.current_period_end,
-          });
-
           if (user.currentPeriodEnd) {
             currentPeriodEnd = Math.floor(user.currentPeriodEnd.getTime() / 1000);
           } else if ('current_period_end' in subscription) {
@@ -118,26 +112,16 @@ export function setupSubscriptionRoutes(app: Express) {
               const periodStart = new Date(((subscription as any).current_period_start || subscription.created) * 1000);
               const periodEnd = new Date((subscription as any).current_period_end * 1000);
               await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
-              console.log(`Updated missing billing period for user ${userId}`);
             } catch (error) {
               console.error('Failed to update missing billing period:', error);
             }
           }
-
-          console.log(`Subscription status for user ${userId}:`, {
-            id: subscription.id,
-            status: subscription.status,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
-            currentPeriodEnd: currentPeriodEnd,
-            databasePeriodEnd: user.currentPeriodEnd,
-          });
         } catch (error) {
           console.error('Error retrieving subscription:', error);
           // If subscription retrieval fails, user probably doesn't have an active subscription
           hasActiveSubscription = false;
         }
       } else {
-        console.log(`User ${userId} has no subscription`);
         // Still check if user has currentPeriodEnd in database (for canceled subscriptions)
         if (user.currentPeriodEnd) {
           currentPeriodEnd = Math.floor(user.currentPeriodEnd.getTime() / 1000);
@@ -153,8 +137,6 @@ export function setupSubscriptionRoutes(app: Express) {
         cancelAtPeriodEnd,
         currentPeriodEnd,
       };
-
-      console.log(`Subscription info response for user ${userId}:`, response);
 
       res.json(response);
     } catch (error) {

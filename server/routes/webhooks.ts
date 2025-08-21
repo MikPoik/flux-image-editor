@@ -57,10 +57,7 @@ export function setupWebhookRoutes(app: Express) {
               if (!periodStartTimestamp || !periodEndTimestamp) {
                 periodStartTimestamp = invoice.period_start || periodStartTimestamp;
                 periodEndTimestamp = invoice.period_end || periodEndTimestamp;
-                console.log(`Using invoice period as fallback: start=${invoice.period_start}, end=${invoice.period_end}`);
               }
-
-              console.log(`Billing period extraction result: start=${periodStartTimestamp}, end=${periodEndTimestamp}`);
 
               // Only update billing period if we have valid timestamps
               if (periodStartTimestamp && periodEndTimestamp && 
@@ -75,25 +72,20 @@ export function setupWebhookRoutes(app: Express) {
                   if (!isNaN(periodStart.getTime()) && !isNaN(periodEnd.getTime()) && 
                       periodStart.getTime() > 0 && periodEnd.getTime() > 0) {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
-                    console.log(`Billing period updated for user ${user.id} on payment success: ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
+                    console.log(`Billing period updated for user ${user.id} on payment success`);
                     
                     // Always refresh credits on successful payment (new billing period)
                     await storage.refreshCredits(user.id);
-                    console.log(`Credits refreshed for user ${user.id} on new billing period`);
                   } else {
-                    console.log(`Invalid billing period dates for user ${user.id}, falling back to credit refresh`);
                     await storage.refreshCredits(user.id);
                   }
                 } catch (error) {
-                  console.log(`Billing period update failed for user ${user.id}, falling back to credit refresh:`, error instanceof Error ? error.message : 'Unknown error');
+                  console.error(`Billing period update failed for user ${user.id}:`, error instanceof Error ? error.message : 'Unknown error');
                   await storage.refreshCredits(user.id);
                 }
               } else {
-                console.log(`No valid billing period found for user ${user.id}, just refreshing credits`);
                 await storage.refreshCredits(user.id);
               }
-
-              console.log(`Credits refreshed for user ${user.id} on payment success`);
             }
           } catch (error) {
             console.error('Error processing invoice payment:', error instanceof Error ? error.message : 'Unknown error');

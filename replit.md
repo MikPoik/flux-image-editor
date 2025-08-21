@@ -35,6 +35,13 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
 ## Recent Changes
 
 ### January 2025
+- **Credit-Based Subscription System (January 21, 2025)**: Complete refactoring from separate edit/generation count limits to unified credit system:
+  - Database schema migrated from `editCount`/`editLimit`/`generationCount`/`generationLimit` to `credits`/`maxCredits`/`creditsResetDate`
+  - Credit costs: Edit (2), Generation (3), Multi-generation (5), Upscale (1)
+  - Monthly allowances: Free (30), Basic (120), Premium (200), Premium Plus (300)
+  - Storage layer updated with `deductCredits`, `refreshCredits`, and `addCredits` methods
+  - Frontend components updated to check credit affordability instead of separate counters
+  - Immediate switchover implementation with no gradual migration needed
 - **Modular Routes Architecture (January 22, 2025)**: Refactored the monolithic server/routes.ts file (1479 lines) into organized modules with separation of concerns:
   - `routes/auth.ts` - Authentication and user management routes
   - `routes/images.ts` - Image upload, editing, generation, and management routes
@@ -84,9 +91,10 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
 
 ### Subscription Management
 - **Stripe integration** for payment processing
-- **Freemium model** with usage limits (free: 10 edits/generations, paid: 50+ edits)
-- **Webhook handling** for subscription status updates
-- **Gaming protection** to prevent rapid subscription changes for limit resets
+- **Credit-based freemium model** with monthly allowances (Free: 30, Basic: 120, Premium: 200, Premium Plus: 300 credits)
+- **Flexible pricing** with different credit costs per operation (Edit: 2, Generation: 3, Multi-gen: 5, Upscale: 1)
+- **Webhook handling** for subscription status updates and credit refresh on billing cycles
+- **Gaming protection** to prevent rapid subscription changes for credit resets
 
 ### UI Components
 - **Component library** using shadcn/ui (Radix UI primitives)
