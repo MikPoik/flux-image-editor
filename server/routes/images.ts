@@ -504,9 +504,12 @@ export function setupImageRoutes(app: Express) {
   app.get("/api/images", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const images = await storage.getUserImages(userId);
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100); // Max 100 per request
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const result = await storage.getUserImages(userId, limit, offset);
 
-      res.json(images);
+      res.json(result);
     } catch (error) {
       console.error("Get user images error:", error);
       res.status(500).json({ 

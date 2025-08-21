@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,11 +6,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Trash2, Download, ImageIcon } from 'lucide-react';
+import { Edit, Trash2, Download, ImageIcon, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import type { Image } from '@shared/schema';
-import { useState } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { OptimizedImage } from '@/components/optimized-image';
 
 export default function Gallery() {
   const [location, setLocation] = useLocation();
@@ -19,11 +20,46 @@ export default function Gallery() {
   const [activeImageId, setActiveImageId] = useState<number | null>(null);
   const [loadingImages, setLoadingImages] = useState<Set<number>>(new Set());
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+  const observer = useRef<IntersectionObserver>();
 
-  // Fetch user's images
-  const { data: images = [], isLoading } = useQuery({
+  // Fetch user's images with infinite loading
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error
+  } = useInfiniteQuery({
     queryKey: ['/api/images'],
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await fetch(`/api/images?limit=20&offset=${pageParam}`);
+      if (!response.ok) throw new Error('Failed to fetch images');
+      return response.json();
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const loadedCount = allPages.reduce((acc, page) => acc + page.images.length, 0);
+      return loadedCount < lastPage.total ? loadedCount : undefined;
+    },
   });
+
+  // Flatten all images from all pages
+  const images = data?.pages.flatMap(page => page.images) ?? [];
+  const totalImages = data?.pages[0]?.total ?? 0;
+
+  // Infinite scroll trigger
+  const lastImageElementRef = useCallback((node: HTMLDivElement) => {
+    if (isLoading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoading, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -128,14 +164,38 @@ export default function Gallery() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">My Gallery</h1>
+          <p className="text-muted-foreground">View and manage your AI-edited images</p>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-destructive mb-4">Failed to load images: {error?.message}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-4">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">My Gallery</h1>
-        <p className="text-muted-foreground">View and manage your AI-edited images</p>
+        <p className="text-muted-foreground">
+          View and manage your AI-edited images
+          {totalImages > 0 && (
+            <span className="ml-2 text-sm">
+              ({images.length} of {totalImages} loaded)
+            </span>
+          )}
+        </p>
       </div>
 
-        {(images as any[]).length === 0 ? (
+        {images.length === 0 && !isLoading ? (
           <div className="text-center py-12">
             <ImageIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No images yet</h3>
@@ -148,21 +208,19 @@ export default function Gallery() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(images as any[]).map((image: any) => (
-              <Card key={image.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            {images.map((image: any, index: number) => (
+              <Card 
+                key={image.id} 
+                className="overflow-hidden hover:shadow-lg transition-shadow"
+                ref={index === images.length - 1 ? lastImageElementRef : null}
+              >
                 <div className="relative aspect-square overflow-hidden">
-                  {loadingImages.has(image.id) && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                      <Skeleton className="w-full h-full" />
-                    </div>
-                  )}
-                  <img
-                    src={failedImages.has(image.id) ? image.originalUrl : `${image.currentUrl}?w=400&h=400&q=75`}
+                  <OptimizedImage
+                    src={`${image.currentUrl}?w=400&h=400&q=75`}
+                    fallbackSrc={image.originalUrl}
                     alt="AI edited image"
-                    className={`w-full h-full object-cover transition-transform hover:scale-105 cursor-pointer ${
-                      loadingImages.has(image.id) ? 'opacity-0' : 'opacity-100'
-                    }`}
-                    loading="lazy"
+                    className="transition-transform hover:scale-105 cursor-pointer"
+                    onClick={() => setActiveImageId(activeImageId === image.id ? null : image.id)}
                     onLoad={() => setLoadingImages(prev => {
                       const newSet = new Set(prev);
                       newSet.delete(image.id);
@@ -177,7 +235,7 @@ export default function Gallery() {
                       });
                       setFailedImages(prev => new Set(prev.add(image.id)));
                     }}
-                    onClick={() => setActiveImageId(activeImageId === image.id ? null : image.id)}
+                    rootMargin="100px"
                   />
                   <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2 ${
                     activeImageId === image.id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -299,6 +357,21 @@ export default function Gallery() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Infinite scroll loading indicator */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin mr-2" />
+            <span className="text-muted-foreground">Loading more images...</span>
+          </div>
+        )}
+
+        {/* End of results indicator */}
+        {!hasNextPage && images.length > 0 && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">You've reached the end of your gallery</p>
           </div>
         )}
     </div>

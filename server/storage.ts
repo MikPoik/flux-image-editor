@@ -7,7 +7,7 @@ import {
   type UpsertUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -30,7 +30,7 @@ export interface IStorage {
   // Image operations
   createImage(image: InsertImage): Promise<Image>;
   getImage(id: number): Promise<Image | undefined>;
-  getUserImages(userId: string): Promise<Image[]>;
+  getUserImages(userId: string, limit?: number, offset?: number): Promise<{images: Image[], total: number}>;
   updateImage(id: number, updates: Partial<InsertImage>): Promise<Image | undefined>;
   deleteImage(id: number): Promise<boolean>;
 }
@@ -77,8 +77,23 @@ export class DatabaseStorage implements IStorage {
     return image;
   }
 
-  async getUserImages(userId: string): Promise<Image[]> {
-    return db.select().from(images).where(eq(images.userId, userId));
+  async getUserImages(userId: string, limit: number = 50, offset: number = 0): Promise<{images: Image[], total: number}> {
+    const [totalResult] = await db
+      .select({ count: sql`count(*)` })
+      .from(images)
+      .where(eq(images.userId, userId));
+    
+    const total = Number(totalResult.count);
+    
+    const imageResults = await db
+      .select()
+      .from(images)
+      .where(eq(images.userId, userId))
+      .orderBy(desc(images.createdAt))
+      .limit(limit)
+      .offset(offset);
+    
+    return { images: imageResults, total };
   }
 
   async updateImage(id: number, updates: Partial<Pick<InsertImage, 'currentUrl' | 'editHistory'>>): Promise<Image | undefined> {
