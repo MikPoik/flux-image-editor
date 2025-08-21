@@ -56,18 +56,7 @@ export function ImageInput({
       <div className="sm:hidden mb-6">
         <Select value={activeTab} onValueChange={setActiveTab}>
           <SelectTrigger className="w-full">
-            <div className="flex items-center gap-2">
-              {(() => {
-                const currentTab = tabOptions.find(option => option.value === activeTab);
-                const Icon = currentTab?.icon || Upload;
-                return (
-                  <>
-                    <Icon className="w-4 h-4" />
-                    <SelectValue />
-                  </>
-                );
-              })()}
-            </div>
+            <SelectValue placeholder="Select Option" />
           </SelectTrigger>
           <SelectContent>
             {tabOptions.map(({ value, label, icon: Icon }) => (
