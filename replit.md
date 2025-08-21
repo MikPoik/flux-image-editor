@@ -8,6 +8,30 @@ This is a full-stack AI-powered image editing application built with React, Expr
 
 Preferred communication style: Simple, everyday language.
 
+Follow these best practices while doing changes:
+- Always aim for mobile first UI designs if not otherwise specified or context proves different
+- For server routes, create modular structure with separation of concerns
+- Always prioritize Replit offered services to thirdparty (DB,Auth,ObjectStorage etc.)
+- Test api routes with curl localhost commands
+- Keep separation of conserns in routes
+
+For JavaScript/TypeScript function declarations:
+grep -r -n "^ *app\." server/
+
+For JavaScript/TypeScript function declarations:
+grep -r -n "^ *\(function\|export function\|async function\)" server/
+
+For arrow functions and method definitions:
+grep -r -n "^ *\(const\|let\|var\).*=.*=>" server/
+
+For TypeScript/JavaScript methods in classes or objects:
+grep -r -n "^ *[a-zA-Z_][a-zA-Z0-9_]*\s*(" server/
+
+For Express route handlers specifically:
+grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
+
+
+
 ## Recent Changes
 
 ### January 2025
