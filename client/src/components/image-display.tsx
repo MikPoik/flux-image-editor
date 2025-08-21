@@ -278,7 +278,7 @@ export function ImageDisplay({
       >
         <img
           ref={imageRef}
-          src={getOptimizedImageUrl(imageUrl, 1200, 800, 85)}
+          src={getOptimizedImageUrl(imageUrl, 800, 600, 85)}
           alt="Current editing image"
           className="max-w-full max-h-[600px] object-contain"
           style={{ 

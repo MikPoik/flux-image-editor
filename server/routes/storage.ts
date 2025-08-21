@@ -45,12 +45,18 @@ export function setupStorageRoutes(app: Express) {
 
       const { buffer, contentType } = result;
 
-      // Set appropriate headers
+      // Set appropriate headers with better caching for thumbnails
+      const isOptimized = width || height || quality !== 80;
+      const cacheControl = isOptimized 
+        ? 'public, max-age=86400, s-maxage=31536000' // Thumbnails cache 1 day locally, 1 year on CDN
+        : 'public, max-age=31536000'; // Original images cache 1 year
+      
       res.set({
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+        'Cache-Control': cacheControl,
         'Access-Control-Allow-Origin': '*', // Allow CORS for images
         'Vary': 'Accept-Encoding', // Vary on encoding for better caching
+        'ETag': `"${key}-${width || 'orig'}-${height || 'orig'}-${quality}"`, // Better ETags for caching
       });
 
       res.send(buffer);

@@ -17,6 +17,8 @@ export default function Gallery() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeImageId, setActiveImageId] = useState<number | null>(null);
+  const [loadingImages, setLoadingImages] = useState<Set<number>>(new Set());
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
   // Fetch user's images
   const { data: images = [], isLoading } = useQuery({
@@ -149,12 +151,34 @@ export default function Gallery() {
             {(images as any[]).map((image: any) => (
               <Card key={image.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative aspect-square overflow-hidden">
+                  {loadingImages.has(image.id) && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <Skeleton className="w-full h-full" />
+                    </div>
+                  )}
                   <img
-                    src={image.currentUrl}
+                    src={failedImages.has(image.id) ? image.originalUrl : `${image.currentUrl}?w=400&h=400&q=75`}
                     alt="AI edited image"
-                    className="w-full h-full object-cover transition-transform hover:scale-105 cursor-pointer"
+                    className={`w-full h-full object-cover transition-transform hover:scale-105 cursor-pointer ${
+                      loadingImages.has(image.id) ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    loading="lazy"
+                    onLoad={() => setLoadingImages(prev => {
+                      const newSet = new Set(prev);
+                      newSet.delete(image.id);
+                      return newSet;
+                    })}
+                    onLoadStart={() => setLoadingImages(prev => new Set(prev.add(image.id)))}
+                    onError={() => {
+                      setLoadingImages(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(image.id);
+                        return newSet;
+                      });
+                      setFailedImages(prev => new Set(prev.add(image.id)));
+                    }}
                     onClick={() => setActiveImageId(activeImageId === image.id ? null : image.id)}
-                  />
+                  /></div>
                   <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2 ${
                     activeImageId === image.id ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                   }`}>
