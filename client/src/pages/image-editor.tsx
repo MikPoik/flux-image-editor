@@ -49,7 +49,7 @@ export default function ImageEditor() {
     hasImage,
   } = useImageEditor();
 
-  const { subscription, isAtLimit, remainingEdits, isAtGenerationLimit, remainingGenerations } = useSubscription();
+  const { subscription, canAffordEdit, canAffordGeneration, canAffordMultiGeneration, canAffordUpscale, remainingCredits } = useSubscription();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const isProcessing = isEditing || isResetting || isReverting || isUploading || isGenerating || isMultiGenerating || isLoadingImage || isUpscaling;
@@ -64,54 +64,41 @@ export default function ImageEditor() {
   return (
     <main className="max-w-4xl mx-auto p-4 space-y-6">
 
-        {/* Edit Limit Warning */}
-        {isAtLimit && (
+        {/* Credit Warning */}
+        {!canAffordEdit && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              You've reached your monthly edit limit. 
+              You don't have enough credits to edit images (2 credits needed). 
               <Link href="/subscription" className="underline ml-1">
                 Upgrade your plan
-              </Link> to continue editing images.
+              </Link> to get more credits.
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Low Edit Warning */}
-        {!isAtLimit && remainingEdits <= 3 && remainingEdits > 0 && (
+        {/* Low Credit Warning */}
+        {canAffordEdit && remainingCredits <= 10 && remainingCredits > 0 && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              You have {remainingEdits} edit{remainingEdits !== 1 ? 's' : ''} remaining this month. 
+              You have {remainingCredits} credits remaining this month. 
               <Link href="/subscription" className="underline ml-1">
                 Consider upgrading
-              </Link> to get more edits.
+              </Link> to get more credits.
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Generation Limit Warning */}
-        {isAtGenerationLimit && (
+        {/* Generation Credit Warning */}
+        {!canAffordGeneration && canAffordEdit && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              You've reached your monthly generation limit. 
+              You don't have enough credits to generate images (3 credits needed). 
               <Link href="/subscription" className="underline ml-1">
                 Upgrade your plan
-              </Link> to continue generating images.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Low Generation Warning */}
-        {!isAtGenerationLimit && remainingGenerations <= 3 && remainingGenerations > 0 && (
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              You have {remainingGenerations} generation{remainingGenerations !== 1 ? 's' : ''} remaining this month. 
-              <Link href="/subscription" className="underline ml-1">
-                Consider upgrading
-              </Link> to get more generations.
+              </Link> to get more credits.
             </AlertDescription>
           </Alert>
         )}
@@ -126,7 +113,8 @@ export default function ImageEditor() {
               isUploading={isUploading}
               isGenerating={isGenerating}
               isMultiGenerating={isMultiGenerating}
-              isGenerationDisabled={isAtGenerationLimit}
+              isGenerationDisabled={!canAffordGeneration}
+              isMultiGenerationDisabled={!canAffordMultiGeneration}
             />
           ) : (
             <ImageDisplay
@@ -152,7 +140,7 @@ export default function ImageEditor() {
             <PromptInput
               onSubmit={handleEdit}
               isProcessing={isProcessing}
-              disabled={!hasImage || isAtLimit}
+              disabled={!hasImage || !canAffordEdit}
             />
 
             {/* Edit History */}
@@ -270,45 +258,35 @@ export default function ImageEditor() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      {subscription.editCount} / {subscription.editLimit} edits used this month
+                      {subscription.credits} / {subscription.maxCredits} credits remaining
                     </p>
                     <div className="w-full bg-secondary rounded-full h-2 mt-2">
                       <div 
                         className={`h-2 rounded-full transition-all ${
-                          isAtLimit ? 'bg-destructive' : 
-                          remainingEdits <= 3 ? 'bg-yellow-500' : 'bg-primary'
+                          subscription.credits <= 0 ? 'bg-destructive' : 
+                          subscription.credits <= 10 ? 'bg-yellow-500' : 'bg-primary'
                         }`}
-                        style={{ width: `${Math.min((subscription.editCount / subscription.editLimit) * 100, 100)}%` }}
+                        style={{ width: `${Math.min((subscription.credits / subscription.maxCredits) * 100, 100)}%` }}
                       />
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-semibold">
-                      {remainingEdits} left
+                      {subscription.credits} credits
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {subscription.generationCount} / {subscription.generationLimit} generations used this month
-                    </p>
-                    <div className="w-full bg-secondary rounded-full h-2 mt-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all ${
-                          isAtGenerationLimit ? 'bg-destructive' : 
-                          remainingGenerations <= 3 ? 'bg-yellow-500' : 'bg-blue-500'
-                        }`}
-                        style={{ width: `${Math.min((subscription.generationCount / subscription.generationLimit) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold">
-                      {remainingGenerations} left
-                    </p>
-                  </div>
+                <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                  <div>Edit: 2 credits</div>
+                  <div>Generation: 3 credits</div>
+                  <div>Multi-gen: 5 credits</div>
+                  <div>Upscale: 1 credit</div>
                 </div>
+                {subscription.creditsResetDate && (
+                  <p className="text-xs text-muted-foreground">
+                    Credits reset on {new Date(subscription.creditsResetDate * 1000).toLocaleDateString()}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

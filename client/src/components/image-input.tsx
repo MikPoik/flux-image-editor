@@ -14,6 +14,7 @@ interface ImageInputProps {
   isGenerating: boolean;
   isMultiGenerating: boolean;
   isGenerationDisabled?: boolean;
+  isMultiGenerationDisabled?: boolean;
 }
 
 export function ImageInput({ 
@@ -23,7 +24,8 @@ export function ImageInput({
   isUploading, 
   isGenerating, 
   isMultiGenerating,
-  isGenerationDisabled = false 
+  isGenerationDisabled = false,
+  isMultiGenerationDisabled = false 
 }: ImageInputProps) {
   const [activeTab, setActiveTab] = useState('upload');
 
@@ -99,7 +101,7 @@ export function ImageInput({
         <MultiImageUpload 
           onGenerate={onMultiGenerate} 
           isGenerating={isMultiGenerating}
-          isDisabled={isGenerationDisabled}
+          isDisabled={isMultiGenerationDisabled}
         />
       </TabsContent>
     </Tabs>

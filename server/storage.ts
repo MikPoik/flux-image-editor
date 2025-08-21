@@ -17,11 +17,13 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User | undefined>;
-  updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount?: boolean, subscriptionStatus?: string): Promise<User | undefined>;
-  incrementUserEditCount(userId: string): Promise<User | undefined>;
-  resetUserEditCount(userId: string): Promise<User | undefined>;
-  incrementUserGenerationCount(userId: string): Promise<User | undefined>;
-  resetUserGenerationCount(userId: string): Promise<User | undefined>;
+  updateUserSubscription(userId: string, tier: string, preserveCredits?: boolean, subscriptionStatus?: string): Promise<User | undefined>;
+  deductCredits(userId: string, amount: number): Promise<User | undefined>;
+  refreshCredits(userId: string): Promise<User | undefined>;
+  addCredits(userId: string, amount: number): Promise<User | undefined>;
+  updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined>;
+  triggerBillingPeriodReset(userId: string): Promise<User | undefined>;
+  updateUserSubscriptionStatus(userId: string, status: string): Promise<User | undefined>;
   getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined>;
   getUserByCustomerId(customerId: string): Promise<User | undefined>;
 
@@ -59,9 +61,13 @@ export class DatabaseStorage implements IStorage {
 
   // Image operations
   async createImage(insertImage: InsertImage): Promise<Image> {
+    const imageData: any = { ...insertImage };
+    if (imageData.editHistory) {
+      imageData.editHistory = Array.isArray(imageData.editHistory) ? imageData.editHistory : [];
+    }
     const [image] = await db
       .insert(images)
-      .values(insertImage)
+      .values(imageData)
       .returning();
     return image;
   }
@@ -76,9 +82,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateImage(id: number, updates: Partial<Pick<InsertImage, 'currentUrl' | 'editHistory'>>): Promise<Image | undefined> {
+    const updateData: any = { ...updates };
+    if (updateData.editHistory && Array.isArray(updateData.editHistory)) {
+      // Ensure editHistory is properly typed as an array
+      updateData.editHistory = updateData.editHistory;
+    }
     const [updated] = await db
       .update(images)
-      .set(updates)
+      .set(updateData)
       .where(eq(images.id, id))
       .returning();
     return updated;
@@ -118,7 +129,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateUserSubscription(userId: string, tier: string, editLimit: number, generationLimit: number, preserveEditCount: boolean = true, subscriptionStatus: string = "active"): Promise<User | undefined> {
+  // Helper function to get credit limits by tier
+  private getCreditLimitsByTier(tier: string): number {
+    switch (tier) {
+      case 'basic':
+        return 120; // $5 plan: 120 credits
+      case 'premium':
+        return 200; // $9.99 plan: 200 credits
+      case 'premium-plus':
+        return 300; // $14.99 plan: 300 credits
+      case 'free':
+      default:
+        return 30; // Free plan: 30 credits
+    }
+  }
+
+  async updateUserSubscription(userId: string, tier: string, preserveCredits: boolean = true, subscriptionStatus: string = "active"): Promise<User | undefined> {
     try {
       // Get current user data to check for rapid plan changes
       const currentUser = await this.getUser(userId);
@@ -137,24 +163,27 @@ export class DatabaseStorage implements IStorage {
 
         if (timeSinceLastChange < twentyFourHours) {
           console.log(`Rapid subscription change attempt by user ${userId} blocked. Last change: ${currentUser.lastSubscriptionChange}`);
-          // Force preserve edit count for rapid changes to prevent gaming
-          preserveEditCount = true;
+          // Force preserve credits for rapid changes to prevent gaming
+          preserveCredits = true;
         }
       }
 
+      const maxCredits = this.getCreditLimitsByTier(tier);
       const updateData: any = {
         subscriptionTier: tier,
-        editLimit: editLimit,
-        generationLimit: generationLimit,
+        maxCredits: maxCredits,
         subscriptionStatus: subscriptionStatus,
         lastSubscriptionChange: new Date(),
       };
 
-      // Only reset edit count if explicitly requested (e.g., on new billing periods or cancellations)
+      // Only reset credits if explicitly requested (e.g., on new billing periods or cancellations)
       // This prevents gaming the system by rapid plan changes
-      if (!preserveEditCount) {
-        updateData.editCount = 0;
-        updateData.generationCount = 0;
+      if (!preserveCredits) {
+        updateData.credits = maxCredits;
+        // Set next credit reset date to one month from now
+        const nextReset = new Date();
+        nextReset.setMonth(nextReset.getMonth() + 1);
+        updateData.creditsResetDate = nextReset;
       }
 
       const [user] = await db
@@ -169,58 +198,50 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async incrementUserEditCount(userId: string): Promise<User | undefined> {
+  async deductCredits(userId: string, amount: number): Promise<User | undefined> {
     try {
       const [user] = await db
         .update(users)
-        .set({ editCount: sql`${users.editCount} + 1` })
+        .set({ credits: sql`${users.credits} - ${amount}` })
         .where(eq(users.id, userId))
         .returning();
       return user;
     } catch (error) {
-      console.error('Error incrementing user edit count:', error);
+      console.error('Error deducting credits:', error);
       return undefined;
     }
   }
 
-  async resetUserEditCount(userId: string): Promise<User | undefined> {
+  async refreshCredits(userId: string): Promise<User | undefined> {
     try {
+      const currentUser = await this.getUser(userId);
+      if (!currentUser) return undefined;
+
       const [user] = await db
         .update(users)
-        .set({ editCount: 0 })
+        .set({ 
+          credits: currentUser.maxCredits,
+          creditsResetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+        })
         .where(eq(users.id, userId))
         .returning();
       return user;
     } catch (error) {
-      console.error('Error resetting user edit count:', error);
+      console.error('Error refreshing credits:', error);
       return undefined;
     }
   }
 
-  async incrementUserGenerationCount(userId: string): Promise<User | undefined> {
+  async addCredits(userId: string, amount: number): Promise<User | undefined> {
     try {
       const [user] = await db
         .update(users)
-        .set({ generationCount: sql`${users.generationCount} + 1` })
+        .set({ credits: sql`${users.credits} + ${amount}` })
         .where(eq(users.id, userId))
         .returning();
       return user;
     } catch (error) {
-      console.error('Error incrementing user generation count:', error);
-      return undefined;
-    }
-  }
-
-  async resetUserGenerationCount(userId: string): Promise<User | undefined> {
-    try {
-      const [user] = await db
-        .update(users)
-        .set({ generationCount: 0 })
-        .where(eq(users.id, userId))
-        .returning();
-      return user;
-    } catch (error) {
-      console.error('Error resetting user generation count:', error);
+      console.error('Error adding credits:', error);
       return undefined;
     }
   }
@@ -264,8 +285,8 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
 
-      // Only reset edit count if this is a new billing period
-      const shouldResetEditCount = !user.currentPeriodStart || 
+      // Only reset credits if this is a new billing period
+      const shouldResetCredits = !user.currentPeriodStart || 
         user.currentPeriodStart.getTime() !== periodStart.getTime();
 
       const updateData: any = {
@@ -273,10 +294,10 @@ export class DatabaseStorage implements IStorage {
         currentPeriodEnd: periodEnd,
       };
 
-      if (shouldResetEditCount) {
-        updateData.editCount = 0;
-        updateData.generationCount = 0;
-        console.log(`Resetting edit and generation counts for user ${userId} due to new billing period`);
+      if (shouldResetCredits) {
+        updateData.credits = user.maxCredits;
+        updateData.creditsResetDate = periodEnd;
+        console.log(`Resetting credits for user ${userId} due to new billing period`);
       }
 
       const [updatedUser] = await db
@@ -286,8 +307,8 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       return updatedUser;
-    } catch (error) {
-      console.log('Skipping billing period update due to error:', error.message);
+    } catch (error: any) {
+      console.log('Skipping billing period update due to error:', error?.message || error);
       return undefined;
     }
   }
@@ -298,13 +319,17 @@ export class DatabaseStorage implements IStorage {
       const now = new Date();
       const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
+      // Get user's max credits for reset
+      const user = await this.getUser(userId);
+      if (!user) return undefined;
+
       const [updatedUser] = await db
         .update(users)
         .set({
           currentPeriodStart: now,
           currentPeriodEnd: nextMonth,
-          editCount: 0,
-          generationCount: 0,
+          credits: user.maxCredits,
+          creditsResetDate: nextMonth,
         })
         .where(eq(users.id, userId))
         .returning();

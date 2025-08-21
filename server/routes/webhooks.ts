@@ -77,25 +77,23 @@ export function setupWebhookRoutes(app: Express) {
                     await storage.updateUserBillingPeriod(user.id, periodStart, periodEnd);
                     console.log(`Billing period updated for user ${user.id} on payment success: ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
                     
-                    // Always reset edit count on successful payment (new billing period)
-                    await storage.resetUserEditCount(user.id);
-                    console.log(`Edit count reset for user ${user.id} on new billing period`);
+                    // Always refresh credits on successful payment (new billing period)
+                    await storage.refreshCredits(user.id);
+                    console.log(`Credits refreshed for user ${user.id} on new billing period`);
                   } else {
-                    console.log(`Invalid billing period dates for user ${user.id}, falling back to edit count reset`);
-                    await storage.resetUserEditCount(user.id);
+                    console.log(`Invalid billing period dates for user ${user.id}, falling back to credit refresh`);
+                    await storage.refreshCredits(user.id);
                   }
                 } catch (error) {
-                  console.log(`Billing period update failed for user ${user.id}, falling back to edit count reset:`, error instanceof Error ? error.message : 'Unknown error');
-                  await storage.resetUserEditCount(user.id);
+                  console.log(`Billing period update failed for user ${user.id}, falling back to credit refresh:`, error instanceof Error ? error.message : 'Unknown error');
+                  await storage.refreshCredits(user.id);
                 }
               } else {
-                console.log(`No valid billing period found for user ${user.id}, just resetting edit count`);
-                await storage.resetUserEditCount(user.id);
+                console.log(`No valid billing period found for user ${user.id}, just refreshing credits`);
+                await storage.refreshCredits(user.id);
               }
 
-              // Also reset generation count on successful payment
-              await storage.resetUserGenerationCount(user.id);
-              console.log(`Generation count reset for user ${user.id} on payment success`);
+              console.log(`Credits refreshed for user ${user.id} on payment success`);
             }
           } catch (error) {
             console.error('Error processing invoice payment:', error instanceof Error ? error.message : 'Unknown error');
@@ -112,28 +110,20 @@ export function setupWebhookRoutes(app: Express) {
           // Get user by customer ID - we need to implement this method
           const user = await storage.getUserByCustomerId(subscription.customer as string);
           if (user) {
-            // Determine subscription tier and limits based on price
+            // Determine subscription tier based on price
             const price = subscription.items.data[0]?.price;
             let tier = 'basic';
-            let editLimit = 50;
-            let generationLimit = 25;
 
             if (price?.id === process.env.VITE_STRIPE_PRICE_1499) {
               tier = 'premium-plus';
-              editLimit = 100;
-              generationLimit = 100;
             } else if (price?.id === process.env.VITE_STRIPE_PRICE_999) {
               tier = 'premium';
-              editLimit = 100;
-              generationLimit = 100;
             } else if (price?.id === process.env.VITE_STRIPE_PRICE_5) {
               tier = 'basic';
-              editLimit = 50;
-              generationLimit = 50;
             }
 
-            // Update user with new subscription
-            await storage.updateUserSubscription(user.id, tier, editLimit, generationLimit, false, "active");
+            // Update user with new subscription - refresh credits for new subscription
+            await storage.updateUserSubscription(user.id, tier, false, "active");
             await storage.updateUserStripeInfo(user.id, subscription.customer as string, subscription.id);
 
             // Set billing period from subscription
@@ -189,8 +179,8 @@ export function setupWebhookRoutes(app: Express) {
         try {
           const user = await storage.getUserBySubscriptionId(subscription.id);
           if (user) {
-            // Revert to free tier
-            await storage.updateUserSubscription(user.id, 'free', 10, 10, false, "canceled");
+            // Revert to free tier - refresh credits to free tier limits
+            await storage.updateUserSubscription(user.id, 'free', false, "canceled");
             console.log(`User ${user.id} reverted to free tier`);
           }
         } catch (error) {

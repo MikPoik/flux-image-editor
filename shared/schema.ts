@@ -24,11 +24,10 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
-  subscriptionTier: varchar("subscription_tier"), // 'free', 'basic', 'premium'
-  editCount: integer("edit_count").default(0).notNull(),
-  editLimit: integer("edit_limit").default(10).notNull(),
-  generationCount: integer("generation_count").default(0).notNull(),
-  generationLimit: integer("generation_limit").default(10).notNull(), // Free: 10, Others: 25
+  subscriptionTier: varchar("subscription_tier"), // 'free', 'basic', 'premium', 'premium-plus'
+  credits: integer("credits").default(30).notNull(), // Current available credits
+  maxCredits: integer("max_credits").default(30).notNull(), // Maximum credits for current tier
+  creditsResetDate: timestamp("credits_reset_date"), // Next credit reset date
   subscriptionStatus: varchar("subscription_status").default("active"), // 'active', 'canceled', 'past_due'
   currentPeriodStart: timestamp("current_period_start"),
   currentPeriodEnd: timestamp("current_period_end"),

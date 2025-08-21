@@ -2,10 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 
 interface SubscriptionInfo {
   subscriptionTier: string;
-  editCount: number;
-  editLimit: number;
-  generationCount: number;
-  generationLimit: number;
+  credits: number;
+  maxCredits: number;
+  creditsResetDate: number | null;
   hasActiveSubscription: boolean;
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: number | null;
@@ -25,9 +24,11 @@ export function useSubscription() {
     subscription,
     isLoading,
     error,
-    isAtLimit: subscription ? subscription.editCount >= subscription.editLimit : false,
-    remainingEdits: subscription ? Math.max(0, subscription.editLimit - subscription.editCount) : 0,
-    isAtGenerationLimit: subscription ? subscription.generationCount >= subscription.generationLimit : false,
-    remainingGenerations: subscription ? Math.max(0, subscription.generationLimit - subscription.generationCount) : 0,
+    hasInsufficientCredits: (creditsNeeded: number) => subscription ? subscription.credits < creditsNeeded : true,
+    remainingCredits: subscription ? subscription.credits : 0,
+    canAffordEdit: subscription ? subscription.credits >= 2 : false, // Edit costs 2 credits
+    canAffordGeneration: subscription ? subscription.credits >= 3 : false, // Generation costs 3 credits
+    canAffordMultiGeneration: subscription ? subscription.credits >= 5 : false, // Multi-generation costs 5 credits
+    canAffordUpscale: subscription ? subscription.credits >= 1 : false, // Upscale costs 1 credit
   };
 }

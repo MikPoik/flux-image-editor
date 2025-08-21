@@ -21,10 +21,9 @@ import {
 
 interface SubscriptionInfo {
   subscriptionTier: string;
-  editCount: number;
-  editLimit: number;
-  generationCount: number;
-  generationLimit: number;
+  credits: number;
+  maxCredits: number;
+  creditsResetDate: number | null;
   hasActiveSubscription: boolean;
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: number | null;
@@ -166,7 +165,7 @@ const DowngradeButton = ({ priceId, planName, currentTier }: { priceId: string, 
           <AlertDialogDescription>
             Are you sure you want to downgrade from {currentTier} to {planName}? 
             You'll receive a prorated credit for the remainder of your billing period and your new rate will apply going forward.
-            Your edit limit will be reduced immediately.
+            Your credit allowance will be adjusted immediately.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -288,9 +287,9 @@ export default function Subscription() {
       name: "Basic Plan",
       price: "$4.99",
       period: "/month",
-      edits: 50,
-      features: ["50 image edits per month", "25 image generations per month", "Kontext Pro AI model", "2X image upscale"],
-      priceId: import.meta.env.VITE_STRIPE_PRICE_5, // Replace with your actual Stripe price ID
+      credits: 120,
+      features: ["120 credits per month", "Edit: 2 credits", "Generation: 3 credits", "Multi-generation: 5 credits", "Upscale: 1 credit", "Kontext Pro AI model"],
+      priceId: import.meta.env.VITE_STRIPE_PRICE_5,
       popular: false,
     },
     {
@@ -298,9 +297,9 @@ export default function Subscription() {
       name: "Premium Plan", 
       price: "$9.99",
       period: "/month",
-      edits: 50,
-      features: ["50 image edits per month", "25 image generations per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
-      priceId: import.meta.env.VITE_STRIPE_PRICE_999, // Replace with your actual Stripe price ID for $9.99 plan
+      credits: 200,
+      features: ["200 credits per month", "Edit: 2 credits", "Generation: 3 credits", "Multi-generation: 5 credits", "Upscale: 1 credit", "Kontext Max AI model (highest quality)"],
+      priceId: import.meta.env.VITE_STRIPE_PRICE_999,
       popular: true,
     },
     {
@@ -308,9 +307,9 @@ export default function Subscription() {
       name: "Premium Plus Plan", 
       price: "$14.99",
       period: "/month",
-      edits: 100,
-      features: ["100 image edits per month", "25 image generations per month", "Kontext Max AI model (highest quality)", "Up to 4X image upscale"],
-      priceId: import.meta.env.VITE_STRIPE_PRICE_1499, // Replace with your actual Stripe price ID
+      credits: 300,
+      features: ["300 credits per month", "Edit: 2 credits", "Generation: 3 credits", "Multi-generation: 5 credits", "Upscale: 1 credit", "Kontext Max AI model (highest quality)"],
+      priceId: import.meta.env.VITE_STRIPE_PRICE_1499,
       popular: false,
     },
   ];
@@ -353,11 +352,13 @@ export default function Subscription() {
                   {subscription.subscriptionTier} Plan
                 </p>
                 <p className="text-muted-foreground">
-                  {subscription.editCount} / {subscription.editLimit} edits used this month
+                  {subscription.credits} / {subscription.maxCredits} credits remaining
                 </p>
-                <p className="text-muted-foreground">
-                  {subscription.generationCount} / {subscription.generationLimit} generations used this month
-                </p>
+                {subscription.creditsResetDate && (
+                  <p className="text-xs text-muted-foreground">
+                    Credits reset on {new Date(subscription.creditsResetDate * 1000).toLocaleDateString()}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <div className="flex flex-col items-end gap-2">
@@ -420,7 +421,7 @@ export default function Subscription() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
-                <p className="text-lg font-semibold">{plan.edits} edits/month</p>
+                <p className="text-lg font-semibold">{plan.credits} credits/month</p>
               </div>
               <ul className="space-y-2">
                 {plan.features.map((feature, index) => (

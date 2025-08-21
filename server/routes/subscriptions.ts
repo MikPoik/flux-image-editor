@@ -110,7 +110,7 @@ export function setupSubscriptionRoutes(app: Express) {
 
           if (user.currentPeriodEnd) {
             currentPeriodEnd = Math.floor(user.currentPeriodEnd.getTime() / 1000);
-          } else if ((subscription as any).current_period_end) {
+          } else if ('current_period_end' in subscription) {
             currentPeriodEnd = (subscription as any).current_period_end;
             
             // Update database with the period end from Stripe if it's missing
@@ -146,10 +146,9 @@ export function setupSubscriptionRoutes(app: Express) {
 
       const response = {
         subscriptionTier: user.subscriptionTier || 'free',
-        editCount: user.editCount || 0,
-        editLimit: user.editLimit || 10,
-        generationCount: user.generationCount || 0,
-        generationLimit: user.generationLimit || 10,
+        credits: user.credits || 30,
+        maxCredits: user.maxCredits || 30,
+        creditsResetDate: user.creditsResetDate ? Math.floor(user.creditsResetDate.getTime() / 1000) : null,
         hasActiveSubscription,
         cancelAtPeriodEnd,
         currentPeriodEnd,
@@ -272,33 +271,25 @@ export function setupSubscriptionRoutes(app: Express) {
         proration_behavior: 'always_invoice',
       });
 
-      // Determine subscription tier and edit limit based on price
+      // Determine subscription tier based on price
       let tier = 'basic';
-      let editLimit = 50;
 
       if (priceId === process.env.VITE_STRIPE_PRICE_1499) {
         tier = 'premium-plus';
-        editLimit = 100;
       } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {
         tier = 'premium';
-        editLimit = 50;
       } else if (priceId === process.env.VITE_STRIPE_PRICE_5) {
         tier = 'basic';
-        editLimit = 50;
       }
 
-      // Set generation limits based on tier (Free: 10, Others: 25)
-      const generationLimit = tier === 'free' ? 10 : 25;
-      
-      // Update user subscription details - preserve edit count for upgrades
-      await storage.updateUserSubscription(userId, tier, editLimit, generationLimit, true, "active");
+      // Update user subscription details - preserve credits for upgrades
+      await storage.updateUserSubscription(userId, tier, true, "active");
 
       console.log(`Subscription upgraded for user ${userId}: ${tier} plan`);
 
       res.json({ 
         message: "Subscription upgraded successfully",
-        tier,
-        editLimit 
+        tier
       });
 
     } catch (error: any) {
@@ -332,8 +323,8 @@ export function setupSubscriptionRoutes(app: Express) {
       if (user) {
         res.json({ 
           message: "Billing period reset successfully",
-          editCount: user.editCount,
-          generationCount: user.generationCount,
+          credits: user.credits,
+          maxCredits: user.maxCredits,
           currentPeriodStart: user.currentPeriodStart,
           currentPeriodEnd: user.currentPeriodEnd
         });

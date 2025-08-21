@@ -83,12 +83,13 @@ export function setupImageRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has reached their generation limit
-      if (user.generationCount >= user.generationLimit) {
+      // Check if user has enough credits (3 credits per generation)
+      const GENERATION_COST = 3;
+      if (user.credits < GENERATION_COST) {
         return res.status(403).json({ 
-          message: "Generation limit reached. Please upgrade your subscription to continue generating images.",
-          generationCount: user.generationCount,
-          generationLimit: user.generationLimit
+          message: "Not enough credits. Please upgrade your subscription to continue generating images.",
+          credits: user.credits,
+          requiredCredits: GENERATION_COST
         });
       }
 
@@ -148,8 +149,8 @@ export function setupImageRoutes(app: Express) {
       const validatedData = insertImageSchema.parse(imageData);
       const image = await storage.createImage(validatedData);
 
-      // Increment user's generation count
-      await storage.incrementUserGenerationCount(userId);
+      // Deduct credits for generation
+      await storage.deductCredits(userId, GENERATION_COST);
 
       res.json(image);
     } catch (error) {
@@ -185,12 +186,13 @@ export function setupImageRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has reached their generation limit
-      if (user.generationCount >= user.generationLimit) {
+      // Check if user has enough credits (5 credits per multi-image generation)
+      const MULTI_GENERATION_COST = 5;
+      if (user.credits < MULTI_GENERATION_COST) {
         return res.status(403).json({ 
-          message: "Generation limit reached. Please upgrade your subscription to continue generating images.",
-          generationCount: user.generationCount,
-          generationLimit: user.generationLimit
+          message: "Not enough credits. Please upgrade your subscription to continue generating images.",
+          credits: user.credits,
+          requiredCredits: MULTI_GENERATION_COST
         });
       }
 
@@ -261,8 +263,8 @@ export function setupImageRoutes(app: Express) {
       const validatedData = insertImageSchema.parse(imageData);
       const image = await storage.createImage(validatedData);
 
-      // Increment user's generation count
-      await storage.incrementUserGenerationCount(userId);
+      // Deduct credits for multi-image generation
+      await storage.deductCredits(userId, MULTI_GENERATION_COST);
 
       res.json(image);
     } catch (error) {
@@ -290,12 +292,13 @@ export function setupImageRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has reached their edit limit
-      if (user.editCount >= user.editLimit) {
+      // Check if user has enough credits (2 credits per edit)
+      const EDIT_COST = 2;
+      if (user.credits < EDIT_COST) {
         return res.status(403).json({ 
-          message: "Edit limit reached. Please upgrade your subscription to continue editing.",
-          editCount: user.editCount,
-          editLimit: user.editLimit
+          message: "Not enough credits. Please upgrade your subscription to continue editing.",
+          credits: user.credits,
+          requiredCredits: EDIT_COST
         });
       }
 
@@ -414,8 +417,8 @@ export function setupImageRoutes(app: Express) {
         editHistory: [...(image.editHistory || []), newHistoryItem],
       });
 
-      // Increment user's edit count
-      await storage.incrementUserEditCount(userId);
+      // Deduct credits for edit
+      await storage.deductCredits(userId, EDIT_COST);
 
       res.json(updatedImage);
     } catch (error) {
