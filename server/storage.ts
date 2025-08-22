@@ -7,7 +7,7 @@ import {
   type UpsertUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql, desc } from "drizzle-orm";
+import { eq, sql, desc, and, gte } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
