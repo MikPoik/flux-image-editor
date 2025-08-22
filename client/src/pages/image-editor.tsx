@@ -69,7 +69,7 @@ export default function ImageEditor() {
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              You don't have enough credits to edit images (2 credits needed). 
+              You don't have enough credits to edit images (1 credit needed). 
               <Link href="/subscription" className="underline ml-1">
                 Upgrade your plan
               </Link> to get more credits.
@@ -95,7 +95,7 @@ export default function ImageEditor() {
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              You don't have enough credits to generate images (3 credits needed). 
+              You don't have enough credits to generate images (1 credit needed). 
               <Link href="/subscription" className="underline ml-1">
                 Upgrade your plan
               </Link> to get more credits.

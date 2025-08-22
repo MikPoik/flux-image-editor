@@ -83,8 +83,8 @@ export function setupImageRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has enough credits (3 credits per generation)
-      const GENERATION_COST = 3;
+      // Check if user has enough credits (1 credit per generation)
+      const GENERATION_COST = 1;
       if (user.credits < GENERATION_COST) {
         return res.status(403).json({ 
           message: "Not enough credits. Please upgrade your subscription to continue generating images.",
@@ -150,7 +150,7 @@ export function setupImageRoutes(app: Express) {
       const image = await storage.createImage(validatedData);
 
       // Deduct credits for generation
-      await storage.deductCredits(userId, GENERATION_COST);
+      await storage.deductCredits(userId, 'generation');
 
       res.json(image);
     } catch (error) {
@@ -186,8 +186,8 @@ export function setupImageRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has enough credits (5 credits per multi-image generation)
-      const MULTI_GENERATION_COST = 5;
+      // Check if user has enough credits (1 credit per multi-image generation)
+      const MULTI_GENERATION_COST = 1;
       if (user.credits < MULTI_GENERATION_COST) {
         return res.status(403).json({ 
           message: "Not enough credits. Please upgrade your subscription to continue generating images.",
@@ -264,7 +264,7 @@ export function setupImageRoutes(app: Express) {
       const image = await storage.createImage(validatedData);
 
       // Deduct credits for multi-image generation
-      await storage.deductCredits(userId, MULTI_GENERATION_COST);
+      await storage.deductCredits(userId, 'multi-generation');
 
       res.json(image);
     } catch (error) {
@@ -292,8 +292,8 @@ export function setupImageRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user has enough credits (2 credits per edit)
-      const EDIT_COST = 2;
+      // Check if user has enough credits (1 credit per edit)
+      const EDIT_COST = 1;
       if (user.credits < EDIT_COST) {
         return res.status(403).json({ 
           message: "Not enough credits. Please upgrade your subscription to continue editing.",
@@ -418,7 +418,7 @@ export function setupImageRoutes(app: Express) {
       });
 
       // Deduct credits for edit
-      await storage.deductCredits(userId, EDIT_COST);
+      await storage.deductCredits(userId, 'edit');
 
       res.json(updatedImage);
     } catch (error) {
