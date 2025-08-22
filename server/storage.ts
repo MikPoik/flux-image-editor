@@ -18,7 +18,7 @@ export interface IStorage {
   updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User | undefined>;
   updateUserSubscription(userId: string, tier: string, preserveCredits?: boolean, subscriptionStatus?: string): Promise<User | undefined>;
-  deductCredits(userId: string, amount: number): Promise<User | undefined>;
+  deductCredits(userId: string, operation: 'edit' | 'generation' | 'multi-generation' | 'upscale'): Promise<boolean>;
   refreshCredits(userId: string): Promise<User | undefined>;
   addCredits(userId: string, amount: number): Promise<User | undefined>;
   updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined>;
@@ -82,9 +82,9 @@ export class DatabaseStorage implements IStorage {
       .select({ count: sql`count(*)` })
       .from(images)
       .where(eq(images.userId, userId));
-    
+
     const total = Number(totalResult.count);
-    
+
     const imageResults = await db
       .select()
       .from(images)
@@ -92,7 +92,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(images.createdAt))
       .limit(limit)
       .offset(offset);
-    
+
     return { images: imageResults, total };
   }
 
@@ -213,17 +213,33 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async deductCredits(userId: string, amount: number): Promise<User | undefined> {
+  async deductCredits(userId: string, operation: 'edit' | 'generation' | 'multi-generation' | 'upscale'): Promise<boolean> {
     try {
+      // Define credit costs - upscales are now free
+      const creditCosts = {
+        'edit': 1,
+        'generation': 1,
+        'multi-generation': 1,
+        'upscale': 0
+      };
+
+      const cost = creditCosts[operation];
+      if (cost === undefined) {
+        console.error(`Invalid operation: ${operation}`);
+        return false;
+      }
+
       const [user] = await db
         .update(users)
-        .set({ credits: sql`${users.credits} - ${amount}` })
-        .where(eq(users.id, userId))
+        .set({ credits: sql`${users.credits} - ${cost}` })
+        .where(and(eq(users.id, userId), gte(users.credits, cost)))
         .returning();
-      return user;
+
+      // Check if the update was successful (user had enough credits)
+      return user !== undefined;
     } catch (error) {
       console.error('Error deducting credits:', error);
-      return undefined;
+      return false;
     }
   }
 

@@ -25,8 +25,8 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   subscriptionTier: varchar("subscription_tier"), // 'free', 'basic', 'premium', 'premium-plus'
-  credits: integer("credits").default(30).notNull(), // Current available credits
-  maxCredits: integer("max_credits").default(30).notNull(), // Maximum credits for current tier
+  credits: integer("credits").default(10).notNull(), // Current available credits
+  maxCredits: integer("max_credits").default(10).notNull(), // Maximum credits for current tier
   creditsResetDate: timestamp("credits_reset_date"), // Next credit reset date
   subscriptionStatus: varchar("subscription_status").default("active"), // 'active', 'canceled', 'past_due'
   currentPeriodStart: timestamp("current_period_start"),

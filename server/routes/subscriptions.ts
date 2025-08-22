@@ -130,8 +130,8 @@ export function setupSubscriptionRoutes(app: Express) {
 
       const response = {
         subscriptionTier: user.subscriptionTier || 'free',
-        credits: user.credits || 30,
-        maxCredits: user.maxCredits || 30,
+        credits: user.credits || 10,
+        maxCredits: user.maxCredits || 10,
         creditsResetDate: user.creditsResetDate ? Math.floor(user.creditsResetDate.getTime() / 1000) : null,
         hasActiveSubscription,
         cancelAtPeriodEnd,
