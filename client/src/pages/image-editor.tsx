@@ -277,9 +277,7 @@ export default function ImageEditor() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
-                  <div>Edit: 2 credits</div>
-                  <div>Generation: 3 credits</div>
-                  <div>Multi-gen: 5 credits</div>
+                  <div>Edit/Generation: 4 credits</div>
                   <div>Upscale: 1 credit</div>
                 </div>
                 {subscription.creditsResetDate && (

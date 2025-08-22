@@ -26,9 +26,9 @@ export function useSubscription() {
     error,
     hasInsufficientCredits: (creditsNeeded: number) => subscription ? subscription.credits < creditsNeeded : true,
     remainingCredits: subscription ? subscription.credits : 0,
-    canAffordEdit: subscription ? subscription.credits >= 2 : false, // Edit costs 2 credits
-    canAffordGeneration: subscription ? subscription.credits >= 3 : false, // Generation costs 3 credits
-    canAffordMultiGeneration: subscription ? subscription.credits >= 5 : false, // Multi-generation costs 5 credits
+    canAffordEdit: subscription ? subscription.credits >= 4 : false, // Edit costs 4 credits
+    canAffordGeneration: subscription ? subscription.credits >= 4 : false, // Generation costs 4 credits
+    canAffordMultiGeneration: subscription ? subscription.credits >= 4 : false, // Multi-generation costs 4 credits
     canAffordUpscale: subscription ? subscription.credits >= 1 : false, // Upscale costs 1 credit
   };
 }
