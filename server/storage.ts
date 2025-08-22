@@ -148,14 +148,14 @@ export class DatabaseStorage implements IStorage {
   private getCreditLimitsByTier(tier: string): number {
     switch (tier) {
       case 'basic':
-        return 240; // $5 plan: 240 credits
+        return 60; // $4.99 plan: 60 credits
       case 'premium':
-        return 400; // $9.99 plan: 400 credits
+        return 70; // $9.99 plan: 70 credits
       case 'premium-plus':
-        return 600; // $14.99 plan: 600 credits
+        return 110; // $14.99 plan: 110 credits
       case 'free':
       default:
-        return 60; // Free plan: 60 credits
+        return 10; // Free plan: 10 credits
     }
   }
 
