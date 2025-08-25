@@ -110,7 +110,7 @@ export function setupWebhookRoutes(app: Express) {
               tier = 'premium-plus';
             } else if (price?.id === process.env.VITE_STRIPE_PRICE_999) {
               tier = 'premium';
-            } else if (price?.id === process.env.VITE_STRIPE_PRICE_5) {
+            } else if (price?.id === process.env.VITE_STRIPE_PRICE_499) {
               tier = 'basic';
             }
 

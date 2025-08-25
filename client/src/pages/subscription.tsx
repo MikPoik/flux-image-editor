@@ -289,7 +289,7 @@ export default function Subscription() {
       period: "/month",
       credits: 60,
       features: ["60 credits per month", "Editing/Generation: 1 credit each", "Upscales: Free", "Kontext Pro AI model"],
-      priceId: import.meta.env.VITE_STRIPE_PRICE_5,
+      priceId: import.meta.env.VITE_STRIPE_PRICE_499,
       popular: false,
     },
     {

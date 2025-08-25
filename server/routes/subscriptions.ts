@@ -260,7 +260,7 @@ export function setupSubscriptionRoutes(app: Express) {
         tier = 'premium-plus';
       } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {
         tier = 'premium';
-      } else if (priceId === process.env.VITE_STRIPE_PRICE_5) {
+      } else if (priceId === process.env.VITE_STRIPE_PRICE_499) {
         tier = 'basic';
       }
 
