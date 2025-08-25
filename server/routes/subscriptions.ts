@@ -264,8 +264,8 @@ export function setupSubscriptionRoutes(app: Express) {
         tier = 'basic';
       }
 
-      // Update user subscription details - preserve credits for upgrades
-      await storage.updateUserSubscription(userId, tier, true, "active");
+      // Update user subscription details - refresh credits for upgrades to give full allocation
+      await storage.updateUserSubscription(userId, tier, false, "active");
 
       console.log(`Subscription upgraded for user ${userId}: ${tier} plan`);
 
