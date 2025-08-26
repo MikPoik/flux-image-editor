@@ -37,8 +37,6 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
 ### January 2025
 - **Credit-Based Subscription System (January 21, 2025)**: Complete refactoring from separate edit/generation count limits to unified credit system:
   - Database schema migrated from `editCount`/`editLimit`/`generationCount`/`generationLimit` to `credits`/`maxCredits`/`creditsResetDate`
-  - Credit costs: Edit (2), Generation (3), Multi-generation (5), Upscale (1)
-  - Monthly allowances: Free (30), Basic (120), Premium (200), Premium Plus (300)
   - Storage layer updated with `deductCredits`, `refreshCredits`, and `addCredits` methods
   - Frontend components updated to check credit affordability instead of separate counters
   - Immediate switchover implementation with no gradual migration needed
