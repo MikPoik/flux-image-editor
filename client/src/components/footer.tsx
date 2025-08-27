@@ -10,6 +10,14 @@ export function Footer() {
             © {new Date().getFullYear()} AI Image Editor. All rights reserved.
           </div>
           <div className="flex items-center space-x-4 text-sm">
+            <a 
+              href="https://discord.gg/yr5bHmcy3H" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+            >
+              Discord Support
+            </a>
             <Link href="/terms-of-service">
               <span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
                 Terms of Service
