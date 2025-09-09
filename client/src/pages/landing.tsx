@@ -251,20 +251,20 @@ export default function Landing() {
                 — Sarah M., Creative Professional
               </cite>
             </div>
-          </div>
 
-          <div className="mt-12 text-center">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Join thousands of creators transforming their images with AI
-            </p>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-              onClick={() => (window.location.href = "/api/login")}
-            >
-              Start Your Free Trial
-            </Button>
+            <div className="mt-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Join thousands of creators transforming their images with AI
+              </p>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                onClick={() => (window.location.href = "/api/login")}
+              >
+                Start Your Free Trial
+              </Button>
+            </div>
           </section>
         </div>
       </header>
