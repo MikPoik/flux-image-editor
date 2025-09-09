@@ -190,7 +190,7 @@ export default function Landing() {
                 "Make the robot dance with vibrant lights and confetti"
               </p>
             </div>
-          </div>
+          </section>
 
           {/* Feature Cards */}
           <section className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto" aria-labelledby="features-heading">
