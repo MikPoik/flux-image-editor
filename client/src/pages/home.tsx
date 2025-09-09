@@ -92,7 +92,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground">Designed for seamless editing on any device</p>
               </div>
             </div>
-          </section>
+          </div>
         </section>
       </main>
   );
