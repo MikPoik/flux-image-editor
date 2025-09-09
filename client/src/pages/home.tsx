@@ -9,8 +9,8 @@ export default function Home() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-        <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4">Welcome to AI Image Editor</h2>
+        <section className="text-center max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold mb-4">Welcome to AI Image Editor</h1>
           <p className="text-muted-foreground mb-8">
             Generate new images from text or upload existing photos, then transform them with AI-powered editing using natural language prompts.
           </p>
@@ -92,8 +92,8 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground">Designed for seamless editing on any device</p>
               </div>
             </div>
-          </div>
-        </div>
+          </section>
+        </section>
       </main>
   );
 }

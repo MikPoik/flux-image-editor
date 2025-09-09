@@ -23,9 +23,9 @@ export default function Landing() {
       <Navigation />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <header className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4 py-16">
-          <div className="text-center mb-16">
+          <section className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-full text-blue-800 dark:text-blue-200 text-sm font-medium mb-6">
               <Star className="w-4 h-4 mr-2" />
               Powered by Flux.ai Kontext Pro & Max
@@ -73,10 +73,10 @@ export default function Landing() {
                 No Watermarks
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Before/After Examples */}
-          <div className="max-w-6xl mx-auto mb-16">
+          <section className="max-w-6xl mx-auto mb-16">
             <h2 className="text-3xl font-bold text-center mb-12">
               See the Magic in Action
             </h2>
@@ -193,7 +193,8 @@ export default function Landing() {
           </div>
 
           {/* Feature Cards */}
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <section className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto" aria-labelledby="features-heading">
+            <h2 id="features-heading" className="sr-only">Key Features</h2>
             <Card className="text-center hover:shadow-lg transition-shadow">
               <CardHeader>
                 <Upload className="w-12 h-12 text-blue-600 mx-auto mb-4" />
@@ -226,10 +227,11 @@ export default function Landing() {
                 </CardDescription>
               </CardHeader>
             </Card>
-          </div>
+          </section>
 
           {/* Social Proof */}
-          <div className="mt-16 text-center">
+          <section className="mt-16 text-center" aria-labelledby="testimonials-heading">
+            <h2 id="testimonials-heading" className="sr-only">Customer Testimonials</h2>
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-2xl mx-auto shadow-lg">
               <div className="flex justify-center mb-4">
                 {[...Array(5)].map((_, i) => (
@@ -263,9 +265,9 @@ export default function Landing() {
             >
               Start Your Free Trial
             </Button>
-          </div>
+          </section>
         </div>
-      </div>
+      </header>
     </div>
   );
 }
