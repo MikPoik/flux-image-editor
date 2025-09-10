@@ -1,11 +1,20 @@
-import { Client } from "@replit/object-storage";
+import { Storage, Bucket } from "@google-cloud/storage";
 import sharp from "sharp";
 
 export class ObjectStorageService {
-  public client: Client;
+  public storage: Storage;
+  public bucket: Bucket;
 
   constructor() {
-    this.client = new Client();
+    // Initialize Google Cloud Storage client with environment variables
+    this.storage = new Storage({
+      projectId: process.env.GCP_PROJECT_ID,
+      credentials: {
+        client_email: process.env.GCP_CLIENT_EMAIL,
+        private_key: process.env.GCP_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+    });
+    this.bucket = this.storage.bucket(process.env.GCP_BUCKET_NAME!);
   }
 
   /**
@@ -19,18 +28,23 @@ export class ObjectStorageService {
   ): Promise<string> {
     const key = `${userId}/${Date.now()}-${filename}`;
     
-    const { ok, error } = await this.client.uploadFromBytes(
-      key,
-      imageBuffer
-    );
+    try {
+      const file = this.bucket.file(key);
+      await file.save(imageBuffer, {
+        metadata: {
+          contentType: contentType,
+          cacheControl: 'public, max-age=31536000',
+        },
+      });
 
-    if (!ok) {
-      console.error("Object storage upload failed:", error);
+      console.log(`Image uploaded successfully: ${key}`);
+      
+      // Return the storage URL that points to our server endpoint
+      return `/api/storage/${key}`;
+    } catch (error) {
+      console.error("GCS upload failed:", error);
       throw new Error(`Failed to upload image: ${error}`);
     }
-
-    // Return the storage URL that points to our server endpoint
-    return `/api/storage/${key}`;
   }
 
   /**
@@ -43,18 +57,23 @@ export class ObjectStorageService {
   ): Promise<string> {
     const key = `temp/${Date.now()}-${filename}`;
     
-    const { ok, error } = await this.client.uploadFromBytes(
-      key,
-      imageBuffer
-    );
+    try {
+      const file = this.bucket.file(key);
+      await file.save(imageBuffer, {
+        metadata: {
+          contentType: contentType,
+          cacheControl: 'public, max-age=3600', // 1 hour for temp files
+        },
+      });
 
-    if (!ok) {
-      console.error("Temp object storage upload failed:", error);
+      console.log(`Temp image uploaded successfully: ${key}`);
+      
+      // Return the full URL that can be accessed externally
+      return `https://${process.env.REPL_ID || 'unknown'}.replit.app/api/storage/${key}`;
+    } catch (error) {
+      console.error("GCS temp upload failed:", error);
       throw new Error(`Failed to upload temp image: ${error}`);
     }
-
-    // Return the full URL that can be accessed externally
-    return `https://${process.env.REPL_ID || 'unknown'}.replit.app/api/storage/${key}`;
   }
 
   /**
@@ -86,16 +105,16 @@ export class ObjectStorageService {
    * List all images for a specific user
    */
   async listUserImages(userId: string): Promise<string[]> {
-    const { ok, value, error } = await this.client.list({
-      prefix: `${userId}/`,
-    });
+    try {
+      const [files] = await this.bucket.getFiles({
+        prefix: `${userId}/`,
+      });
 
-    if (!ok) {
+      return files.map((file) => `/api/storage/${file.name}`);
+    } catch (error) {
       console.error("Failed to list user images:", error);
       throw new Error(`Failed to list images: ${error}`);
     }
-
-    return value.map((item: any) => `/api/storage/${item.key || item}`);
   }
 
   /**
@@ -104,14 +123,14 @@ export class ObjectStorageService {
   async deleteImage(userId: string, filename: string): Promise<boolean> {
     const key = `${userId}/${filename}`;
     
-    const { ok, error } = await this.client.delete(key);
-
-    if (!ok) {
+    try {
+      await this.bucket.file(key).delete();
+      console.log(`Image deleted successfully: ${key}`);
+      return true;
+    } catch (error) {
       console.error("Failed to delete image:", error);
       return false;
     }
-
-    return true;
   }
 
   /**
@@ -286,31 +305,13 @@ export class ObjectStorageService {
     quality: number = 80
   ): Promise<{ buffer: Buffer; contentType: string } | null> {
     try {
-      const result = await this.client.downloadAsBytes(key);
-
-      if (!result.ok) {
-        console.error("Failed to download image:", result.error);
-        return null;
-      }
-
-      const { value } = result;
-      let originalBuffer: Buffer;
-      
-      if (Array.isArray(value) && value.length > 0) {
-        originalBuffer = value[0];
-      } else if (Buffer.isBuffer(value)) {
-        originalBuffer = value;
-      } else if (value instanceof Uint8Array) {
-        originalBuffer = Buffer.from(value);
-      } else {
-        console.error("Could not handle value type:", typeof value);
-        return null;
-      }
+      const file = this.bucket.file(key);
+      const [buffer] = await file.download();
 
       // Optimize the image if dimensions or quality are specified
       const shouldOptimize = width || height || quality < 100;
       if (shouldOptimize) {
-        const optimizedBuffer = await this.optimizeImage(originalBuffer, width, height, quality);
+        const optimizedBuffer = await this.optimizeImage(buffer, width, height, quality);
         return { buffer: optimizedBuffer, contentType: 'image/jpeg' };
       }
 
@@ -324,7 +325,7 @@ export class ObjectStorageService {
         contentType = 'image/webp';
       }
 
-      return { buffer: originalBuffer, contentType };
+      return { buffer, contentType };
     } catch (error) {
       console.error("Error getting optimized image data:", error);
       return null;
@@ -336,31 +337,9 @@ export class ObjectStorageService {
    */
   async getImageData(key: string): Promise<Buffer | null> {
     try {
-      const result = await this.client.downloadAsBytes(key);
-
-      if (!result.ok) {
-        console.error("Failed to download image:", result.error);
-        return null;
-      }
-
-      // Handle the returned value - Replit object storage returns an array containing a Buffer
-      const { value } = result;
-      
-      if (Array.isArray(value) && value.length > 0) {
-        return value[0]; // Extract the Buffer from the array
-      }
-      
-      // Fallback to other possible types
-      if (Buffer.isBuffer(value)) {
-        return value;
-      }
-      
-      if (value instanceof Uint8Array) {
-        return Buffer.from(value);
-      }
-      
-      console.error("Could not handle value type:", typeof value);
-      return null;
+      const file = this.bucket.file(key);
+      const [buffer] = await file.download();
+      return buffer;
     } catch (error) {
       console.error("Error getting image data:", error);
       return null;
@@ -385,14 +364,14 @@ export class ObjectStorageService {
       return false;
     }
 
-    const { ok, error } = await this.client.delete(key);
-
-    if (!ok) {
+    try {
+      await this.bucket.file(key).delete();
+      console.log(`Image deleted successfully by URL: ${key}`);
+      return true;
+    } catch (error) {
       console.error("Failed to delete image by URL:", error);
       return false;
     }
-
-    return true;
   }
 
   /**
