@@ -49,6 +49,12 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
   - `routes/index.ts` - Central route registration and organization
 - **Multi-Image Editing Feature (January 22, 2025)**: Added third navigation option for combining multiple images using Flux AI's "fal-ai/flux-pro/kontext/max/multi" model. Users can upload 2-5 images, view thumbnails, and generate combined results with custom prompts.
 - **Mobile-Responsive Navigation (January 22, 2025)**: Implemented responsive tab system that converts to dropdown menu on mobile devices while maintaining full functionality across all screen sizes.
+- **Google Cloud Storage Migration (September 10, 2025)**: Complete migration from Replit Object Storage to Google Cloud Storage:
+  - Updated ObjectStorageService class to use @google-cloud/storage instead of @replit/object-storage
+  - Implemented robust credential handling with fallback to Application Default Credentials (ADC)
+  - Added graceful startup behavior when GCP credentials are not configured
+  - Improved content type detection using GCS metadata with extension-based fallback
+  - Maintained backward compatibility with existing URL patterns and API interfaces
 
 ## System Architecture
 
@@ -70,7 +76,7 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
 ### Data Storage
 - **PostgreSQL** database using Neon serverless
 - **Drizzle ORM** for database operations and migrations
-- **Object Storage** using Replit's object storage service for image files
+- **Google Cloud Storage** for image file storage and serving with CDN capabilities
 - **Session storage** in PostgreSQL for user authentication
 
 ## Key Components
