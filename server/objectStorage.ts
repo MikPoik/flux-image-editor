@@ -6,15 +6,49 @@ export class ObjectStorageService {
   public bucket: Bucket;
 
   constructor() {
-    // Initialize Google Cloud Storage client with environment variables
-    this.storage = new Storage({
+    // Check if GCP environment variables are configured
+    if (!process.env.GCP_BUCKET_NAME) {
+      console.warn('GCP_BUCKET_NAME not configured - object storage will not function until GCP credentials are provided');
+      // Initialize with dummy values to prevent crashes during development
+      this.storage = new Storage();
+      this.bucket = this.storage.bucket('dummy-bucket');
+      return;
+    }
+
+    // Initialize Google Cloud Storage client
+    // Only pass credentials if both are present, otherwise rely on Application Default Credentials (ADC)
+    const storageOptions: any = {
       projectId: process.env.GCP_PROJECT_ID,
-      credentials: {
+    };
+
+    if (process.env.GCP_CLIENT_EMAIL && process.env.GCP_PRIVATE_KEY) {
+      storageOptions.credentials = {
         client_email: process.env.GCP_CLIENT_EMAIL,
-        private_key: process.env.GCP_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      },
-    });
-    this.bucket = this.storage.bucket(process.env.GCP_BUCKET_NAME!);
+        private_key: process.env.GCP_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      };
+    }
+
+    this.storage = new Storage(storageOptions);
+    this.bucket = this.storage.bucket(process.env.GCP_BUCKET_NAME);
+
+    // Perform startup self-check
+    this.validateConnection();
+  }
+
+  /**
+   * Validate GCS connection and bucket access
+   */
+  private async validateConnection(): Promise<void> {
+    try {
+      const [exists] = await this.bucket.exists();
+      if (!exists) {
+        console.error(`GCS bucket '${process.env.GCP_BUCKET_NAME}' does not exist`);
+      } else {
+        console.log(`GCS bucket '${process.env.GCP_BUCKET_NAME}' connection validated successfully`);
+      }
+    } catch (error) {
+      console.error('GCS connection validation failed:', error);
+    }
   }
 
   /**
@@ -315,14 +349,21 @@ export class ObjectStorageService {
         return { buffer: optimizedBuffer, contentType: 'image/jpeg' };
       }
 
-      // Return original with detected content type
+      // Get content type from GCS metadata for better accuracy
       let contentType = 'image/png';
-      if (key.toLowerCase().endsWith('.jpg') || key.toLowerCase().endsWith('.jpeg')) {
-        contentType = 'image/jpeg';
-      } else if (key.toLowerCase().endsWith('.gif')) {
-        contentType = 'image/gif';
-      } else if (key.toLowerCase().endsWith('.webp')) {
-        contentType = 'image/webp';
+      try {
+        const [metadata] = await file.getMetadata();
+        contentType = metadata.contentType || contentType;
+      } catch (error) {
+        // Fallback to extension-based detection if metadata fails
+        console.warn('Failed to get metadata, using extension-based content type detection:', error);
+        if (key.toLowerCase().endsWith('.jpg') || key.toLowerCase().endsWith('.jpeg')) {
+          contentType = 'image/jpeg';
+        } else if (key.toLowerCase().endsWith('.gif')) {
+          contentType = 'image/gif';
+        } else if (key.toLowerCase().endsWith('.webp')) {
+          contentType = 'image/webp';
+        }
       }
 
       return { buffer, contentType };
