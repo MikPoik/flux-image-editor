@@ -49,11 +49,11 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
   - `routes/index.ts` - Central route registration and organization
 - **Multi-Image Editing Feature (January 22, 2025)**: Added third navigation option for combining multiple images using Flux AI's "fal-ai/flux-pro/kontext/max/multi" model. Users can upload 2-5 images, view thumbnails, and generate combined results with custom prompts.
 - **Mobile-Responsive Navigation (January 22, 2025)**: Implemented responsive tab system that converts to dropdown menu on mobile devices while maintaining full functionality across all screen sizes.
-- **Google Cloud Storage Migration (September 10, 2025)**: Complete migration from Replit Object Storage to Google Cloud Storage:
-  - Updated ObjectStorageService class to use @google-cloud/storage instead of @replit/object-storage
-  - Implemented robust credential handling with fallback to Application Default Credentials (ADC)
-  - Added graceful startup behavior when GCP credentials are not configured
-  - Improved content type detection using GCS metadata with extension-based fallback
+- **AWS S3 Storage Migration (September 11, 2025)**: Complete migration from Google Cloud Storage to AWS S3:
+  - Updated ObjectStorageService class to use @aws-sdk/client-s3 instead of @google-cloud/storage
+  - Implemented HMAC key authentication using AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+  - Added graceful startup behavior when AWS credentials are not configured
+  - Improved content type detection using S3 metadata with extension-based fallback
   - Maintained backward compatibility with existing URL patterns and API interfaces
 
 ## System Architecture
@@ -76,7 +76,7 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
 ### Data Storage
 - **PostgreSQL** database using Neon serverless
 - **Drizzle ORM** for database operations and migrations
-- **Google Cloud Storage** for image file storage and serving with CDN capabilities
+- **AWS S3** for image file storage and serving
 - **Session storage** in PostgreSQL for user authentication
 
 ## Key Components
@@ -91,7 +91,7 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
 - **Upload handling** with Multer for multipart form data
 - **AI integration** with Flux.ai (fal-ai client) for image generation and editing
 - **Image optimization** with Sharp for resizing and format conversion
-- **Storage management** using Replit Object Storage with CDN-like serving
+- **Storage management** using AWS S3 with optimized serving
 
 ### Subscription Management
 - **Stripe integration** for payment processing
@@ -147,7 +147,7 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
   - Customer and subscription management
 
 ### Storage Services
-- **Replit Object Storage** - Image file storage with built-in CDN capabilities
+- **AWS S3** - Cloud object storage for image files using HMAC key authentication
 - **PostgreSQL (Neon)** - Serverless database for application data
 
 ### Authentication
@@ -170,8 +170,8 @@ grep -r -n "^ *app\.\(get\|post\|put\|delete\|patch\)" server/
 
 ### Environment Configuration
 - **Database connection** via `DATABASE_URL` environment variable
-- **API keys** for Stripe, Flux.ai, and session secrets
-- **Replit-specific** configurations for auth and object storage
+- **API keys** for Stripe, Flux.ai, AWS S3, and session secrets
+- **AWS S3** configurations for bucket and region settings
 - **CORS and security** headers for production deployment
 
 ### Scaling Considerations
