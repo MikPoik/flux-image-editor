@@ -7,31 +7,33 @@ export class ObjectStorageService {
   public bucketName: string;
 
   constructor() {
-    // Check if AWS environment variables are configured
-    if (!process.env.AWS_BUCKET_NAME) {
-      console.warn('AWS_BUCKET_NAME not configured - object storage will not function until AWS credentials are provided');
+    // Check if GCS bucket name is configured
+    if (!process.env.GCS_BUCKET_NAME) {
+      console.warn('GCS_BUCKET_NAME not configured - object storage will not function until GCS credentials are provided');
       // Initialize with dummy values to prevent crashes during development
-      this.s3Client = new S3Client({ region: 'us-east-1' });
+      this.s3Client = new S3Client({ region: 'auto', endpoint: 'https://storage.googleapis.com' });
       this.bucketName = 'dummy-bucket';
       return;
     }
 
-    this.bucketName = process.env.AWS_BUCKET_NAME;
+    this.bucketName = process.env.GCS_BUCKET_NAME;
 
-    // Initialize AWS S3 client with credentials
+    // Initialize S3-compatible client to connect to Google Cloud Storage
     const s3Config: any = {
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: 'auto', // GCS doesn't use AWS regions, but S3 client requires this
+      endpoint: 'https://storage.googleapis.com',
+      forcePathStyle: true, // Required for GCS compatibility
     };
 
-    // Configure credentials if provided
-    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    // Configure HMAC credentials if provided
+    if (process.env.GCS_ACCESS_KEY_ID && process.env.GCS_SECRET_ACCESS_KEY) {
       s3Config.credentials = {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.GCS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.GCS_SECRET_ACCESS_KEY,
       };
-      console.log('AWS credentials configured with access key:', process.env.AWS_ACCESS_KEY_ID);
+      console.log('GCS HMAC credentials configured with access key:', process.env.GCS_ACCESS_KEY_ID);
     } else {
-      console.warn('No AWS credentials provided. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.');
+      console.warn('No GCS HMAC credentials provided. Set GCS_ACCESS_KEY_ID and GCS_SECRET_ACCESS_KEY environment variables.');
       console.warn('Object storage operations will fail until credentials are configured.');
     }
 
@@ -53,9 +55,9 @@ export class ObjectStorageService {
       });
       
       await this.s3Client.send(command);
-      console.log(`S3 bucket '${this.bucketName}' connection validated successfully`);
+      console.log(`GCS bucket '${this.bucketName}' connection validated successfully via S3-compatible API`);
     } catch (error) {
-      console.error('S3 connection validation failed:', error);
+      console.error('GCS connection validation failed:', error);
     }
   }
 
@@ -85,7 +87,7 @@ export class ObjectStorageService {
       // Return the storage URL that points to our server endpoint
       return `/api/storage/${key}`;
     } catch (error) {
-      console.error("S3 upload failed:", error);
+      console.error("GCS upload failed:", error);
       throw new Error(`Failed to upload image: ${error}`);
     }
   }
@@ -115,7 +117,7 @@ export class ObjectStorageService {
       // Return the full URL that can be accessed externally
       return `https://${process.env.REPL_ID || 'unknown'}.replit.app/api/storage/${key}`;
     } catch (error) {
-      console.error("S3 temp upload failed:", error);
+      console.error("GCS temp upload failed:", error);
       throw new Error(`Failed to upload temp image: ${error}`);
     }
   }
@@ -159,8 +161,8 @@ export class ObjectStorageService {
       const objects = response.Contents || [];
 
       return objects
-        .filter(obj => obj.Key)
-        .map(obj => `/api/storage/${obj.Key}`);
+        .filter((obj: any) => obj.Key)
+        .map((obj: any) => `/api/storage/${obj.Key}`);
     } catch (error) {
       console.error("Failed to list user images:", error);
       throw new Error(`Failed to list images: ${error}`);
