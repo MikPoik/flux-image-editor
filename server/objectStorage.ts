@@ -21,11 +21,58 @@ export class ObjectStorageService {
       projectId: process.env.GCP_PROJECT_ID,
     };
 
-    if (process.env.GCP_CLIENT_EMAIL && process.env.GCP_PRIVATE_KEY) {
-      storageOptions.credentials = {
-        client_email: process.env.GCP_CLIENT_EMAIL,
-        private_key: process.env.GCP_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      };
+    // Try to configure credentials in order of preference
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+      try {
+        // Use JSON credentials if provided
+        const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+        storageOptions.credentials = credentials;
+        console.log('GCP credentials configured from JSON:', credentials.client_email);
+      } catch (error) {
+        console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', error);
+      }
+    } else if (process.env.GCP_CLIENT_EMAIL && process.env.GCP_PRIVATE_KEY) {
+      try {
+        // Process the private key to handle various formats
+        let privateKey = process.env.GCP_PRIVATE_KEY;
+        
+        // Handle escaped newlines
+        privateKey = privateKey.replace(/\\n/g, '\n');
+        
+        // Ensure proper formatting for PEM keys
+        if (!privateKey.includes('\n') && privateKey.includes('-----BEGIN')) {
+          // If it's a single line with BEGIN marker, it needs proper line breaks
+          privateKey = privateKey
+            .replace(/-----BEGIN PRIVATE KEY-----/, '-----BEGIN PRIVATE KEY-----\n')
+            .replace(/-----END PRIVATE KEY-----/, '\n-----END PRIVATE KEY-----')
+            .replace(/(.{64})/g, '$1\n')
+            .replace(/\n\n/g, '\n')
+            .trim();
+        }
+        
+        // Validate the private key format
+        if (!privateKey.includes('-----BEGIN PRIVATE KEY-----') || !privateKey.includes('-----END PRIVATE KEY-----')) {
+          throw new Error(`Invalid private key format: Missing BEGIN/END markers. 
+Current key starts with: ${privateKey.substring(0, 50)}...
+Please ensure your GCP_PRIVATE_KEY includes the full PEM format with headers.`);
+        }
+        
+        storageOptions.credentials = {
+          client_email: process.env.GCP_CLIENT_EMAIL,
+          private_key: privateKey,
+        };
+        
+        console.log('GCP credentials configured with service account:', process.env.GCP_CLIENT_EMAIL);
+      } catch (error) {
+        console.error('Failed to process GCP private key:', error);
+        console.error('Please check that GCP_PRIVATE_KEY is properly formatted with -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY----- markers');
+        // Don't throw here, let it try with default credentials
+      }
+    } else {
+      console.warn('No GCP credentials provided. Set either:');
+      console.warn('1. GOOGLE_APPLICATION_CREDENTIALS_JSON (full service account JSON)');  
+      console.warn('2. GCP_CLIENT_EMAIL + GCP_PRIVATE_KEY (individual fields)');
+      console.warn('Object storage operations will fail until credentials are configured.');
     }
 
     this.storage = new Storage(storageOptions);
