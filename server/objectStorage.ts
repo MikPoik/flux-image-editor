@@ -1,64 +1,61 @@
-import { Storage } from "@google-cloud/storage";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import sharp from "sharp";
 
 export class ObjectStorageService {
-  public storage: Storage;
+  public s3Client: S3Client;
   public bucketName: string;
 
   constructor() {
-    // Check if GCP environment variables are configured
-    if (!process.env.GCP_BUCKET_NAME) {
-      console.warn('GCP_BUCKET_NAME not configured - object storage will not function until GCP credentials are provided');
+    // Check if AWS environment variables are configured
+    if (!process.env.AWS_BUCKET_NAME) {
+      console.warn('AWS_BUCKET_NAME not configured - object storage will not function until AWS credentials are provided');
       // Initialize with dummy values to prevent crashes during development
-      this.storage = new Storage();
+      this.s3Client = new S3Client({ region: 'us-east-1' });
       this.bucketName = 'dummy-bucket';
       return;
     }
 
-    this.bucketName = process.env.GCP_BUCKET_NAME;
+    this.bucketName = process.env.AWS_BUCKET_NAME;
 
-    // Initialize Google Cloud Storage client with HMAC key authentication
-    const storageOptions: any = {
-      projectId: process.env.GCP_PROJECT_ID,
+    // Initialize AWS S3 client with credentials
+    const s3Config: any = {
+      region: process.env.AWS_REGION || 'us-east-1',
     };
 
-    // Configure HMAC key credentials if provided (simpler than service account JSON)
-    if (process.env.GCP_ACCESS_KEY_ID && process.env.GCP_SECRET_ACCESS_KEY) {
-      storageOptions.credentials = {
-        client_email: 'hmac-service-account@dummy.iam.gserviceaccount.com', // Dummy email for HMAC
-        private_key: '-----BEGIN PRIVATE KEY-----\nDUMMY\n-----END PRIVATE KEY-----', // Dummy key for HMAC
+    // Configure credentials if provided
+    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+      s3Config.credentials = {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       };
-      
-      // Configure HMAC key authentication
-      storageOptions.apiEndpoint = 'https://storage.googleapis.com';
-      storageOptions.useAuthHeader = true;
-      
-      console.log('GCP credentials configured with HMAC key:', process.env.GCP_ACCESS_KEY_ID);
+      console.log('AWS credentials configured with access key:', process.env.AWS_ACCESS_KEY_ID);
     } else {
-      console.warn('No GCP HMAC credentials provided. Set GCP_ACCESS_KEY_ID and GCP_SECRET_ACCESS_KEY environment variables.');
+      console.warn('No AWS credentials provided. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.');
       console.warn('Object storage operations will fail until credentials are configured.');
     }
 
-    this.storage = new Storage(storageOptions);
+    this.s3Client = new S3Client(s3Config);
 
     // Perform startup self-check
     this.validateConnection();
   }
 
   /**
-   * Validate GCS connection and bucket access
+   * Validate S3 connection and bucket access
    */
   private async validateConnection(): Promise<void> {
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      const [exists] = await bucket.exists();
-      if (!exists) {
-        console.error(`GCS bucket '${this.bucketName}' does not exist`);
-      } else {
-        console.log(`GCS bucket '${this.bucketName}' connection validated successfully`);
-      }
+      // Try to list objects to validate bucket access
+      const command = new ListObjectsV2Command({
+        Bucket: this.bucketName,
+        MaxKeys: 1,
+      });
+      
+      await this.s3Client.send(command);
+      console.log(`S3 bucket '${this.bucketName}' connection validated successfully`);
     } catch (error) {
-      console.error('GCS connection validation failed:', error);
+      console.error('S3 connection validation failed:', error);
     }
   }
 
@@ -74,22 +71,21 @@ export class ObjectStorageService {
     const key = `${userId}/${Date.now()}-${filename}`;
     
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      const file = bucket.file(key);
-      
-      await file.save(imageBuffer, {
-        metadata: {
-          contentType: contentType,
-          cacheControl: 'public, max-age=31536000',
-        },
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: imageBuffer,
+        ContentType: contentType,
+        CacheControl: 'public, max-age=31536000',
       });
 
+      await this.s3Client.send(command);
       console.log(`Image uploaded successfully: ${key}`);
       
       // Return the storage URL that points to our server endpoint
       return `/api/storage/${key}`;
     } catch (error) {
-      console.error("GCS upload failed:", error);
+      console.error("S3 upload failed:", error);
       throw new Error(`Failed to upload image: ${error}`);
     }
   }
@@ -105,22 +101,21 @@ export class ObjectStorageService {
     const key = `temp/${Date.now()}-${filename}`;
     
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      const file = bucket.file(key);
-      
-      await file.save(imageBuffer, {
-        metadata: {
-          contentType: contentType,
-          cacheControl: 'public, max-age=3600', // 1 hour for temp files
-        },
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: imageBuffer,
+        ContentType: contentType,
+        CacheControl: 'public, max-age=3600', // 1 hour for temp files
       });
 
+      await this.s3Client.send(command);
       console.log(`Temp image uploaded successfully: ${key}`);
       
       // Return the full URL that can be accessed externally
       return `https://${process.env.REPL_ID || 'unknown'}.replit.app/api/storage/${key}`;
     } catch (error) {
-      console.error("GCS temp upload failed:", error);
+      console.error("S3 temp upload failed:", error);
       throw new Error(`Failed to upload temp image: ${error}`);
     }
   }
@@ -155,12 +150,17 @@ export class ObjectStorageService {
    */
   async listUserImages(userId: string): Promise<string[]> {
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      const [files] = await bucket.getFiles({
-        prefix: `${userId}/`,
+      const command = new ListObjectsV2Command({
+        Bucket: this.bucketName,
+        Prefix: `${userId}/`,
       });
 
-      return files.map((file) => `/api/storage/${file.name}`);
+      const response = await this.s3Client.send(command);
+      const objects = response.Contents || [];
+
+      return objects
+        .filter(obj => obj.Key)
+        .map(obj => `/api/storage/${obj.Key}`);
     } catch (error) {
       console.error("Failed to list user images:", error);
       throw new Error(`Failed to list images: ${error}`);
@@ -174,8 +174,12 @@ export class ObjectStorageService {
     const key = `${userId}/${filename}`;
     
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      await bucket.file(key).delete();
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      await this.s3Client.send(command);
       console.log(`Image deleted successfully: ${key}`);
       return true;
     } catch (error) {
@@ -356,9 +360,13 @@ export class ObjectStorageService {
     quality: number = 80
   ): Promise<{ buffer: Buffer; contentType: string } | null> {
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      const file = bucket.file(key);
-      const [buffer] = await file.download();
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      const response = await this.s3Client.send(command);
+      const buffer = Buffer.from(await response.Body!.transformToByteArray());
 
       // Optimize the image if dimensions or quality are specified
       const shouldOptimize = width || height || quality < 100;
@@ -367,14 +375,12 @@ export class ObjectStorageService {
         return { buffer: optimizedBuffer, contentType: 'image/jpeg' };
       }
 
-      // Get content type from GCS metadata for better accuracy
-      let contentType = 'image/png';
-      try {
-        const [metadata] = await file.getMetadata();
-        contentType = metadata.contentType || contentType;
-      } catch (error) {
-        // Fallback to extension-based detection if metadata fails
-        console.warn('Failed to get metadata, using extension-based content type detection:', error);
+      // Get content type from S3 metadata for better accuracy
+      let contentType = response.ContentType || 'image/png';
+      
+      // Fallback to extension-based detection if metadata is missing
+      if (!response.ContentType) {
+        console.warn('No content type in S3 metadata, using extension-based detection');
         if (key.toLowerCase().endsWith('.jpg') || key.toLowerCase().endsWith('.jpeg')) {
           contentType = 'image/jpeg';
         } else if (key.toLowerCase().endsWith('.gif')) {
@@ -396,9 +402,13 @@ export class ObjectStorageService {
    */
   async getImageData(key: string): Promise<Buffer | null> {
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      const file = bucket.file(key);
-      const [buffer] = await file.download();
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      const response = await this.s3Client.send(command);
+      const buffer = Buffer.from(await response.Body!.transformToByteArray());
       return buffer;
     } catch (error) {
       console.error("Error getting image data:", error);
@@ -425,8 +435,12 @@ export class ObjectStorageService {
     }
 
     try {
-      const bucket = this.storage.bucket(this.bucketName);
-      await bucket.file(key).delete();
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      await this.s3Client.send(command);
       console.log(`Image deleted successfully by URL: ${key}`);
       return true;
     } catch (error) {
