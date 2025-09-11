@@ -285,7 +285,7 @@ export default function Subscription() {
     {
       id: "basic",
       name: "Basic Plan",
-      price: "$4.99",
+      price: "5€",
       period: "/month",
       credits: 60,
       features: ["60 credits per month", "Editing/Generation: 1 credit each", "Upscales: Free", "Kontext Pro AI model"],
@@ -295,7 +295,7 @@ export default function Subscription() {
     {
       id: "premium",
       name: "Premium Plan", 
-      price: "$9.99",
+      price: "10€",
       period: "/month",
       credits: 70,
       features: ["70 credits per month", "Editing/Generation: 1 credit each", "Upscales: Free", "Kontext Max AI model (highest quality)"],
@@ -305,7 +305,7 @@ export default function Subscription() {
     {
       id: "premium-plus",
       name: "Premium Plus Plan", 
-      price: "$14.99",
+      price: "15€",
       period: "/month",
       credits: 110,
       features: ["110 credits per month", "Editing/Generation: 1 credit each", "Upscales: Free", "Kontext Max AI model (highest quality)"],

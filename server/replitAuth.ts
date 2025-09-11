@@ -129,7 +129,7 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/callback", (req, res, next) => {
     passport.authenticate("auth0", {
-      successReturnToOrRedirect: "/dashboard",
+      successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     }, (err: any, user: any, info: any) => {
       if (err) {
@@ -146,7 +146,7 @@ export async function setupAuth(app: Express) {
           console.error("Login session error:", err);
           return res.status(500).json({ error: "Session creation failed" });
         }
-        res.redirect("/dashboard");
+        res.redirect("/");
       });
     })(req, res, next);
   });
