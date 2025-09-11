@@ -8,15 +8,28 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+if (!process.env.AUTH0_DOMAIN) {
+  throw new Error("Environment variable AUTH0_DOMAIN not provided");
+}
+
+if (!process.env.AUTH0_CLIENT_ID) {
+  throw new Error("Environment variable AUTH0_CLIENT_ID not provided");
+}
+
+if (!process.env.AUTH0_CLIENT_SECRET) {
+  throw new Error("Environment variable AUTH0_CLIENT_SECRET not provided");
+}
+
+if (!process.env.SESSION_SECRET) {
+  throw new Error("Environment variable SESSION_SECRET not provided");
 }
 
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
+      new URL(`https://${process.env.AUTH0_DOMAIN}`),
+      process.env.AUTH0_CLIENT_ID!,
+      process.env.AUTH0_CLIENT_SECRET!
     );
   },
   { maxAge: 3600 * 1000 }
@@ -27,7 +40,7 @@ export function getSession() {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
+    createTableIfMissing: true,
     ttl: sessionTtl,
     tableName: "sessions",
   });
@@ -78,40 +91,63 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
+    try {
+      const user = {};
+      updateUserSession(user, tokens);
+      await upsertUser(tokens.claims());
+      verified(null, user);
+    } catch (error) {
+      console.error("Auth verification error:", error);
+      verified(error, null);
+    }
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
-  }
+  const callbackURL = process.env.APP_URL ? `${process.env.APP_URL}/api/callback` : `http://localhost:5000/api/callback`;
+  console.log(`[AUTH] Using callback URL: ${callbackURL}`);
+  console.log(`[AUTH] APP_URL environment variable: ${process.env.APP_URL || 'not set'}`);
+  
+  const strategy = new Strategy(
+    {
+      name: "auth0",
+      config,
+      scope: "openid email profile offline_access",
+      callbackURL,
+    },
+    verify,
+  );
+  passport.use(strategy);
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    passport.authenticate("auth0", {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
+    passport.authenticate("auth0", {
+      successReturnToOrRedirect: "/dashboard",
       failureRedirect: "/api/login",
+    }, (err: any, user: any, info: any) => {
+      if (err) {
+        console.error("Auth0 callback error:", err);
+        console.error("Error details:", JSON.stringify(err, null, 2));
+        return res.status(500).json({ error: "Authentication failed", details: err.message });
+      }
+      if (!user) {
+        console.error("Auth0 callback failed - no user:", info);
+        return res.redirect("/api/login");
+      }
+      req.logIn(user, (err) => {
+        if (err) {
+          console.error("Login session error:", err);
+          return res.status(500).json({ error: "Session creation failed" });
+        }
+        res.redirect("/dashboard");
+      });
     })(req, res, next);
   });
 
@@ -119,8 +155,8 @@ export async function setupAuth(app: Express) {
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+          client_id: process.env.AUTH0_CLIENT_ID!,
+          post_logout_redirect_uri: `${req.protocol}://${req.get('host')}`,
         }).href
       );
     });
@@ -130,7 +166,7 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -141,8 +177,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.redirect("/api/login");
   }
 
   try {
@@ -151,7 +186,6 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     updateUserSession(user, tokenResponse);
     return next();
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.redirect("/api/login");
   }
 };
