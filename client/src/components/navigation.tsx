@@ -29,6 +29,12 @@ export function Navigation() {
       show: true
     },
     {
+      href: "/pricing",
+      label: "Pricing",
+      icon: CreditCard,
+      show: !user
+    },
+    {
       href: "/image-editor",
       label: "Editor",
       icon: Wand2,

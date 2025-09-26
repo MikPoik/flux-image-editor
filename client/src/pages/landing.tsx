@@ -52,10 +52,19 @@ export default function Landing() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <Users className="w-4 h-4 mr-2" />
-                Join thousands of creators
-              </div>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg"
+                onClick={() => (window.location.href = "/pricing")}
+              >
+                View Pricing
+              </Button>
+            </div>
+
+            <div className="flex justify-center items-center text-sm text-gray-600 dark:text-gray-400 mb-8">
+              <Users className="w-4 h-4 mr-2" />
+              Join thousands of creators
             </div>
 
             {/* Trust Indicators */}

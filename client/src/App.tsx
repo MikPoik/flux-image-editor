@@ -12,6 +12,7 @@ import Home from "@/pages/home";
 import ImageEditor from "@/pages/image-editor";
 import Gallery from "@/pages/gallery";
 import Subscription from "@/pages/subscription";
+import Pricing from "@/pages/pricing";
 import TermsOfService from "@/pages/terms-of-service";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import NotFound from "@/pages/not-found";
@@ -27,6 +28,7 @@ function Router() {
     return (
       <Switch>
         <Route path="/" component={Landing} />
+        <Route path="/pricing" component={Pricing} />
         <Route path="*" component={Landing} />
       </Switch>
     );
@@ -41,6 +43,7 @@ function Router() {
           <Route path="/image-editor" component={ImageEditor} />
           <Route path="/gallery" component={Gallery} />
           <Route path="/subscription" component={Subscription} />
+          <Route path="/pricing" component={Pricing} />
           <Route path="/terms-of-service" component={TermsOfService} />
           <Route path="/privacy-policy" component={PrivacyPolicy} />
           <Route path="*" component={NotFound} />
