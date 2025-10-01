@@ -4,6 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/navigation";
 import { Check, Crown, Zap, Star } from "lucide-react";
+import type { RouteDefinition } from "@shared/route-metadata";
+
+export const route: RouteDefinition = {
+  path: "/pricing",
+  ssr: true,
+  metadata: {
+    title: "Pricing - Flux-a-Image",
+    description:
+      "Choose the perfect AI image editing plan for your workflow. Flexible pricing tiers with generous free credits and premium features.",
+    canonical: "https://fluxaimage.com/pricing",
+    ogTitle: "Pricing Plans | Flux-a-Image",
+    ogDescription:
+      "Flexible pricing for AI-powered image editing. Start for free and upgrade when you’re ready.",
+  },
+};
 
 export default function Pricing() {
   const plans = [

@@ -1,4 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { RouteDefinition } from "@shared/route-metadata";
+
+export const route: RouteDefinition = {
+  path: "/privacy-policy",
+  ssr: true,
+  metadata: {
+    title: "Privacy Policy - Flux-a-Image",
+    description:
+      "Learn how Flux-a-Image collects, uses, and safeguards your data when using our AI image editing tools.",
+    canonical: "https://fluxaimage.com/privacy-policy",
+    ogTitle: "Privacy Policy | Flux-a-Image",
+    ogDescription:
+      "Understand our commitment to protecting your privacy and managing your data responsibly.",
+  },
+};
 
 export default function PrivacyPolicy() {
   return (

@@ -1,5 +1,7 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { Switch, Route, Router } from "wouter";
+import type { BaseLocationHook } from "wouter";
+import type { QueryClient } from "@tanstack/react-query";
+import { queryClient as defaultQueryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,7 +19,7 @@ import TermsOfService from "@/pages/terms-of-service";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import NotFound from "@/pages/not-found";
 
-function Router() {
+function RouterContent() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -29,6 +31,8 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/pricing" component={Pricing} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms-of-service" component={TermsOfService} />
         <Route path="*" component={Landing} />
       </Switch>
     );
@@ -54,13 +58,33 @@ function Router() {
   );
 }
 
-function App() {
+export type AppProps = {
+  queryClient?: QueryClient;
+  routerHook?: BaseLocationHook;
+  ssrPath?: string;
+  ssrSearch?: string;
+};
+
+function App(
+  {
+    queryClient = defaultQueryClient,
+    routerHook,
+    ssrPath,
+    ssrSearch,
+  }: AppProps = {},
+) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <Router
+            {...(routerHook ? { hook: routerHook } : {})}
+            {...(ssrPath !== undefined ? { ssrPath } : {})}
+            {...(ssrSearch !== undefined ? { ssrSearch } : {})}
+          >
+            <RouterContent />
+          </Router>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

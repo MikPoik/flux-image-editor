@@ -1,5 +1,20 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { RouteDefinition } from "@shared/route-metadata";
+
+export const route: RouteDefinition = {
+  path: "/terms-of-service",
+  ssr: true,
+  metadata: {
+    title: "Terms of Service - Flux-a-Image",
+    description:
+      "Review the terms and conditions for using Flux-a-Image's AI-powered image editing platform.",
+    canonical: "https://fluxaimage.com/terms-of-service",
+    ogTitle: "Terms of Service | Flux-a-Image",
+    ogDescription:
+      "Understand the guidelines and responsibilities when using our AI image editing services.",
+  },
+};
 
 export default function TermsOfService() {
   return (

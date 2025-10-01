@@ -17,6 +17,46 @@ import {
   Zap,
 } from "lucide-react";
 
+import type { RouteDefinition } from "@shared/route-metadata";
+
+export const route: RouteDefinition = {
+  path: "/",
+  ssr: true,
+  metadata: {
+    title: "AI Image Editor - Transform Images with AI Magic | Free Online Tool",
+    description:
+      "Create and edit images with AI using natural language. Upload photos or generate from text, then transform with simple prompts. Free tier available with professional results.",
+    keywords:
+      "AI image editor, image generation, photo editing, artificial intelligence, flux ai, text to image, image transformation",
+    canonical: "https://fluxaimage.com",
+    ogTitle: "AI Image Editor - Transform Images with AI Magic",
+    ogDescription:
+      "Create and edit images with AI using natural language. Upload photos or generate from text, then transform with simple prompts.",
+    ogImage: "https://fluxaimage.com/flux-woman-smiling.png",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "AI Image Editor",
+      description: "Create and edit images with AI using natural language prompts",
+      url: "https://fluxaimage.com",
+      applicationCategory: "DesignApplication",
+      operatingSystem: "Web Browser",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+        description: "Free tier with premium upgrades available",
+      },
+      featureList: [
+        "AI Image Generation",
+        "Natural Language Editing",
+        "Photo Upload and Transform",
+        "Professional Quality Results",
+      ],
+    },
+  },
+};
+
 export default function Landing() {
   return (
     <div className="min-h-screen">
