@@ -1,4 +1,4 @@
-import { Switch, Route, Router } from "wouter";
+import { Switch, Route, Router, useLocation } from "wouter";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
@@ -18,12 +18,25 @@ import Pricing from "@/pages/pricing";
 import TermsOfService from "@/pages/terms-of-service";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import NotFound from "@/pages/not-found";
+import { getRouteDefinition } from "./routes/registry";
+import { normalizeRoutePath } from "@shared/route-metadata";
 
 function RouterContent() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
+  const normalizedPath = normalizeRoutePath(location ?? "/");
+  const currentRoute = getRouteDefinition(normalizedPath);
+  const loadingAllowed = !(currentRoute?.ssr ?? false);
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (isLoading && loadingAllowed) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary"
+          aria-label="Loading"
+        />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

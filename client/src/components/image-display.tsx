@@ -159,10 +159,13 @@ export function ImageDisplay({
   };
 
   // Touch event handlers
-  const getTouchDistance = (touches: TouchList) => {
-    if (touches.length < 2) return null;
-    const touch1 = touches[0];
-    const touch2 = touches[1];
+  // Accept React.TouchList to match event typing and use .item() for safe access
+  const getTouchDistance = (touches: React.TouchList | TouchList | null) => {
+    if (!touches || touches.length < 2) return null;
+    // Use .item() to avoid relying on iterable which React.TouchList may not implement
+    const touch1 = touches.item(0);
+    const touch2 = touches.item(1);
+    if (!touch1 || !touch2) return null;
     return Math.sqrt(
       Math.pow(touch2.clientX - touch1.clientX, 2) + 
       Math.pow(touch2.clientY - touch1.clientY, 2)

@@ -33,7 +33,9 @@ if (
   }
 }
 
-if (rootElement.hasChildNodes()) {
+const hasSSRMarkup = rootElement.firstElementChild !== null;
+
+if (hasSSRMarkup) {
   hydrateRoot(rootElement, <App />);
 } else {
   createRoot(rootElement).render(<App />);

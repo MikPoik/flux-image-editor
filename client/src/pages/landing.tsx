@@ -7,6 +7,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
 import {
   Wand2,
   Upload,
@@ -317,6 +318,7 @@ export default function Landing() {
           </section>
         </div>
       </header>
+      <Footer />
     </div>
   );
 }

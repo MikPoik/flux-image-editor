@@ -1,3 +1,4 @@
+import React from "react"
 import { useToast } from "@/hooks/use-toast"
 import {
   Toast,
@@ -10,6 +11,14 @@ import {
 
 export function Toaster() {
   const { toasts } = useToast()
+  const [mounted, setMounted] = React.useState(false)
+
+  // Only render the toast UI on the client to avoid SSR/client markup mismatch
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
 
   return (
     <ToastProvider>

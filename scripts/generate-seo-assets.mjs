@@ -6,7 +6,7 @@ const ROOT_DIR = path.resolve(path.dirname(new URL(import.meta.url).pathname), "
 const PAGES_DIR = path.join(ROOT_DIR, "client", "src", "pages");
 const PUBLIC_DIR = path.join(ROOT_DIR, "public");
 
-const BASE_URL = (process.env.SITE_URL || "https://site-url.com").replace(/\/$/, "");
+const BASE_URL = (process.env.SITE_URL || "https://fluxaimage.com").replace(/\/$/, "");
 const DISALLOW_PATHS = ["/api/", "/dashboard/admin/", "/admin/","/dashboard"];
 const ALLOW_PATHS = [""];
 

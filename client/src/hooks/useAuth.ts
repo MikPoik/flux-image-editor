@@ -1,8 +1,19 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 export function useAuth() {
   const isBrowser = typeof window !== "undefined";
-  const { data: user, isLoading } = useQuery({
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  useEffect(() => {
+    if (isBrowser) {
+      setHasHydrated(true);
+    }
+  }, [isBrowser]);
+
+  const queryEnabled = isBrowser && hasHydrated;
+
+  const { data: user, isPending } = useQuery({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
       try {
@@ -31,22 +42,22 @@ export function useAuth() {
     refetchOnWindowFocus: false,
     refetchOnMount: "always",
     refetchInterval: false,
-    enabled: isBrowser,
-    initialData: null,
-    initialDataUpdatedAt: 0,
+    enabled: queryEnabled,
   });
 
-  if (!isBrowser) {
+  if (!queryEnabled) {
     return {
       user: null,
-      isLoading: false,
+      isLoading: true,
       isAuthenticated: false,
     } as const;
   }
 
+  const normalizedUser = user ?? null;
+
   return {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
+    user: normalizedUser,
+    isLoading: isPending,
+    isAuthenticated: !!normalizedUser,
   } as const;
 }
