@@ -163,29 +163,54 @@ export async function setupAuth(app: Express) {
   });
 }
 
-export const isAuthenticated: RequestHandler = async (req, res, next) => {
+function hasActiveSession(req: Express.Request) {
   const user = req.user as any;
+  return req.isAuthenticated() && user?.expires_at;
+}
 
-  if (!req.isAuthenticated() || !user?.expires_at) {
-    return res.status(401).json({ message: "Unauthorized" });
+async function refreshSessionIfNeeded(req: Express.Request) {
+  const user = req.user as any;
+  if (!hasActiveSession(req)) {
+    return false;
   }
 
   const now = Math.floor(Date.now() / 1000);
   if (now <= user.expires_at) {
-    return next();
+    return true;
   }
 
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
-    return res.redirect("/api/login");
+    return false;
   }
 
   try {
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
-    return next();
+    return true;
   } catch (error) {
-    return res.redirect("/api/login");
+    return false;
   }
+}
+
+export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  const refreshed = await refreshSessionIfNeeded(req);
+  if (refreshed) {
+    return next();
+  }
+
+  return res.status(401).json({ message: "Unauthorized" });
+};
+
+export const optionalSession: RequestHandler = async (req, res, next) => {
+  const refreshed = await refreshSessionIfNeeded(req);
+  if (!refreshed) {
+    if (typeof req.logout === "function") {
+      req.logout(() => next());
+      return;
+    }
+    return next();
+  }
+  return next();
 };

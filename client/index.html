@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
@@ -25,24 +25,27 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/generated-icon.png" />
 
-    <link rel="stylesheet" href="/src/index.css" />
-    
     <script>
       (function () {
         try {
           var root = document.documentElement;
-          var storedTheme = localStorage.getItem("theme");
-          if (storedTheme === "light" || storedTheme === "dark") {
-            root.classList.remove("light", "dark");
-            root.classList.add(storedTheme);
-          } else {
-            root.classList.add("dark");
-          }
+          var stored = localStorage.getItem("theme");
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+
+          root.classList.remove("light", "dark");
+          root.classList.add(theme);
+          root.setAttribute("data-theme", theme);
         } catch (_error) {
           document.documentElement.classList.add("dark");
         }
       })();
     </script>
+    <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
     <div id="root"><!--app-html--></div>

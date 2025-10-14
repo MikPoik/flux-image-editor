@@ -1,10 +1,14 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { isAuthenticated } from "../replitAuth";
+import { optionalSession } from "../replitAuth";
 
 export function setupAuthRoutes(app: Express) {
   // Get authenticated user
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', optionalSession, async (req: any, res) => {
+    if (!req.isAuthenticated?.() || !req.user?.claims?.sub) {
+      return res.json(null);
+    }
+
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
