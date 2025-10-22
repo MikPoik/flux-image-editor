@@ -31,10 +31,10 @@ export default function Pricing() {
       id: "free",
       name: "Trial",
       price: "0€",
-      period: "",
+      period: " (one-time)",
       credits: 10,
       features: [
-        "10 credits",
+        "10 one-time credits",
         "Editing/Generation: 1 credit each",
         "Upscales: Free",
         "Kontext Pro AI model",
@@ -153,11 +153,13 @@ export default function Pricing() {
               <CardContent className="space-y-6">
                 <div className="text-center">
                   <p className="text-lg font-semibold">
-                    {plan.credits} credits/month
+                    {plan.id === "free" ? `${plan.credits} one-time credits` : `${plan.credits} credits/month`}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    Credits reset monthly
-                  </p>
+                  {plan.id !== "free" && (
+                    <p className="text-sm text-muted-foreground">
+                      Credits reset monthly
+                    </p>
+                  )}
                 </div>
 
                 <ul className="space-y-3">
