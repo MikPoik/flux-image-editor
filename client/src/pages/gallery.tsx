@@ -12,8 +12,53 @@ import { apiRequest } from '@/lib/queryClient';
 import type { Image } from '@shared/schema';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { OptimizedImage } from '@/components/optimized-image';
+import type { RouteDefinition } from '@shared/route-metadata';
+
+export const route: RouteDefinition = {
+  path: "/gallery",
+  ssr: false,
+  metadata: {
+    title: "My Gallery - Flux-a-Image",
+    description: "View and manage your AI-edited images in your personal gallery.",
+    canonical: "https://fluxaimage.com/gallery",
+    ogTitle: "My Gallery | Flux-a-Image",
+    ogDescription: "View and manage your AI-edited images",
+  },
+};
 
 export default function Gallery() {
+  useEffect(() => {
+    document.title = route.metadata?.title || "My Gallery";
+    
+    const updateMetaTag = (name: string, content: string) => {
+      let element = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        if (name.startsWith('og:')) {
+          element.setAttribute('property', name);
+        } else {
+          element.setAttribute('name', name);
+        }
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    if (route.metadata) {
+      if (route.metadata.description) updateMetaTag('description', route.metadata.description);
+      if (route.metadata.ogTitle) updateMetaTag('og:title', route.metadata.ogTitle);
+      if (route.metadata.ogDescription) updateMetaTag('og:description', route.metadata.ogDescription);
+      if (route.metadata.canonical) {
+        let link = document.querySelector('link[rel="canonical"]');
+        if (!link) {
+          link = document.createElement('link');
+          link.setAttribute('rel', 'canonical');
+          document.head.appendChild(link);
+        }
+        link.setAttribute('href', route.metadata.canonical);
+      }
+    }
+  }, []);
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

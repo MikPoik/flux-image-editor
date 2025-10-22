@@ -18,6 +18,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import type { RouteDefinition } from "@shared/route-metadata";
+
+export const route: RouteDefinition = {
+  path: "/subscription",
+  ssr: false,
+  metadata: {
+    title: "Subscription Plans - Flux-a-Image",
+    description: "Choose the perfect AI image editing plan for your needs. Flexible pricing with generous credits.",
+    canonical: "https://fluxaimage.com/subscription",
+    ogTitle: "Subscription Plans | Flux-a-Image",
+    ogDescription: "Flexible pricing for AI-powered image editing",
+  },
+};
 
 interface SubscriptionInfo {
   subscriptionTier: string;
@@ -186,6 +199,38 @@ export default function Subscription() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    document.title = route.metadata?.title || "Subscription Plans";
+    
+    const updateMetaTag = (name: string, content: string) => {
+      let element = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        if (name.startsWith('og:')) {
+          element.setAttribute('property', name);
+        } else {
+          element.setAttribute('name', name);
+        }
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    if (route.metadata) {
+      if (route.metadata.description) updateMetaTag('description', route.metadata.description);
+      if (route.metadata.ogTitle) updateMetaTag('og:title', route.metadata.ogTitle);
+      if (route.metadata.ogDescription) updateMetaTag('og:description', route.metadata.ogDescription);
+      if (route.metadata.canonical) {
+        let link = document.querySelector('link[rel="canonical"]');
+        if (!link) {
+          link = document.createElement('link');
+          link.setAttribute('rel', 'canonical');
+          document.head.appendChild(link);
+        }
+        link.setAttribute('href', route.metadata.canonical);
+      }
+    }
+  }, []);
 
   const { data: subscription, isLoading } = useQuery<SubscriptionInfo>({
     queryKey: ["/api/subscription"],

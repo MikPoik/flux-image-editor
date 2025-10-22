@@ -3,9 +3,56 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Images, Plus, Wand2 } from "lucide-react";
 import { Link } from "wouter";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useEffect } from "react";
+import type { RouteDefinition } from "@shared/route-metadata";
+
+export const route: RouteDefinition = {
+  path: "/",
+  ssr: false,
+  metadata: {
+    title: "Home - Flux-a-Image",
+    description: "Transform your images with AI-powered editing tools. Upload, generate, and edit images using natural language.",
+    canonical: "https://fluxaimage.com",
+    ogTitle: "Flux-a-Image | AI Image Editor",
+    ogDescription: "Transform your images with AI-powered editing",
+  },
+};
 
 export default function Home() {
   const { subscription } = useSubscription();
+
+  useEffect(() => {
+    document.title = route.metadata?.title || "Home";
+
+    const updateMetaTag = (name: string, content: string) => {
+      let element = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        if (name.startsWith('og:')) {
+          element.setAttribute('property', name);
+        } else {
+          element.setAttribute('name', name);
+        }
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    if (route.metadata) {
+      if (route.metadata.description) updateMetaTag('description', route.metadata.description);
+      if (route.metadata.ogTitle) updateMetaTag('og:title', route.metadata.ogTitle);
+      if (route.metadata.ogDescription) updateMetaTag('og:description', route.metadata.ogDescription);
+      if (route.metadata.canonical) {
+        let link = document.querySelector('link[rel="canonical"]');
+        if (!link) {
+          link = document.createElement('link');
+          link.setAttribute('rel', 'canonical');
+          document.head.appendChild(link);
+        }
+        link.setAttribute('href', route.metadata.canonical);
+      }
+    }
+  }, []);
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -14,7 +61,7 @@ export default function Home() {
           <p className="text-muted-foreground mb-8">
             Generate new images from text or upload existing photos, then transform them with AI-powered editing using natural language prompts.
           </p>
-          
+
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <CardHeader className="pb-4">

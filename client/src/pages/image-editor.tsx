@@ -11,6 +11,19 @@ import { PromptInput } from '@/components/prompt-input';
 import { useImageEditor } from '@/hooks/use-image-editor';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Link } from 'wouter';
+import type { RouteDefinition } from '@shared/route-metadata';
+
+export const route: RouteDefinition = {
+  path: "/image-editor",
+  ssr: false,
+  metadata: {
+    title: "Image Editor - Flux-a-Image",
+    description: "Edit and transform your images with AI-powered tools using natural language prompts.",
+    canonical: "https://fluxaimage.com/image-editor",
+    ogTitle: "AI Image Editor | Flux-a-Image",
+    ogDescription: "Transform your images with AI-powered editing",
+  },
+};
 
 // Helper function to create optimized image URLs
 function getOptimizedImageUrl(url: string, width?: number, height?: number, quality: number = 80): string {
@@ -28,6 +41,38 @@ function getOptimizedImageUrl(url: string, width?: number, height?: number, qual
 }
 
 export default function ImageEditor() {
+  useEffect(() => {
+    document.title = route.metadata?.title || "Image Editor";
+    
+    const updateMetaTag = (name: string, content: string) => {
+      let element = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        if (name.startsWith('og:')) {
+          element.setAttribute('property', name);
+        } else {
+          element.setAttribute('name', name);
+        }
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    if (route.metadata) {
+      if (route.metadata.description) updateMetaTag('description', route.metadata.description);
+      if (route.metadata.ogTitle) updateMetaTag('og:title', route.metadata.ogTitle);
+      if (route.metadata.ogDescription) updateMetaTag('og:description', route.metadata.ogDescription);
+      if (route.metadata.canonical) {
+        let link = document.querySelector('link[rel="canonical"]');
+        if (!link) {
+          link = document.createElement('link');
+          link.setAttribute('rel', 'canonical');
+          document.head.appendChild(link);
+        }
+        link.setAttribute('href', route.metadata.canonical);
+      }
+    }
+  }, []);
   const {
     imageData,
     isLoadingImage,
