@@ -99,7 +99,7 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
       <Navigation />
 
       <div className="container mx-auto px-4 py-16 max-w-6xl">
