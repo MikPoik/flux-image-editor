@@ -199,21 +199,21 @@ export default function Gallery() {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 max-w-6xl mx-auto p-4">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">My Gallery</h1>
-          <p className="text-muted-foreground">View and manage your AI-edited images</p>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">My Gallery</h1>
+          <p className="text-slate-400">View and manage your AI-edited images</p>
         </div>
       
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="overflow-hidden">
+            <div key={i} className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden">
               <Skeleton className="aspect-square w-full" />
-              <CardContent className="p-4">
+              <div className="p-4">
                 <Skeleton className="h-4 w-3/4 mb-2" />
                 <Skeleton className="h-3 w-1/2" />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -222,14 +222,14 @@ export default function Gallery() {
 
   if (isError) {
     return (
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 max-w-6xl mx-auto p-4">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">My Gallery</h1>
-          <p className="text-muted-foreground">View and manage your AI-edited images</p>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">My Gallery</h1>
+          <p className="text-slate-400">View and manage your AI-edited images</p>
         </div>
         <div className="text-center py-12">
-          <p className="text-destructive mb-4">Failed to load images: {error?.message}</p>
-          <Button onClick={() => window.location.reload()}>
+          <p className="text-red-400 mb-4">Failed to load images: {error?.message}</p>
+          <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" onClick={() => window.location.reload()}>
             Retry
           </Button>
         </div>
@@ -238,10 +238,10 @@ export default function Gallery() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 max-w-6xl mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">My Gallery</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">My Gallery</h1>
+        <p className="text-slate-400">
           View and manage your AI-edited images
           {totalImages > 0 && (
             <span className="ml-2 text-sm">
@@ -253,21 +253,21 @@ export default function Gallery() {
 
         {images.length === 0 && !isLoading ? (
           <div className="text-center py-12">
-            <ImageIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No images yet</h3>
-            <p className="text-muted-foreground mb-4">
+            <ImageIcon className="w-16 h-16 mx-auto text-slate-400 mb-4" />
+            <h3 className="text-lg font-semibold mb-2 text-white">No images yet</h3>
+            <p className="text-slate-400 mb-4">
               Start by uploading and editing your first image
             </p>
-            <Button onClick={() => setLocation('/image-editor')}>
+            <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white" onClick={() => setLocation('/image-editor')}>
               Create First Image
             </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {images.map((image: any, index: number) => (
-              <Card 
+              <div 
                 key={image.id} 
-                className="overflow-hidden hover:shadow-lg transition-shadow"
+                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300"
                 ref={index === images.length - 1 ? lastImageElementRef : null}
               >
                 <div className="relative aspect-square overflow-hidden">
@@ -391,27 +391,27 @@ export default function Gallery() {
                   </div>
                 </div>
                 
-                <CardContent className="p-4">
+                <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate-400">
                         Created: {new Date(image.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     {image.editHistory && image.editHistory.length > 0 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <div className="text-xs bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 px-2 py-1 rounded-full">
                         {image.editHistory.length} edit{image.editHistory.length === 1 ? '' : 's'}
-                      </Badge>
+                      </div>
                     )}
                   </div>
                   
                   {image.editHistory && image.editHistory.length > 0 && (
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-sm text-slate-400 truncate">
                       Last edit: {image.editHistory[image.editHistory.length - 1]?.prompt}
                     </p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -419,15 +419,15 @@ export default function Gallery() {
         {/* Infinite scroll loading indicator */}
         {isFetchingNextPage && (
           <div className="flex justify-center items-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin mr-2" />
-            <span className="text-muted-foreground">Loading more images...</span>
+            <Loader2 className="w-6 h-6 animate-spin mr-2 text-purple-400" />
+            <span className="text-slate-400">Loading more images...</span>
           </div>
         )}
 
         {/* End of results indicator */}
         {!hasNextPage && images.length > 0 && (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">You've reached the end of your gallery</p>
+            <p className="text-slate-400">You've reached the end of your gallery</p>
           </div>
         )}
     </div>

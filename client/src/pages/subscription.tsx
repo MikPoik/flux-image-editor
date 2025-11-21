@@ -393,107 +393,110 @@ export default function Subscription() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4">Subscription Plans</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">Subscription Plans</h1>
+        <p className="text-slate-400">
           Choose the plan that fits your image editing needs
         </p>
       </div>
 
       {/* Current Subscription Status */}
       {subscription && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-700/50">
+            <h3 className="text-xl font-semibold text-white flex items-center gap-2">
               Current Plan
-              {subscription.subscriptionTier === 'premium' && <Crown className="h-5 w-5 text-yellow-500" />}
-              {subscription.subscriptionTier === 'basic' && <Zap className="h-5 w-5 text-blue-500" />}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg font-semibold capitalize">
-                  {subscription.subscriptionTier} Plan
+              {subscription.subscriptionTier === 'premium' && <Crown className="h-5 w-5 text-yellow-400" />}
+              {subscription.subscriptionTier === 'basic' && <Zap className="h-5 w-5 text-blue-400" />}
+            </h3>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-semibold capitalize text-white">
+                {subscription.subscriptionTier} Plan
+              </p>
+              <p className="text-slate-400">
+                {subscription.credits} / {subscription.maxCredits} credits remaining
+              </p>
+              {subscription.creditsResetDate && (
+                <p className="text-xs text-slate-400">
+                  Credits reset on {new Date(subscription.creditsResetDate * 1000).toLocaleDateString()}
                 </p>
-                <p className="text-muted-foreground">
-                  {subscription.credits} / {subscription.maxCredits} credits remaining
-                </p>
-                {subscription.creditsResetDate && (
-                  <p className="text-xs text-muted-foreground">
-                    Credits reset on {new Date(subscription.creditsResetDate * 1000).toLocaleDateString()}
-                  </p>
+              )}
+            </div>
+            <div className="text-right">
+              <div className="flex flex-col items-end gap-2">
+                <div className={`px-3 py-1 rounded-full text-sm font-medium ${subscription.hasActiveSubscription ? 'bg-green-500/20 text-green-300' : 'bg-slate-600/50 text-slate-300'}`}>
+                  {subscription.hasActiveSubscription ? "Active" : "Free"}
+                </div>
+                {subscription.cancelAtPeriodEnd && (
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-300">
+                      {subscription.currentPeriodEnd 
+                        ? `Cancels ${new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}`
+                        : "Scheduled for cancellation"
+                      }
+                    </div>
+                    <Button
+                      className="bg-slate-600 hover:bg-slate-500 text-white"
+                      size="sm"
+                      onClick={() => resumeSubscriptionMutation.mutate()}
+                      disabled={resumeSubscriptionMutation.isPending}
+                    >
+                      {resumeSubscriptionMutation.isPending ? "Resuming..." : "Resume"}
+                    </Button>
+                  </div>
+                )}
+                {subscription.hasActiveSubscription && !subscription.cancelAtPeriodEnd && (
+                  <Button
+                    className="border border-slate-600 text-slate-200 hover:bg-slate-700"
+                    size="sm"
+                    onClick={() => cancelSubscriptionMutation.mutate()}
+                    disabled={cancelSubscriptionMutation.isPending}
+                  >
+                    {cancelSubscriptionMutation.isPending ? "Canceling..." : "Cancel"}
+                  </Button>
                 )}
               </div>
-              <div className="text-right">
-                <div className="flex flex-col items-end gap-2">
-                  <Badge variant={subscription.hasActiveSubscription ? "default" : "secondary"}>
-                    {subscription.hasActiveSubscription ? "Active" : "Free"}
-                  </Badge>
-                  {subscription.cancelAtPeriodEnd && (
-                    <div className="flex flex-col items-end gap-2">
-                      <Badge variant="destructive" className="text-xs">
-                        {subscription.currentPeriodEnd 
-                          ? `Cancels ${new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString()}`
-                          : "Scheduled for cancellation"
-                        }
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => resumeSubscriptionMutation.mutate()}
-                        disabled={resumeSubscriptionMutation.isPending}
-                      >
-                        {resumeSubscriptionMutation.isPending ? "Resuming..." : "Resume"}
-                      </Button>
-                    </div>
-                  )}
-                  {subscription.hasActiveSubscription && !subscription.cancelAtPeriodEnd && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => cancelSubscriptionMutation.mutate()}
-                      disabled={cancelSubscriptionMutation.isPending}
-                    >
-                      {cancelSubscriptionMutation.isPending ? "Canceling..." : "Cancel"}
-                    </Button>
-                  )}
-                </div>
-              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Paid Plans */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         {plans.map((plan) => (
-          <Card key={plan.id} className={`relative ${plan.popular ? 'ring-2 ring-primary' : ''}`}>
+          <div key={plan.id} className={`relative bg-gradient-to-br from-slate-800 to-slate-900 border rounded-2xl p-8 transition-all duration-300 ${plan.popular ? 'border-2 border-purple-400 scale-105 shadow-2xl shadow-purple-500/20' : 'border-slate-700/50 hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10'}`}>
             {plan.popular && (
-              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-xs font-semibold">
                 Most Popular
-              </Badge>
-            )}
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                {plan.name}
-                {subscription?.subscriptionTier === plan.id && <Badge>Current</Badge>}
-              </CardTitle>
-              <CardDescription>
-                <span className="text-2xl font-bold">{plan.price}</span>
-                {plan.period}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <p className="text-lg font-semibold">{plan.credits} credits/month</p>
               </div>
-              <ul className="space-y-2">
+            )}
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
+              <div className="text-center">
+                <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
+                  {plan.price}
+                </span>
+                <span className="text-slate-400 ml-2">{plan.period}</span>
+              </div>
+              {subscription?.subscriptionTier === plan.id && (
+                <div className="mt-2 px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 inline-block">Current</div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="text-center pb-4 border-b border-slate-700/50">
+                <p className="text-lg font-semibold text-slate-200">
+                  {plan.credits} credits/month
+                </p>
+              </div>
+              <ul className="space-y-3 mb-6">
                 {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-500" />
-                    {feature}
+                  <li key={index} className="flex items-start gap-3">
+                    <Check className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-slate-300">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -528,12 +531,12 @@ export default function Subscription() {
                   )}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-slate-400">
         <p>All plans include secure payment processing and can be canceled anytime.</p>
         <p>Edit counts reset monthly on your billing date.</p>
       </div>
