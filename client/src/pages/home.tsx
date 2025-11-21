@@ -4,25 +4,12 @@ import { Images, Plus, Wand2 } from "lucide-react";
 import { Link } from "wouter";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useEffect } from "react";
-import type { RouteDefinition } from "@shared/route-metadata";
-
-export const route: RouteDefinition = {
-  path: "/",
-  ssr: false,
-  metadata: {
-    title: "Home - Flux-a-Image",
-    description: "Transform your images with AI-powered editing tools. Upload, generate, and edit images using natural language.",
-    canonical: "https://fluxaimage.com",
-    ogTitle: "Flux-a-Image | AI Image Editor",
-    ogDescription: "Transform your images with AI-powered editing",
-  },
-};
 
 export default function Home() {
   const { subscription } = useSubscription();
 
   useEffect(() => {
-    document.title = route.metadata?.title || "Home";
+    document.title = "Home - Flux-a-Image";
 
     const updateMetaTag = (name: string, content: string) => {
       let element = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
@@ -38,20 +25,17 @@ export default function Home() {
       element.setAttribute('content', content);
     };
 
-    if (route.metadata) {
-      if (route.metadata.description) updateMetaTag('description', route.metadata.description);
-      if (route.metadata.ogTitle) updateMetaTag('og:title', route.metadata.ogTitle);
-      if (route.metadata.ogDescription) updateMetaTag('og:description', route.metadata.ogDescription);
-      if (route.metadata.canonical) {
-        let link = document.querySelector('link[rel="canonical"]');
-        if (!link) {
-          link = document.createElement('link');
-          link.setAttribute('rel', 'canonical');
-          document.head.appendChild(link);
-        }
-        link.setAttribute('href', route.metadata.canonical);
-      }
+    updateMetaTag('description', 'Transform your images with AI-powered editing tools. Upload, generate, and edit images using natural language.');
+    updateMetaTag('og:title', 'Flux-a-Image | AI Image Editor');
+    updateMetaTag('og:description', 'Transform your images with AI-powered editing');
+    
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
     }
+    link.setAttribute('href', 'https://fluxaimage.com');
   }, []);
 
   return (

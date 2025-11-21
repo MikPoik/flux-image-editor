@@ -1,10 +1,10 @@
 import { Switch, Route, Router, useLocation } from "wouter";
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { StackProvider, StackTheme } from '@stackframe/react';
+import { StackProvider } from '@stackframe/react';
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -96,6 +96,30 @@ export type AppProps = {
   ssrSearch?: string;
 };
 
+function AppContent(props: {
+  routerHook?: BaseLocationHook;
+  ssrPath?: string;
+  ssrSearch?: string;
+}) {
+  return (
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <ConsentToast />
+        <Router
+          {...(props.routerHook ? { hook: props.routerHook } : {})}
+          {...(props.ssrPath !== undefined ? { ssrPath: props.ssrPath } : {})}
+          {...(props.ssrSearch !== undefined ? { ssrSearch: props.ssrSearch } : {})}
+        >
+          <Suspense fallback={null}>
+            <RouterContent />
+          </Suspense>
+        </Router>
+      </TooltipProvider>
+    </ThemeProvider>
+  );
+}
+
 function App(
   {
     queryClient = defaultQueryClient,
@@ -108,21 +132,7 @@ function App(
     <QueryClientProvider client={queryClient}>
       <StackProvider app={stackClientApp}>
         <Suspense fallback={null}>
-          <StackTheme>
-            <ThemeProvider>
-              <TooltipProvider>
-                <Toaster />
-                <ConsentToast />
-                <Router
-                  {...(routerHook ? { hook: routerHook } : {})}
-                  {...(ssrPath !== undefined ? { ssrPath } : {})}
-                  {...(ssrSearch !== undefined ? { ssrSearch } : {})}
-                >
-                  <RouterContent />
-                </Router>
-              </TooltipProvider>
-            </ThemeProvider>
-          </StackTheme>
+          <AppContent routerHook={routerHook} ssrPath={ssrPath} ssrSearch={ssrSearch} />
         </Suspense>
       </StackProvider>
     </QueryClientProvider>

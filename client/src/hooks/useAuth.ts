@@ -1,7 +1,7 @@
 import { useUser } from '@stackframe/react';
 
 export function useAuth() {
-  const user = useUser({ or: 'redirect' });
+  const user = useUser();
 
   return {
     user: user ?? null,
