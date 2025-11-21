@@ -5,7 +5,13 @@ import { queryClient } from "./lib/queryClient";
 import { initializeAnalytics } from "./lib/analytics";
 import "./index.css";
 
+// Attempt to initialize analytics if user has already consented
 initializeAnalytics();
+
+// Listen for consent changes and reinitialize analytics if needed
+window.addEventListener("storage", () => {
+  initializeAnalytics();
+});
 
 const rootElement = document.getElementById("root");
 

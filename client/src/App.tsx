@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
+import { ConsentToast } from "@/components/consent-toast";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import ImageEditor from "@/pages/image-editor";
@@ -32,6 +33,13 @@ function RouterContent() {
       trackPageView(location, document.title);
     }
   }, [location]);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      // Initialize consent toast for unauthenticated users on landing pages
+      return;
+    }
+  }, [isLoading, isAuthenticated]);
   const normalizedPath = normalizeRoutePath(location ?? "/");
   const currentRoute = getRouteDefinition(normalizedPath);
   const loadingAllowed = !(currentRoute?.ssr ?? false);
@@ -99,6 +107,7 @@ function App(
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
+          <ConsentToast />
           <Router
             {...(routerHook ? { hook: routerHook } : {})}
             {...(ssrPath !== undefined ? { ssrPath } : {})}

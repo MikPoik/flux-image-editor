@@ -6,6 +6,16 @@ declare global {
 }
 
 const GA_ID = import.meta.env.VITE_GA_ID;
+const CONSENT_STORAGE_KEY = "analytics-consent";
+
+const hasConsentedToAnalytics = (): boolean => {
+  try {
+    const consent = localStorage.getItem(CONSENT_STORAGE_KEY);
+    return consent === "accepted";
+  } catch {
+    return false;
+  }
+};
 
 export const initializeAnalytics = () => {
   if (!GA_ID) {
@@ -13,6 +23,13 @@ export const initializeAnalytics = () => {
       console.warn(
         "Google Analytics ID not configured. Set VITE_GA_ID environment variable.",
       );
+    }
+    return;
+  }
+
+  if (!hasConsentedToAnalytics()) {
+    if (import.meta.env.DEV) {
+      console.log("User has not consented to analytics tracking.");
     }
     return;
   }
