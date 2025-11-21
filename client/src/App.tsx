@@ -1,5 +1,5 @@
 import { Switch, Route, Router, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
@@ -107,21 +107,23 @@ function App(
   return (
     <QueryClientProvider client={queryClient}>
       <StackProvider app={stackClientApp}>
-        <StackTheme>
-          <ThemeProvider>
-            <TooltipProvider>
-              <Toaster />
-              <ConsentToast />
-              <Router
-                {...(routerHook ? { hook: routerHook } : {})}
-                {...(ssrPath !== undefined ? { ssrPath } : {})}
-                {...(ssrSearch !== undefined ? { ssrSearch } : {})}
-              >
-                <RouterContent />
-              </Router>
-            </TooltipProvider>
-          </ThemeProvider>
-        </StackTheme>
+        <Suspense fallback={null}>
+          <StackTheme>
+            <ThemeProvider>
+              <TooltipProvider>
+                <Toaster />
+                <ConsentToast />
+                <Router
+                  {...(routerHook ? { hook: routerHook } : {})}
+                  {...(ssrPath !== undefined ? { ssrPath } : {})}
+                  {...(ssrSearch !== undefined ? { ssrSearch } : {})}
+                >
+                  <RouterContent />
+                </Router>
+              </TooltipProvider>
+            </ThemeProvider>
+          </StackTheme>
+        </Suspense>
       </StackProvider>
     </QueryClientProvider>
   );
