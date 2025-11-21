@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
-import { db } from "../db";
+import { pool } from "../db";
 import Stripe from "stripe";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -41,9 +41,10 @@ export function setupSubscriptionRoutes(app: Express) {
       let customerId = user.stripeCustomerId;
       if (!customerId) {
         // Get user email/name from neon_auth.users_sync
-        const result = await db.execute(`
-          SELECT email, name FROM neon_auth.users_sync WHERE id = $1
-        `, [userId]);
+        const result = await pool.query(
+          'SELECT email, name FROM neon_auth.users_sync WHERE id = $1',
+          [userId]
+        );
         
         const syncedUser = result.rows?.[0] as any;
         const customer = await stripe.customers.create({
