@@ -243,24 +243,45 @@ export default function Subscription() {
     const canceled = urlParams.get('canceled');
     const sessionId = urlParams.get('session_id');
 
-    if (success === 'true') {
-      // Poll for subscription updates since webhook processing might be delayed
-      const pollForUpdates = async () => {
-        for (let i = 0; i < 10; i++) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-          await queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
-          const currentData = queryClient.getQueryData(["/api/subscription"]) as SubscriptionInfo | undefined;
-          if (currentData?.hasActiveSubscription) {
-            break; // Stop polling once subscription is active
+    if (success === 'true' && sessionId) {
+      // Immediately verify the checkout session
+      const verifyCheckout = async () => {
+        try {
+          const response = await apiRequest("POST", "/api/verify-checkout", { sessionId });
+          const data = await response.json();
+          
+          if (data.success) {
+            toast({
+              title: "Subscription Activated!",
+              description: `Your ${data.tier} plan is now active.`,
+            });
+            // Refresh subscription data
+            await queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
           }
+        } catch (error) {
+          console.error('Failed to verify checkout:', error);
+          // Fallback to polling if verification fails
+          toast({
+            title: "Subscription Processing",
+            description: "Your subscription is being activated. This may take a moment.",
+          });
+          
+          // Poll for subscription updates as fallback
+          const pollForUpdates = async () => {
+            for (let i = 0; i < 10; i++) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              await queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+              const currentData = queryClient.getQueryData(["/api/subscription"]) as SubscriptionInfo | undefined;
+              if (currentData?.hasActiveSubscription) {
+                break;
+              }
+            }
+          };
+          pollForUpdates();
         }
       };
-
-      toast({
-        title: "Subscription Successful!",
-        description: "Your subscription has been activated.",
-      });
-      pollForUpdates();
+      
+      verifyCheckout();
       // Clean up URL
       window.history.replaceState({}, document.title, "/subscription");
     } else if (canceled === 'true') {

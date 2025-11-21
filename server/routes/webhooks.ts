@@ -187,6 +187,7 @@ export function setupWebhookRoutes(app: Express) {
 
         try {
           const userId = session.metadata?.userId;
+          const priceId = session.metadata?.priceId;
           const isUpgrade = session.metadata?.isUpgrade === 'true';
           const existingSubscriptionId = session.metadata?.existingSubscriptionId;
 
@@ -201,13 +202,36 @@ export function setupWebhookRoutes(app: Express) {
               }
             }
 
-            // Update user's subscription ID  
-            // Update user's subscription ID - use existing method
+            // Determine subscription tier based on price ID
+            let tier = 'basic';
+            if (priceId === process.env.VITE_STRIPE_PRICE_1499) {
+              tier = 'premium-plus';
+            } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {
+              tier = 'premium';
+            } else if (priceId === process.env.VITE_STRIPE_PRICE_499) {
+              tier = 'basic';
+            }
+
+            // Update user's subscription tier and info
             const user = await storage.getUser(userId);
             if (user && user.stripeCustomerId) {
               await storage.updateUserStripeInfo(userId, user.stripeCustomerId, session.subscription as string);
+              await storage.updateUserSubscription(userId, tier, false, "active");
+              
+              // Get subscription details to set billing period
+              try {
+                const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+                if ((subscription as any).current_period_start && (subscription as any).current_period_end) {
+                  const periodStart = new Date((subscription as any).current_period_start * 1000);
+                  const periodEnd = new Date((subscription as any).current_period_end * 1000);
+                  await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+                }
+              } catch (error) {
+                console.error('Error updating billing period:', error);
+              }
+              
+              console.log(`Updated user ${userId} to ${tier} plan with subscription ${session.subscription}`);
             }
-            console.log(`Updated subscription ID for user ${userId}: ${session.subscription}`);
           }
         } catch (error) {
           console.error('Error processing checkout session completion:', error);

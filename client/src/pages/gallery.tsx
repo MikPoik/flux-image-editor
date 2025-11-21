@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Edit, Trash2, Download, ImageIcon, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
+import { stackClientApp } from '@/lib/stack';
 import type { Image } from '@shared/schema';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { OptimizedImage } from '@/components/optimized-image';
@@ -79,7 +80,17 @@ export default function Gallery() {
   } = useInfiniteQuery({
     queryKey: ['/api/images'],
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await fetch(`/api/images?limit=20&offset=${pageParam}`);
+      // Get user ID from Stack Auth and add to headers
+      const user = await stackClientApp.getUser();
+      const headers: Record<string, string> = {};
+      if (user?.id) {
+        headers["x-user-id"] = user.id;
+      }
+      
+      const response = await fetch(`/api/images?limit=20&offset=${pageParam}`, {
+        headers,
+        credentials: "include",
+      });
       if (!response.ok) throw new Error('Failed to fetch images');
       return response.json();
     },

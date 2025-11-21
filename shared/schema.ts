@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, json, varchar, index, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, json, varchar, index, integer, pgSchema } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -22,8 +22,8 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   subscriptionTier: varchar("subscription_tier").default("free"), // 'free', 'basic', 'premium', 'premium-plus'
-  credits: integer("credits").default(10).notNull(), // Current available credits
-  maxCredits: integer("max_credits").default(10).notNull(), // Maximum credits for current tier
+  credits: integer("credits").default(30).notNull(), // Current available credits
+  maxCredits: integer("max_credits").default(30).notNull(), // Maximum credits for current tier
   creditsResetDate: timestamp("credits_reset_date"), // Next credit reset date
   subscriptionStatus: varchar("subscription_status").default("active"), // 'active', 'canceled', 'past_due'
   currentPeriodStart: timestamp("current_period_start"),
@@ -33,9 +33,22 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Reference to Neon Auth's synced users table
+// This is a view/reference only - don't create this table, Neon Auth manages it
+export const neonAuthSchema = pgSchema("neon_auth");
+export const neonAuthUsers = neonAuthSchema.table("users_sync", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  email: text("email"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+  deletedAt: timestamp("deleted_at"),
+  rawJson: json("raw_json"),
+});
+
 export const images = pgTable("images", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").notNull(),
   originalUrl: text("original_url").notNull(),
   currentUrl: text("current_url").notNull(),
   editHistory: json("edit_history").$type<EditHistoryItem[]>().default([]),

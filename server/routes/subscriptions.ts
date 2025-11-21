@@ -88,6 +88,81 @@ export function setupSubscriptionRoutes(app: Express) {
     }
   });
 
+  // Verify and complete checkout session (for cases where webhook doesn't fire)
+  app.post('/api/verify-checkout', isAuthenticated, async (req: any, res) => {
+    try {
+      const { sessionId } = req.body;
+      const userId = req.user.id;
+
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID is required" });
+      }
+
+      // Retrieve the checkout session from Stripe
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      // Verify this session belongs to the current user
+      if (session.metadata?.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      // Check if payment was successful
+      if (session.payment_status !== 'paid') {
+        return res.status(400).json({ message: "Payment not completed" });
+      }
+
+      // Get the subscription
+      if (!session.subscription) {
+        return res.status(400).json({ message: "No subscription found" });
+      }
+
+      const subscriptionId = session.subscription as string;
+      const priceId = session.metadata?.priceId;
+
+      // Determine tier from price ID
+      let tier = 'basic';
+      if (priceId === process.env.VITE_STRIPE_PRICE_1499) {
+        tier = 'premium-plus';
+      } else if (priceId === process.env.VITE_STRIPE_PRICE_999) {
+        tier = 'premium';
+      } else if (priceId === process.env.VITE_STRIPE_PRICE_499) {
+        tier = 'basic';
+      }
+
+      // Update user's subscription
+      const user = await storage.getUser(userId);
+      if (user && user.stripeCustomerId) {
+        await storage.updateUserStripeInfo(userId, user.stripeCustomerId, subscriptionId);
+        await storage.updateUserSubscription(userId, tier, false, "active");
+
+        // Get subscription details to set billing period
+        try {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          if ((subscription as any).current_period_start && (subscription as any).current_period_end) {
+            const periodStart = new Date((subscription as any).current_period_start * 1000);
+            const periodEnd = new Date((subscription as any).current_period_end * 1000);
+            await storage.updateUserBillingPeriod(userId, periodStart, periodEnd);
+          }
+        } catch (error) {
+          console.error('Error updating billing period:', error);
+        }
+
+        console.log(`Subscription verified and updated for user ${userId}: ${tier} plan`);
+
+        res.json({ 
+          success: true,
+          tier,
+          message: "Subscription activated successfully" 
+        });
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } catch (error: any) {
+      console.error('Verify checkout error:', error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Get subscription info
   app.get('/api/subscription', isAuthenticated, async (req: any, res) => {
     try {

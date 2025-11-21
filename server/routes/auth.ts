@@ -22,8 +22,8 @@ export function setupAuthRoutes(app: Express) {
         user = await storage.upsertUser({
           id: userId,
           subscriptionTier: 'free',
-          credits: 10,
-          maxCredits: 10,
+          credits: 30,
+          maxCredits: 30,
           subscriptionStatus: 'active',
         });
       }

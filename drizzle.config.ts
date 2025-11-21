@@ -11,4 +11,5 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL,
   },
+  tablesFilter: ["!neon_auth.*"], // Exclude neon_auth schema from migrations
 });

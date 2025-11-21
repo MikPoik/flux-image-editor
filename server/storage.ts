@@ -46,8 +46,8 @@ export class DatabaseStorage implements IStorage {
           .values({
             id,
             subscriptionTier: 'free',
-            credits: 10,
-            maxCredits: 10,
+            credits: 30,
+            maxCredits: 30,
             subscriptionStatus: 'active',
           })
           .onConflictDoNothing()
@@ -163,14 +163,14 @@ export class DatabaseStorage implements IStorage {
   private getCreditLimitsByTier(tier: string): number {
     switch (tier) {
       case 'basic':
-        return 60;
+        return 120;
       case 'premium':
-        return 70;
+        return 200;
       case 'premium-plus':
-        return 110;
+        return 300;
       case 'free':
       default:
-        return 10;
+        return 30;
     }
   }
 
