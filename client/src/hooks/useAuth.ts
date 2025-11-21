@@ -5,11 +5,11 @@ import { apiRequest } from '@/lib/queryClient';
 export function useAuth() {
   const user = useUser();
 
-  // Initialize user in database on first login
+  // Ensure user exists in app database on first login (lazy creation)
   useEffect(() => {
     if (user?.id) {
-      apiRequest('POST', '/api/init-user').catch(error => {
-        console.error('Failed to initialize user:', error);
+      apiRequest('POST', '/api/ensure-user').catch(error => {
+        console.error('Failed to ensure user:', error);
       });
     }
   }, [user?.id]);

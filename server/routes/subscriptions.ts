@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
+import { db } from "../db";
 import Stripe from "stripe";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -23,8 +24,8 @@ export function setupSubscriptionRoutes(app: Express) {
 
       const user = await storage.getUser(userId);
 
-      if (!user || !user.email) {
-        return res.status(400).json({ message: "User email not found" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
 
       // Check if user has an existing subscription for upgrade handling
@@ -39,9 +40,15 @@ export function setupSubscriptionRoutes(app: Express) {
       // Create Stripe customer if doesn't exist
       let customerId = user.stripeCustomerId;
       if (!customerId) {
+        // Get user email/name from neon_auth.users_sync
+        const result = await db.execute(`
+          SELECT email, name FROM neon_auth.users_sync WHERE id = $1
+        `, [userId]);
+        
+        const syncedUser = result.rows?.[0] as any;
         const customer = await stripe.customers.create({
-          email: user.email,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          email: syncedUser?.email || '',
+          name: syncedUser?.name || '',
         });
         customerId = customer.id;
         await storage.updateStripeCustomerId(userId, customerId);

@@ -14,17 +14,14 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table.
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// User app-specific data table.
+// Basic user identity (id, email, name) comes from neon_auth.users_sync
+// This table only stores app-specific fields for subscriptions and credits
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
-  subscriptionTier: varchar("subscription_tier"), // 'free', 'basic', 'premium', 'premium-plus'
+  subscriptionTier: varchar("subscription_tier").default("free"), // 'free', 'basic', 'premium', 'premium-plus'
   credits: integer("credits").default(10).notNull(), // Current available credits
   maxCredits: integer("max_credits").default(10).notNull(), // Maximum credits for current tier
   creditsResetDate: timestamp("credits_reset_date"), // Next credit reset date

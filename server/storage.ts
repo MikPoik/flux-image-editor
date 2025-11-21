@@ -12,7 +12,6 @@ import { eq, sql, desc, and, gte } from "drizzle-orm";
 // Interface for storage operations
 export interface IStorage {
   // User operations
-  // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
@@ -37,10 +36,28 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  // (IMPORTANT) these user operations are mandatory for Replit Auth.
-
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    // If user doesn't exist, create a record with defaults
+    if (!user) {
+      try {
+        const [newUser] = await db
+          .insert(users)
+          .values({
+            id,
+            subscriptionTier: 'free',
+            credits: 10,
+            maxCredits: 10,
+            subscriptionStatus: 'active',
+          })
+          .onConflictDoNothing()
+          .returning();
+        return newUser;
+      } catch {
+        // If creation fails, just return undefined
+        return undefined;
+      }
+    }
     return user;
   }
 
@@ -99,7 +116,6 @@ export class DatabaseStorage implements IStorage {
   async updateImage(id: number, updates: Partial<Pick<InsertImage, 'currentUrl' | 'editHistory'>>): Promise<Image | undefined> {
     const updateData: any = { ...updates };
     if (updateData.editHistory && Array.isArray(updateData.editHistory)) {
-      // Ensure editHistory is properly typed as an array
       updateData.editHistory = updateData.editHistory;
     }
     const [updated] = await db
@@ -144,41 +160,35 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Helper function to get credit limits by tier
   private getCreditLimitsByTier(tier: string): number {
     switch (tier) {
       case 'basic':
-        return 60; // $4.99 plan: 60 credits
+        return 60;
       case 'premium':
-        return 70; // $9.99 plan: 70 credits
+        return 70;
       case 'premium-plus':
-        return 110; // $14.99 plan: 110 credits
+        return 110;
       case 'free':
       default:
-        return 10; // Free plan: 10 credits
+        return 10;
     }
   }
 
   async updateUserSubscription(userId: string, tier: string, preserveCredits: boolean = true, subscriptionStatus: string = "active"): Promise<User | undefined> {
     try {
-      // Get current user data to check for rapid plan changes
       const currentUser = await this.getUser(userId);
       if (!currentUser) return undefined;
 
-      // Check if this is a billing period reset (new billing cycle)
       const isBillingPeriodReset = currentUser.currentPeriodStart && 
         currentUser.currentPeriodEnd && 
         Date.now() > currentUser.currentPeriodEnd.getTime();
 
-      // Anti-gaming protection: prevent rapid plan changes within 24 hours
-      // unless it's a cancellation (downgrade to free) or a billing period reset
       if (currentUser.lastSubscriptionChange && tier !== 'free' && !isBillingPeriodReset) {
         const timeSinceLastChange = Date.now() - currentUser.lastSubscriptionChange.getTime();
         const twentyFourHours = 24 * 60 * 60 * 1000;
 
         if (timeSinceLastChange < twentyFourHours) {
-          console.log(`Rapid subscription change attempt by user ${userId} blocked. Last change: ${currentUser.lastSubscriptionChange}`);
-          // Force preserve credits for rapid changes to prevent gaming
+          console.log(`Rapid subscription change attempt by user ${userId} blocked.`);
           preserveCredits = true;
         }
       }
@@ -191,11 +201,8 @@ export class DatabaseStorage implements IStorage {
         lastSubscriptionChange: new Date(),
       };
 
-      // Only reset credits if explicitly requested (e.g., on new billing periods or cancellations)
-      // This prevents gaming the system by rapid plan changes
       if (!preserveCredits) {
         updateData.credits = maxCredits;
-        // Set next credit reset date to one month from now
         const nextReset = new Date();
         nextReset.setMonth(nextReset.getMonth() + 1);
         updateData.creditsResetDate = nextReset;
@@ -215,7 +222,6 @@ export class DatabaseStorage implements IStorage {
 
   async deductCredits(userId: string, operation: 'edit' | 'generation' | 'multi-generation' | 'upscale'): Promise<boolean> {
     try {
-      // Define credit costs - upscales are now free
       const creditCosts = {
         'edit': 1,
         'generation': 1,
@@ -235,7 +241,6 @@ export class DatabaseStorage implements IStorage {
         .where(and(eq(users.id, userId), gte(users.credits, cost)))
         .returning();
 
-      // Check if the update was successful (user had enough credits)
       return user !== undefined;
     } catch (error) {
       console.error('Error deducting credits:', error);
@@ -252,7 +257,7 @@ export class DatabaseStorage implements IStorage {
         .update(users)
         .set({ 
           credits: currentUser.maxCredits,
-          creditsResetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          creditsResetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
         })
         .where(eq(users.id, userId))
         .returning();
@@ -297,16 +302,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined> {
     try {
-      // Validate dates before proceeding - be extra strict
       if (!periodStart || !periodEnd || 
           isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime()) ||
           periodStart.getTime() <= 0 || periodEnd.getTime() <= 0) {
-        console.log('Invalid dates provided to updateUserBillingPeriod, skipping update:', { 
-          periodStart: periodStart?.toString(), 
-          periodEnd: periodEnd?.toString(),
-          startTime: periodStart?.getTime(),
-          endTime: periodEnd?.getTime()
-        });
+        console.log('Invalid dates provided to updateUserBillingPeriod');
         return undefined;
       }
 
@@ -316,7 +315,6 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
 
-      // Only reset credits if this is a new billing period
       const shouldResetCredits = !user.currentPeriodStart || 
         user.currentPeriodStart.getTime() !== periodStart.getTime();
 
@@ -328,7 +326,7 @@ export class DatabaseStorage implements IStorage {
       if (shouldResetCredits) {
         updateData.credits = user.maxCredits;
         updateData.creditsResetDate = periodEnd;
-        console.log(`Resetting credits for user ${userId} due to new billing period`);
+        console.log(`Resetting credits for user ${userId}`);
       }
 
       const [updatedUser] = await db
@@ -346,11 +344,9 @@ export class DatabaseStorage implements IStorage {
 
   async triggerBillingPeriodReset(userId: string): Promise<User | undefined> {
     try {
-      // Force a billing period reset by setting new period and resetting edit count
       const now = new Date();
       const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-      // Get user's max credits for reset
       const user = await this.getUser(userId);
       if (!user) return undefined;
 
