@@ -1,5 +1,5 @@
 import { Switch, Route, Router, useLocation } from "wouter";
-import { useEffect, Suspense } from "react";
+import { useEffect } from "react";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { ConsentToast } from "@/components/consent-toast";
+import { ClientOnly } from "@/components/client-only";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import ImageEditor from "@/pages/image-editor";
@@ -21,7 +22,6 @@ import Pricing from "@/pages/pricing";
 import TermsOfService from "@/pages/terms-of-service";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import NotFound from "@/pages/not-found";
-import { getRouteDefinition } from "./routes/registry";
 import { normalizeRoutePath } from "@shared/route-metadata";
 import { trackPageView } from "@/lib/analytics";
 import { stackClientApp } from "@/lib/stack";
@@ -35,9 +35,6 @@ function RouterContent() {
       trackPageView(location, document.title);
     }
   }, [location]);
-
-  const normalizedPath = normalizeRoutePath(location ?? "/");
-  const currentRoute = getRouteDefinition(normalizedPath);
 
   if (!isAuthenticated) {
     return (
@@ -88,27 +85,23 @@ function App(
 ) {
   return (
     <QueryClientProvider client={queryClient}>
-      <Suspense fallback={<div />}>
-        <StackProvider app={stackClientApp}>
-          <Suspense fallback={<div />}>
-            <ThemeProvider>
-              <TooltipProvider>
-                <Toaster />
-                <ConsentToast />
-                <Router
-                  {...(routerHook ? { hook: routerHook } : {})}
-                  {...(ssrPath !== undefined ? { ssrPath } : {})}
-                  {...(ssrSearch !== undefined ? { ssrSearch } : {})}
-                >
-                  <Suspense fallback={<div />}>
-                    <RouterContent />
-                  </Suspense>
-                </Router>
-              </TooltipProvider>
-            </ThemeProvider>
-          </Suspense>
-        </StackProvider>
-      </Suspense>
+      <StackProvider app={stackClientApp}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <ConsentToast />
+            <Router
+              {...(routerHook ? { hook: routerHook } : {})}
+              {...(ssrPath !== undefined ? { ssrPath } : {})}
+              {...(ssrSearch !== undefined ? { ssrSearch } : {})}
+            >
+              <ClientOnly fallback={<div />}>
+                <RouterContent />
+              </ClientOnly>
+            </Router>
+          </TooltipProvider>
+        </ThemeProvider>
+      </StackProvider>
     </QueryClientProvider>
   );
 }
