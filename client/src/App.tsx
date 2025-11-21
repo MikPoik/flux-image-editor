@@ -1,5 +1,5 @@
 import { Switch, Route, Router, useLocation } from "wouter";
-import { useEffect, Suspense, lazy } from "react";
+import { useEffect, Suspense } from "react";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
@@ -27,7 +27,7 @@ import { trackPageView } from "@/lib/analytics";
 import { stackClientApp } from "@/lib/stack";
 
 function RouterContent() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [location] = useLocation();
 
   useEffect(() => {
@@ -36,26 +36,8 @@ function RouterContent() {
     }
   }, [location]);
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Initialize consent toast for unauthenticated users on landing pages
-      return;
-    }
-  }, [isLoading, isAuthenticated]);
   const normalizedPath = normalizeRoutePath(location ?? "/");
   const currentRoute = getRouteDefinition(normalizedPath);
-  const loadingAllowed = !(currentRoute?.ssr ?? false);
-
-  if (isLoading && loadingAllowed) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div
-          className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary"
-          aria-label="Loading"
-        />
-      </div>
-    );
-  }
 
   if (!isAuthenticated) {
     return (
@@ -96,30 +78,6 @@ export type AppProps = {
   ssrSearch?: string;
 };
 
-function AppContent(props: {
-  routerHook?: BaseLocationHook;
-  ssrPath?: string;
-  ssrSearch?: string;
-}) {
-  return (
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <ConsentToast />
-        <Router
-          {...(props.routerHook ? { hook: props.routerHook } : {})}
-          {...(props.ssrPath !== undefined ? { ssrPath: props.ssrPath } : {})}
-          {...(props.ssrSearch !== undefined ? { ssrSearch: props.ssrSearch } : {})}
-        >
-          <Suspense fallback={null}>
-            <RouterContent />
-          </Suspense>
-        </Router>
-      </TooltipProvider>
-    </ThemeProvider>
-  );
-}
-
 function App(
   {
     queryClient = defaultQueryClient,
@@ -130,11 +88,27 @@ function App(
 ) {
   return (
     <QueryClientProvider client={queryClient}>
-      <StackProvider app={stackClientApp}>
-        <Suspense fallback={null}>
-          <AppContent routerHook={routerHook} ssrPath={ssrPath} ssrSearch={ssrSearch} />
-        </Suspense>
-      </StackProvider>
+      <Suspense fallback={<div />}>
+        <StackProvider app={stackClientApp}>
+          <Suspense fallback={<div />}>
+            <ThemeProvider>
+              <TooltipProvider>
+                <Toaster />
+                <ConsentToast />
+                <Router
+                  {...(routerHook ? { hook: routerHook } : {})}
+                  {...(ssrPath !== undefined ? { ssrPath } : {})}
+                  {...(ssrSearch !== undefined ? { ssrSearch } : {})}
+                >
+                  <Suspense fallback={<div />}>
+                    <RouterContent />
+                  </Suspense>
+                </Router>
+              </TooltipProvider>
+            </ThemeProvider>
+          </Suspense>
+        </StackProvider>
+      </Suspense>
     </QueryClientProvider>
   );
 }
