@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Images, Plus, Wand2 } from "lucide-react";
 import { Link } from "wouter";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Footer } from "@/components/footer";
 import { useEffect } from "react";
 
 export default function Home() {
@@ -40,8 +39,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 container mx-auto px-4 py-8 flex-1">
+    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 container mx-auto px-4 py-8">
         <section className="text-center max-w-2xl mx-auto">
           <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">Welcome to AI Image Editor</h1>
           <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
@@ -128,7 +126,5 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <Footer />
-    </div>
   );
 }

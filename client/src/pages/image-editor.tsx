@@ -10,7 +10,6 @@ import { ImageDisplay } from '@/components/image-display';
 import { PromptInput } from '@/components/prompt-input';
 import { useImageEditor } from '@/hooks/use-image-editor';
 import { useSubscription } from '@/hooks/useSubscription';
-import { Footer } from '@/components/footer';
 import { Link } from 'wouter';
 import type { RouteDefinition } from '@shared/route-metadata';
 
@@ -108,8 +107,7 @@ export default function ImageEditor() {
   }, [hasImage, isLoadingImage]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 max-w-4xl mx-auto p-4 space-y-6 flex-1">
+    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 max-w-4xl mx-auto p-4 space-y-6">
 
         {/* Credit Warning */}
         {!canAffordEdit && (
@@ -387,7 +385,5 @@ export default function ImageEditor() {
           </div>
         </div>
       </main>
-      <Footer />
-    </div>
   );
 }
