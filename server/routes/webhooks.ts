@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { pool } from "../db";
 import Stripe from "stripe";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -9,46 +8,6 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export function setupWebhookRoutes(app: Express) {
-  // Neon Auth webhook endpoint for syncing users from neon_auth.users_sync
-  app.post('/api/neon-auth-webhook', async (req, res) => {
-    try {
-      const event = req.body;
-      console.log('Neon Auth webhook event:', event.type);
-
-      // Handle user events from Neon Auth
-      if (event.type === 'user.created' || event.type === 'user.updated') {
-        const userId = event.data.id;
-        const email = event.data.email;
-        const name = event.data.name;
-
-        // Sync user to app's users table
-        await storage.upsertUser({
-          id: userId,
-          subscriptionTier: 'free',
-          credits: 10,
-          maxCredits: 10,
-          subscriptionStatus: 'active',
-        });
-
-        console.log(`User ${userId} synced from Neon Auth`);
-        return res.json({ received: true });
-      }
-
-      if (event.type === 'user.deleted') {
-        const userId = event.data.id;
-        
-        // Mark user as deleted or handle deletion
-        // For now, we'll just log it - you may want to implement soft delete
-        console.log(`User ${userId} deleted in Neon Auth`);
-        return res.json({ received: true });
-      }
-
-      res.json({ received: true });
-    } catch (error: any) {
-      console.error('Neon Auth webhook error:', error.message);
-      res.status(400).json({ error: error.message });
-    }
-  });
   // Stripe webhook endpoint for handling subscription events
   app.post('/api/stripe-webhook', async (req, res) => {
     const sig = req.headers['stripe-signature'];
