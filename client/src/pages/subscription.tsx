@@ -396,7 +396,7 @@ export default function Subscription() {
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 via-slate-900 to-slate-950 container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">Subscription Plans</h1>
-        <p className="text-slate-400">
+        <p className="text-slate-600 dark:text-slate-400">
           Choose the plan that fits your image editing needs
         </p>
       </div>
@@ -404,8 +404,8 @@ export default function Subscription() {
       {/* Current Subscription Status */}
       {subscription && (
         <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-700/50">
-            <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-300 dark:border-slate-700/50">
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               Current Plan
               {subscription.subscriptionTier === 'premium' && <Crown className="h-5 w-5 text-yellow-400" />}
               {subscription.subscriptionTier === 'basic' && <Zap className="h-5 w-5 text-blue-400" />}
@@ -413,14 +413,14 @@ export default function Subscription() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-lg font-semibold capitalize text-white">
+              <p className="text-lg font-semibold capitalize text-slate-900 dark:text-white">
                 {subscription.subscriptionTier} Plan
               </p>
-              <p className="text-slate-400">
+              <p className="text-slate-600 dark:text-slate-400">
                 {subscription.credits} / {subscription.maxCredits} credits remaining
               </p>
               {subscription.creditsResetDate && (
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   Credits reset on {new Date(subscription.creditsResetDate * 1000).toLocaleDateString()}
                 </p>
               )}
@@ -467,19 +467,19 @@ export default function Subscription() {
       {/* Paid Plans */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         {plans.map((plan) => (
-          <div key={plan.id} className={`relative bg-gradient-to-br from-slate-800 to-slate-900 border rounded-2xl p-8 transition-all duration-300 ${plan.popular ? 'border-2 border-purple-400 scale-105 shadow-2xl shadow-purple-500/20' : 'border-slate-700/50 hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10'}`}>
+          <div key={plan.id} className={`relative bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border rounded-2xl p-8 transition-all duration-300 ${plan.popular ? 'border-2 border-purple-400 dark:border-purple-400 scale-105 shadow-2xl shadow-purple-500/20 dark:shadow-purple-500/20' : 'border-slate-300 dark:border-slate-700/50 hover:border-blue-400/50 dark:hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/10'}`}>
             {plan.popular && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-xs font-semibold">
                 Most Popular
               </div>
             )}
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{plan.name}</h3>
               <div className="text-center">
-                <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
+                <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-300 dark:to-purple-300">
                   {plan.price}
                 </span>
-                <span className="text-slate-400 ml-2">{plan.period}</span>
+                <span className="text-slate-600 dark:text-slate-400 ml-2">{plan.period}</span>
               </div>
               {subscription?.subscriptionTier === plan.id && (
                 <div className="mt-2 px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 inline-block">Current</div>
@@ -487,16 +487,16 @@ export default function Subscription() {
             </div>
 
             <div className="space-y-4">
-              <div className="text-center pb-4 border-b border-slate-700/50">
-                <p className="text-lg font-semibold text-slate-200">
+              <div className="text-center pb-4 border-b border-slate-300 dark:border-slate-700/50">
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-200">
                   {plan.credits} credits/month
                 </p>
               </div>
               <ul className="space-y-3 mb-6">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Check className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-slate-300">{feature}</span>
+                    <Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -536,7 +536,7 @@ export default function Subscription() {
         ))}
       </div>
 
-      <div className="text-center text-sm text-slate-400">
+      <div className="text-center text-sm text-slate-600 dark:text-slate-400">
         <p>All plans include secure payment processing and can be canceled anytime.</p>
         <p>Edit counts reset monthly on your billing date.</p>
       </div>

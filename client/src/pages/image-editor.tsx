@@ -107,11 +107,11 @@ export default function ImageEditor() {
   }, [hasImage, isLoadingImage]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 max-w-4xl mx-auto p-4 space-y-6">
+    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 max-w-4xl mx-auto p-4 space-y-6">
 
         {/* Credit Warning */}
         {!canAffordEdit && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-200">
+          <div className="bg-red-500/10 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-600 dark:text-red-200">
             <div className="flex gap-3">
               <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
               <div>
@@ -128,7 +128,7 @@ export default function ImageEditor() {
 
         {/* Low Credit Warning */}
         {canAffordEdit && remainingCredits <= 10 && remainingCredits > 0 && (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-yellow-200">
+          <div className="bg-yellow-500/10 dark:bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-yellow-600 dark:text-yellow-200">
             <div className="flex gap-3">
               <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
               <div>
@@ -145,7 +145,7 @@ export default function ImageEditor() {
 
         {/* Generation Credit Warning */}
         {!canAffordGeneration && canAffordEdit && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-200">
+          <div className="bg-red-500/10 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-600 dark:text-red-200">
             <div className="flex gap-3">
               <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
               <div>
@@ -161,7 +161,7 @@ export default function ImageEditor() {
         )}
 
         {/* Image Section */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
+        <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
           {!hasImage ? (
             <ImageInput 
               onUpload={handleUpload} 
@@ -193,7 +193,7 @@ export default function ImageEditor() {
 
         {/* Prompt Section */}
         {hasImage && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
+          <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
             <PromptInput
               onSubmit={handleEdit}
               isProcessing={isProcessing}
@@ -288,7 +288,7 @@ export default function ImageEditor() {
 
         {/* Subscription Status */}
         {subscription && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl">
+          <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl">
             <div className="pb-3 p-6 border-b border-slate-300 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -314,10 +314,10 @@ export default function ImageEditor() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                       {subscription.credits} / {subscription.maxCredits} credits remaining
                     </p>
-                    <div className="w-full bg-slate-700/50 rounded-full h-2 mt-2">
+                    <div className="w-full bg-slate-300 dark:bg-slate-700/50 rounded-full h-2 mt-2">
                       <div 
                         className={`h-2 rounded-full transition-all ${
                           subscription.credits <= 0 ? 'bg-red-500' : 
@@ -333,11 +333,11 @@ export default function ImageEditor() {
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-xs text-slate-400">
+                <div className="grid grid-cols-2 gap-4 text-xs text-slate-600 dark:text-slate-400">
                   <div>Edit/Generation: 1 credit</div>
                 </div>
                 {subscription.creditsResetDate && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     Credits reset on {new Date(subscription.creditsResetDate * 1000).toLocaleDateString()}
                   </p>
                 )}
@@ -347,7 +347,7 @@ export default function ImageEditor() {
         )}
 
         {/* Feature Highlights */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
+        <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
           <h2 className="text-lg font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">
             Powered by Flux.ai Kontext{subscription?.subscriptionTier === 'premium' ? ' Max' : ' Pro'}
           </h2>
