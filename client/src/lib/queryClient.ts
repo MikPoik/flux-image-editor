@@ -1,5 +1,4 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { stackClientApp } from "@/lib/stack";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -8,26 +7,12 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-async function getUserId(): Promise<string | null> {
-  try {
-    const user = await stackClientApp.getUser();
-    return user?.id || null;
-  } catch {
-    return null;
-  }
-}
-
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const userId = await getUserId();
-  
   const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
-  if (userId) {
-    headers["x-user-id"] = userId;
-  }
 
   const res = await fetch(url, {
     method,
@@ -46,14 +31,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const userId = await getUserId();
-    const headers: Record<string, string> = {};
-    if (userId) {
-      headers["x-user-id"] = userId;
-    }
-
     const res = await fetch(queryKey[0] as string, {
-      headers,
       credentials: "include",
     });
 

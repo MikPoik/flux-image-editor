@@ -83,7 +83,7 @@ export function setupSubscriptionRoutes(app: Express) {
   // Get subscription info
   app.get('/api/subscription', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user) {
@@ -148,7 +148,7 @@ export function setupSubscriptionRoutes(app: Express) {
   // Cancel subscription
   app.post('/api/cancel-subscription', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user || !user.stripeSubscriptionId) {
@@ -184,7 +184,7 @@ export function setupSubscriptionRoutes(app: Express) {
   // Resume subscription
   app.post('/api/resume-subscription', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user || !user.stripeSubscriptionId) {
@@ -299,7 +299,7 @@ export function setupSubscriptionRoutes(app: Express) {
   // Manual billing period reset endpoint (for testing)
   app.post('/api/reset-billing-period', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.triggerBillingPeriodReset(userId);
 
       if (user) {
