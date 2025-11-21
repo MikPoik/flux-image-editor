@@ -64,7 +64,7 @@ export default function Landing() {
       <Navigation />
 
       {/* Hero Section */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-white via-slate-100 to-white dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950">
+      <header className="relative overflow-hidden bg-gradient-to-br from-white via-slate-100 to-white dark:from-slate-950 dark:via-purple-950 dark:to-slate-950">
         {/* Animated background orbs */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{animationDelay: '2s'}}></div>
@@ -72,17 +72,17 @@ export default function Landing() {
         
         <div className="container mx-auto px-4 py-16 relative z-10">
           <section className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-400/30 rounded-full text-blue-700 dark:text-blue-300 dark:text-blue-200 text-sm font-medium mb-6 hover:from-blue-500/30 hover:to-purple-500/30 transition-all">
+            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-400/30 rounded-full text-blue-700 dark:text-blue-200 text-sm font-medium mb-6 hover:from-blue-500/30 hover:to-purple-500/30 transition-all">
               <Star className="w-4 h-4 mr-2" />
               Powered by Flux.ai Kontext Pro & Max
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-200 dark:via-purple-200 dark:to-pink-200 mb-6 leading-tight">
               Transform Images with
               <span className="block">AI Magic</span>
             </h1>
 
-            <p className="text-xl text-slate-700 dark:text-slate-300 dark:text-slate-600 dark:text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-slate-700 dark:text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
               Upload any image or generate from text, then edit with simple
               prompts. Remove objects, change backgrounds, add elements, or
               completely transform your vision into reality.
@@ -100,20 +100,20 @@ export default function Landing() {
 
               <Button
                 size="lg"
-                className="border-2 border-purple-400 text-purple-600 dark:text-purple-200 hover:bg-purple-600/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold transition-all duration-300"
+                className="border-2 border-purple-400 text-purple-600 dark:text-purple-600 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-600/20 backdrop-blur-sm px-8 py-4 text-lg font-semibold transition-all duration-300"
                 onClick={() => (window.location.href = "/pricing")}
               >
                 View Pricing
               </Button>
             </div>
 
-            <div className="flex justify-center items-center text-sm text-slate-700 dark:text-slate-300 dark:text-slate-600 dark:text-slate-400 mb-8">
+            <div className="flex justify-center items-center text-sm text-slate-700 dark:text-slate-400 mb-8">
               <Users className="w-4 h-4 mr-2" />
               Join thousands of creators
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-slate-700 dark:text-slate-300 dark:text-slate-600 dark:text-slate-400">
+            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-slate-700 dark:text-slate-400">
               <div className="flex items-center bg-gradient-to-r from-yellow-500/10 to-orange-500/10 px-3 py-2 rounded-lg backdrop-blur-sm">
                 <Zap className="w-4 h-4 mr-2 text-yellow-600 dark:text-yellow-400" />
                 Lightning Fast Processing

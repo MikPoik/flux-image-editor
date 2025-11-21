@@ -39,7 +39,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 container mx-auto px-4 py-8">
+    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 container mx-auto px-4 py-8">
         <section className="text-center max-w-2xl mx-auto">
           <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">Welcome to AI Image Editor</h1>
           <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">

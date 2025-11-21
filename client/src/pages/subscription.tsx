@@ -393,7 +393,7 @@ export default function Subscription() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white dark:from-slate-900 via-slate-900 to-slate-950 container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 via-slate-900 to-slate-950 container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">Subscription Plans</h1>
         <p className="text-slate-400">
