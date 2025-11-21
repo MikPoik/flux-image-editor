@@ -74,7 +74,7 @@ function RouterContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 flex flex-col">
       <Navigation />
       <main className="flex-1">
         <Switch>
