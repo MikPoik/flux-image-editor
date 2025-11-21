@@ -199,15 +199,15 @@ export default function Gallery() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 max-w-6xl mx-auto p-4">
+      <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 max-w-6xl mx-auto p-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">My Gallery</h1>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">My Gallery</h1>
           <p className="text-slate-400">View and manage your AI-edited images</p>
         </div>
       
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden">
+            <div key={i} className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl overflow-hidden">
               <Skeleton className="aspect-square w-full" />
               <div className="p-4">
                 <Skeleton className="h-4 w-3/4 mb-2" />
@@ -222,9 +222,9 @@ export default function Gallery() {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 max-w-6xl mx-auto p-4">
+      <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 max-w-6xl mx-auto p-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">My Gallery</h1>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">My Gallery</h1>
           <p className="text-slate-400">View and manage your AI-edited images</p>
         </div>
         <div className="text-center py-12">
@@ -238,9 +238,9 @@ export default function Gallery() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 max-w-6xl mx-auto p-4">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 max-w-6xl mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">My Gallery</h1>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">My Gallery</h1>
         <p className="text-slate-400">
           View and manage your AI-edited images
           {totalImages > 0 && (
@@ -267,7 +267,7 @@ export default function Gallery() {
             {images.map((image: any, index: number) => (
               <div 
                 key={image.id} 
-                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300"
+                className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl overflow-hidden hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300"
                 ref={index === images.length - 1 ? lastImageElementRef : null}
               >
                 <div className="relative aspect-square overflow-hidden">

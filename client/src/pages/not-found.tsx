@@ -47,13 +47,13 @@ export default function NotFound() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 container mx-auto px-4 py-16 text-center flex flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">404 - Page Not Found</h1>
-      <p className="text-slate-400 mb-8 text-lg">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 container mx-auto px-4 py-16 text-center flex flex-col items-center justify-center">
+      <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">404 - Page Not Found</h1>
+      <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
         The page you're looking for doesn't exist.
       </p>
       <Link href="/">
-        <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">Go Home</Button>
+        <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 dark:from-blue-500 dark:to-purple-600 dark:hover:from-blue-600 dark:hover:to-purple-700">Go Home</Button>
       </Link>
     </div>
   );

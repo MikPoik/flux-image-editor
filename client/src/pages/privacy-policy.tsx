@@ -15,7 +15,7 @@ export const route: RouteDefinition = {
 };
 
 const PolicySection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl p-6">
+  <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl p-6">
     <h2 className="text-xl font-semibold text-white mb-4">{title}</h2>
     <div className="text-slate-400">{children}</div>
   </div>
@@ -23,10 +23,10 @@ const PolicySection = ({ title, children }: { title: string; children: React.Rea
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
       <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">Privacy Policy</h1>
+          <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">Privacy Policy</h1>
           <p className="text-slate-400">
             Last updated: {new Date().toLocaleDateString()}
           </p>

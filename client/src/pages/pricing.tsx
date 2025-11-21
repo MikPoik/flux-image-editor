@@ -114,7 +114,7 @@ export default function Pricing() {
             Choose Your Perfect Plan
           </h1>
 
-          <p className="text-xl text-slate-300 dark:text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
             Transform your images with AI-powered editing. Start free and
             upgrade as you grow.
           </p>
@@ -185,7 +185,7 @@ export default function Pricing() {
 
         {/* Features Comparison */}
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700/50 mb-16">
-          <h2 className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
+          <h2 className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">
             What's Included
           </h2>
           <p className="text-center text-slate-400 mb-12">Everything you need to transform your images</p>
@@ -264,13 +264,13 @@ export default function Pricing() {
 
         {/* FAQ Section */}
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700/50 mb-16">
-          <h2 className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
+          <h2 className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">
             Frequently Asked Questions
           </h2>
           <p className="text-center text-slate-400 mb-8">Common questions about our pricing and plans</p>
 
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-slate-700/30 border border-slate-600/50 rounded-lg p-4">
+            <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-white">How do credits work?</h3>
               <p className="text-slate-400 text-sm leading-relaxed">
                 Each edit or generation costs 1 credit. Upscaling is free.
@@ -278,7 +278,7 @@ export default function Pricing() {
               </p>
             </div>
 
-            <div className="bg-slate-700/30 border border-slate-600/50 rounded-lg p-4">
+            <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-white">Can I cancel anytime?</h3>
               <p className="text-slate-400 text-sm leading-relaxed">
                 Yes, you can cancel your subscription at any time. You'll retain
@@ -286,7 +286,7 @@ export default function Pricing() {
               </p>
             </div>
 
-            <div className="bg-slate-700/30 border border-slate-600/50 rounded-lg p-4">
+            <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-white">
                 What's the difference between models?
               </h3>
@@ -296,7 +296,7 @@ export default function Pricing() {
               </p>
             </div>
 
-            <div className="bg-slate-700/30 border border-slate-600/50 rounded-lg p-4">
+            <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-white">
                 Do unused credits roll over?
               </h3>
@@ -309,7 +309,7 @@ export default function Pricing() {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center mt-16 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl p-12">
+        <div className="text-center mt-16 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl p-12">
           <h2 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200">
             Ready to Transform Your Images?
           </h2>

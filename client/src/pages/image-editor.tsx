@@ -161,7 +161,7 @@ export default function ImageEditor() {
         )}
 
         {/* Image Section */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
           {!hasImage ? (
             <ImageInput 
               onUpload={handleUpload} 
@@ -193,7 +193,7 @@ export default function ImageEditor() {
 
         {/* Prompt Section */}
         {hasImage && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
             <PromptInput
               onSubmit={handleEdit}
               isProcessing={isProcessing}
@@ -203,7 +203,7 @@ export default function ImageEditor() {
             {/* Edit History */}
             <div className="mt-6">
               <Collapsible open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
-                <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/50">
+                <div className="bg-slate-200/30 dark:bg-slate-700/30 rounded-xl p-4 border border-slate-300/50 dark:border-slate-600/50">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" className="w-full p-0 h-auto justify-between">
                       <div className="flex items-center justify-between text-sm w-full">
@@ -288,11 +288,11 @@ export default function ImageEditor() {
 
         {/* Subscription Status */}
         {subscription && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl">
-            <div className="pb-3 p-6 border-b border-slate-700/50">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl">
+            <div className="pb-3 p-6 border-b border-slate-300 dark:border-slate-700/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                     {subscription.subscriptionTier === 'premium' && <Crown className="h-5 w-5 text-yellow-400" />}
                     {subscription.subscriptionTier === 'basic' && <Wand2 className="h-5 w-5 text-blue-400" />}
                     {subscription.subscriptionTier !== 'free' ? `${subscription.subscriptionTier} Plan` : 'Free Plan'}
@@ -328,7 +328,7 @@ export default function ImageEditor() {
                     </div>
                   </div>
                   <div className="text-right ml-4">
-                    <p className="text-lg font-semibold text-white">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white">
                       {subscription.credits} credits
                     </p>
                   </div>
@@ -347,16 +347,16 @@ export default function ImageEditor() {
         )}
 
         {/* Feature Highlights */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50">
-          <h2 className="text-lg font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-300 dark:border-slate-700/50">
+          <h2 className="text-lg font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">
             Powered by Flux.ai Kontext{subscription?.subscriptionTier === 'premium' ? ' Max' : ' Pro'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-slate-700/30 border border-slate-600/50 rounded-lg">
+            <div className="text-center p-4 bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Wand2 className="w-6 h-6 text-blue-400" />
               </div>
-              <h3 className="font-medium text-white mb-2">AI-Powered</h3>
+              <h3 className="font-medium text-slate-900 dark:text-white mb-2">AI-Powered</h3>
               <p className="text-sm text-slate-400">
                 {(subscription?.subscriptionTier === 'premium' || subscription?.subscriptionTier === 'premium-plus')
                     ? 'Highest quality image editing with Kontext Max model' 
@@ -364,22 +364,22 @@ export default function ImageEditor() {
                   }
               </p>
             </div>
-            <div className="text-center p-4 bg-slate-700/30 border border-slate-600/50 rounded-lg">
+            <div className="text-center p-4 bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </div>
-              <h3 className="font-medium text-white mb-2">Iterative Editing</h3>
+              <h3 className="font-medium text-slate-900 dark:text-white mb-2">Iterative Editing</h3>
               <p className="text-sm text-slate-400">Make multiple edits to refine your perfect image</p>
             </div>
-            <div className="text-center p-4 bg-slate-700/30 border border-slate-600/50 rounded-lg">
+            <div className="text-center p-4 bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg">
               <div className="w-12 h-12 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="font-medium text-white mb-2">Mobile Optimized</h3>
+              <h3 className="font-medium text-slate-900 dark:text-white mb-2">Mobile Optimized</h3>
               <p className="text-sm text-slate-400">Designed for seamless editing on any device</p>
             </div>
           </div>

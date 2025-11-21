@@ -393,9 +393,9 @@ export default function Subscription() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-b from-white dark:from-slate-900 via-slate-900 to-slate-950 container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">Subscription Plans</h1>
+        <h1 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">Subscription Plans</h1>
         <p className="text-slate-400">
           Choose the plan that fits your image editing needs
         </p>
@@ -403,7 +403,7 @@ export default function Subscription() {
 
       {/* Current Subscription Status */}
       {subscription && (
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl p-6 mb-8">
+        <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl p-6 mb-8">
           <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-700/50">
             <h3 className="text-xl font-semibold text-white flex items-center gap-2">
               Current Plan
