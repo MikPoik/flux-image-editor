@@ -99,22 +99,22 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
       <Navigation />
 
       <div className="container mx-auto px-4 py-16 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-full text-blue-800 dark:text-blue-200 text-sm font-medium mb-6">
+          <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-400/30 rounded-full text-blue-300 dark:text-blue-200 text-sm font-medium mb-6 hover:from-blue-500/30 hover:to-purple-500/30 transition-all">
             <Star className="w-4 h-4 mr-2" />
             Powered by Flux.ai Kontext Pro & Max
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 mb-6">
             Choose Your Perfect Plan
           </h1>
 
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-300 dark:text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
             Transform your images with AI-powered editing. Start free and
             upgrade as you grow.
           </p>
@@ -123,63 +123,63 @@ export default function Pricing() {
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {plans.map((plan) => (
-            <Card
+            <div
               key={plan.id}
-              className={`relative ${plan.popular ? "ring-2 ring-blue-600 scale-105" : ""} hover:shadow-lg transition-all`}
+              className={`relative bg-gradient-to-br from-slate-800 to-slate-900 border rounded-2xl p-8 transition-all duration-300 ${plan.popular ? "border-2 border-purple-400 scale-105 shadow-2xl shadow-purple-500/20" : "border border-slate-700/50 hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10"}`}
             >
               {plan.popular && (
-                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-blue-600">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-xs font-semibold">
                   Most Popular
-                </Badge>
+                </div>
               )}
-              <CardHeader className="text-center">
+              <div className="text-center mb-6">
                 <div className="flex justify-center mb-4">
                   {plan.id === "premium" || plan.id === "premium-plus" ? (
-                    <Crown className="h-8 w-8 text-yellow-500" />
+                    <Crown className="h-8 w-8 text-yellow-400" />
                   ) : plan.id === "basic" ? (
-                    <Zap className="h-8 w-8 text-blue-500" />
+                    <Zap className="h-8 w-8 text-blue-400" />
                   ) : (
-                    <Star className="h-8 w-8 text-gray-500" />
+                    <Star className="h-8 w-8 text-slate-400" />
                   )}
                 </div>
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <CardDescription>
-                  <span className="text-3xl font-bold text-foreground">
+                <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
+                <div className="text-center">
+                  <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
                     {plan.price}
                   </span>
-                  <span className="text-muted-foreground">{plan.period}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-center">
-                  <p className="text-lg font-semibold">
+                  <span className="text-slate-400 ml-2">{plan.period}</span>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="text-center pb-6 border-b border-slate-700/50">
+                  <p className="text-lg font-semibold text-slate-200">
                     {plan.id === "free" ? `${plan.credits} one-time credits` : `${plan.credits} credits/month`}
                   </p>
                   {plan.id !== "free" && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-400 mt-1">
                       Credits reset monthly
                     </p>
                   )}
                 </div>
 
-                <ul className="space-y-3">
+                <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-3">
-                      <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
+                      <Check className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-slate-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 <Button
-                  className={`w-full ${plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""}`}
-                  variant={plan.popular ? "default" : "outline"}
+                  className={`w-full font-semibold transition-all duration-300 ${plan.popular ? "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/50" : "bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 hover:border-blue-400"}`}
                   onClick={handleGetStarted}
                 >
                   {plan.cta}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
 
