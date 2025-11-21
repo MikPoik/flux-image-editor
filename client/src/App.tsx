@@ -4,6 +4,7 @@ import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { StackProvider, StackTheme } from '@stackframe/react';
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -23,6 +24,7 @@ import NotFound from "@/pages/not-found";
 import { getRouteDefinition } from "./routes/registry";
 import { normalizeRoutePath } from "@shared/route-metadata";
 import { trackPageView } from "@/lib/analytics";
+import { stackClientApp } from "@/lib/stack";
 
 function RouterContent() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -104,19 +106,23 @@ function App(
 ) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <ConsentToast />
-          <Router
-            {...(routerHook ? { hook: routerHook } : {})}
-            {...(ssrPath !== undefined ? { ssrPath } : {})}
-            {...(ssrSearch !== undefined ? { ssrSearch } : {})}
-          >
-            <RouterContent />
-          </Router>
-        </TooltipProvider>
-      </ThemeProvider>
+      <StackProvider app={stackClientApp}>
+        <StackTheme>
+          <ThemeProvider>
+            <TooltipProvider>
+              <Toaster />
+              <ConsentToast />
+              <Router
+                {...(routerHook ? { hook: routerHook } : {})}
+                {...(ssrPath !== undefined ? { ssrPath } : {})}
+                {...(ssrSearch !== undefined ? { ssrSearch } : {})}
+              >
+                <RouterContent />
+              </Router>
+            </TooltipProvider>
+          </ThemeProvider>
+        </StackTheme>
+      </StackProvider>
     </QueryClientProvider>
   );
 }
