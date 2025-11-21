@@ -109,13 +109,22 @@ export function Navigation() {
           )}
           
           {!user && (
-            <Button 
-              variant="default"
-              size="sm"
-              onClick={() => window.location.href = '/handler/sign-up'}
-            >
-              Sign In
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.href = '/handler/sign-in'}
+              >
+                Sign In
+              </Button>
+              <Button 
+                variant="default"
+                size="sm"
+                onClick={() => window.location.href = '/handler/sign-up'}
+              >
+                Sign Up
+              </Button>
+            </div>
           )}
           
           <ThemeToggle />
@@ -193,16 +202,28 @@ export function Navigation() {
                       </Button>
                     </div>
                   ) : (
-                    <Button 
-                      variant="default"
-                      className="w-full"
-                      onClick={() => {
-                        closeSheet();
-                        window.location.href = '/handler/sign-up';
-                      }}
-                    >
-                      Sign In
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          closeSheet();
+                          window.location.href = '/handler/sign-in';
+                        }}
+                      >
+                        Sign In
+                      </Button>
+                      <Button 
+                        variant="default"
+                        className="w-full"
+                        onClick={() => {
+                          closeSheet();
+                          window.location.href = '/handler/sign-up';
+                        }}
+                      >
+                        Sign Up
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
