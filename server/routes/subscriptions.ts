@@ -13,7 +13,7 @@ export function setupSubscriptionRoutes(app: Express) {
   app.post('/api/create-subscription', isAuthenticated, async (req: any, res) => {
     try {
       const { priceId } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       console.log('Create subscription request:', { priceId, userId });
 
@@ -221,7 +221,7 @@ export function setupSubscriptionRoutes(app: Express) {
   app.post('/api/upgrade-subscription', isAuthenticated, async (req: any, res) => {
     try {
       const { priceId } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       console.log('Upgrade subscription request:', { priceId, userId });
 

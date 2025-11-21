@@ -29,7 +29,7 @@ export function setupImageRoutes(app: Express) {
         return res.status(400).json({ message: "No image file provided" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // Process image locally - detect orientation and apply correction
       const orientationInfo = await objectStorage.getImageOrientation(req.file.buffer);
@@ -76,7 +76,7 @@ export function setupImageRoutes(app: Express) {
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user) {
@@ -179,7 +179,7 @@ export function setupImageRoutes(app: Express) {
         return res.status(400).json({ message: "Maximum 5 images allowed" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user) {
@@ -285,7 +285,7 @@ export function setupImageRoutes(app: Express) {
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user) {
@@ -503,7 +503,7 @@ export function setupImageRoutes(app: Express) {
   // Get user's images
   app.get("/api/images", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 100); // Max 100 per request
       const offset = parseInt(req.query.offset as string) || 0;
       
@@ -522,7 +522,7 @@ export function setupImageRoutes(app: Express) {
   app.get("/api/images/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const image = await storage.getImage(parseInt(id));
 
       if (!image) {
@@ -548,7 +548,7 @@ export function setupImageRoutes(app: Express) {
     try {
       const { id } = req.params;
       const { scale = 2 } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // Get user to check subscription tier
       const user = await storage.getUser(userId);
@@ -684,7 +684,7 @@ export function setupImageRoutes(app: Express) {
   app.delete("/api/images/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // First check if the image exists and belongs to the user
       const image = await storage.getImage(parseInt(id));
