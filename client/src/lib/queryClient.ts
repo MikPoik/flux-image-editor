@@ -1,9 +1,19 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { stackClientApp } from "@/lib/stack";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
+  }
+}
+
+async function getUserIdFromStack(): Promise<string | null> {
+  try {
+    const user = await stackClientApp.getUser();
+    return user?.id || null;
+  } catch {
+    return null;
   }
 }
 
@@ -13,6 +23,12 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+  
+  // Get user ID and add to headers
+  const userId = await getUserIdFromStack();
+  if (userId) {
+    headers["x-user-id"] = userId;
+  }
 
   const res = await fetch(url, {
     method,
@@ -31,7 +47,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Get user ID from Stack Auth for authenticated requests
+    const userId = await getUserIdFromStack();
+    const headers: Record<string, string> = {};
+    if (userId) {
+      headers["x-user-id"] = userId;
+    }
+
     const res = await fetch(queryKey[0] as string, {
+      headers,
       credentials: "include",
     });
 
