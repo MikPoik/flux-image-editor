@@ -100,7 +100,7 @@ export function Navigation() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.location.href = '/api/logout'}
+                onClick={() => window.location.href = '/handler/sign-out'}
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -112,7 +112,7 @@ export function Navigation() {
             <Button 
               variant="default"
               size="sm"
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => window.location.href = '/handler/sign-up'}
             >
               Sign In
             </Button>
@@ -185,7 +185,7 @@ export function Navigation() {
                         className="w-full"
                         onClick={() => {
                           closeSheet();
-                          window.location.href = '/api/logout';
+                          window.location.href = '/handler/sign-out';
                         }}
                       >
                         <LogOut className="h-4 w-4 mr-2" />
@@ -198,7 +198,7 @@ export function Navigation() {
                       className="w-full"
                       onClick={() => {
                         closeSheet();
-                        window.location.href = '/api/login';
+                        window.location.href = '/handler/sign-up';
                       }}
                     >
                       Sign In

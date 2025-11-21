@@ -4,7 +4,7 @@ import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { StackProvider } from '@stackframe/react';
+import { StackProvider, StackHandler } from '@stackframe/react';
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -26,6 +26,18 @@ import { normalizeRoutePath } from "@shared/route-metadata";
 import { trackPageView } from "@/lib/analytics";
 import { stackClientApp } from "@/lib/stack";
 
+function AuthHandler() {
+  const [location] = useLocation();
+  
+  return (
+    <StackHandler 
+      app={stackClientApp} 
+      location={location} 
+      fullPage 
+    />
+  );
+}
+
 function RouterContent() {
   const { isAuthenticated } = useAuth();
   const [location] = useLocation();
@@ -35,6 +47,11 @@ function RouterContent() {
       trackPageView(location, document.title);
     }
   }, [location]);
+
+  // Handle auth routes
+  if (location?.startsWith('/handler')) {
+    return <AuthHandler />;
+  }
 
   if (!isAuthenticated) {
     return (
