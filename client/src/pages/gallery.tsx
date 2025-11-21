@@ -433,7 +433,7 @@ export default function Gallery() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
-    <Footer />
   );
 }
