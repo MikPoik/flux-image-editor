@@ -2,7 +2,10 @@ import { createRoot, hydrateRoot } from "react-dom/client";
 import { hydrate, type DehydratedState } from "@tanstack/react-query";
 import App from "./App";
 import { queryClient } from "./lib/queryClient";
+import { initializeAnalytics } from "./lib/analytics";
 import "./index.css";
+
+initializeAnalytics();
 
 const rootElement = document.getElementById("root");
 

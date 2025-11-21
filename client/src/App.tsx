@@ -1,4 +1,5 @@
 import { Switch, Route, Router, useLocation } from "wouter";
+import { useEffect } from "react";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
@@ -20,10 +21,17 @@ import PrivacyPolicy from "@/pages/privacy-policy";
 import NotFound from "@/pages/not-found";
 import { getRouteDefinition } from "./routes/registry";
 import { normalizeRoutePath } from "@shared/route-metadata";
+import { trackPageView } from "@/lib/analytics";
 
 function RouterContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
+
+  useEffect(() => {
+    if (location) {
+      trackPageView(location, document.title);
+    }
+  }, [location]);
   const normalizedPath = normalizeRoutePath(location ?? "/");
   const currentRoute = getRouteDefinition(normalizedPath);
   const loadingAllowed = !(currentRoute?.ssr ?? false);
