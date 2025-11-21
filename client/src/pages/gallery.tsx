@@ -10,6 +10,7 @@ import { Edit, Trash2, Download, ImageIcon, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { stackClientApp } from '@/lib/stack';
+import { Footer } from '@/components/footer';
 import type { Image } from '@shared/schema';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { OptimizedImage } from '@/components/optimized-image';
@@ -238,8 +239,9 @@ export default function Gallery() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 max-w-6xl mx-auto p-4">
-      <div className="mb-6">
+    <div className="flex flex-col min-h-screen">
+      <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 max-w-6xl mx-auto p-4 flex-1">
+        <div className="mb-6">
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">My Gallery</h1>
         <p className="text-slate-400">
           View and manage your AI-edited images
@@ -430,6 +432,8 @@ export default function Gallery() {
             <p className="text-slate-400">You've reached the end of your gallery</p>
           </div>
         )}
+      </div>
     </div>
+    <Footer />
   );
 }
