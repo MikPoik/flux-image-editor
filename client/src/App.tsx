@@ -1,5 +1,5 @@
 import { Switch, Route, Router, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
@@ -35,6 +35,14 @@ function AuthHandler() {
       location={location} 
       fullPage 
     />
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+    </div>
   );
 }
 
@@ -113,7 +121,9 @@ function App(
               {...(ssrSearch !== undefined ? { ssrSearch } : {})}
             >
               <ClientOnly fallback={<div />}>
-                <RouterContent />
+                <Suspense fallback={<LoadingFallback />}>
+                  <RouterContent />
+                </Suspense>
               </ClientOnly>
             </Router>
           </TooltipProvider>
