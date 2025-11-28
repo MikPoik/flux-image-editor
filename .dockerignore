@@ -6,3 +6,5 @@
 .env
 Dockerfile
 fly.toml
+/.cache
+/.local

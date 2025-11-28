@@ -9,5 +9,5 @@ Disallow: /dashboard/admin/
 Disallow: /admin/
 Disallow: /dashboard
 
-# Generated on 2025-11-21T13:25:38.628Z
+# Generated on 2025-11-28T13:58:03.231Z
 Sitemap: https://fluxaimage.com/sitemap.xml
