@@ -30,8 +30,7 @@ export class ObjectStorageService {
       s3Config.credentials = {
         accessKeyId: process.env.GCS_ACCESS_KEY_ID,
         secretAccessKey: process.env.GCS_SECRET_ACCESS_KEY,
-      };
-      console.log('GCS HMAC credentials configured with access key:', process.env.GCS_ACCESS_KEY_ID);
+      };      
     } else {
       console.warn('No GCS HMAC credentials provided. Set GCS_ACCESS_KEY_ID and GCS_SECRET_ACCESS_KEY environment variables.');
       console.warn('Object storage operations will fail until credentials are configured.');
