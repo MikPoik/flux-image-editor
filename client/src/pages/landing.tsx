@@ -139,7 +139,7 @@ export default function Landing() {
             <div className="grid md:grid-cols-2 gap-8 mb-8">
               {/* Example 1 */}
               <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
-                <h3 className="text-lg font-semibold text-white mb-4">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                   Object Removal & Background Change
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -175,7 +175,7 @@ export default function Landing() {
 
               {/* Example 2 */}
               <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-cyan-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300">
-                <h3 className="text-lg font-semibold text-white mb-4">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                   Style Transfer & Enhancement
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -212,7 +212,7 @@ export default function Landing() {
 
             {/* Example 3 */}
             <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-pink-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-pink-500/10 transition-all duration-300 max-w-3xl mx-auto">
-              <h3 className="text-lg font-semibold text-white mb-4">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 Object Addition & Scene Composition
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -252,7 +252,7 @@ export default function Landing() {
             <h2 id="features-heading" className="sr-only">Key Features</h2>
             <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-blue-500/20 rounded-2xl p-8 text-center hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
               <Upload className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="font-semibold text-white text-lg mb-2">Upload or Generate</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-lg mb-2">Upload or Generate</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Start with your own images or create new ones from text descriptions using advanced AI models
               </p>
@@ -260,7 +260,7 @@ export default function Landing() {
 
             <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-purple-500/20 rounded-2xl p-8 text-center hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
               <Wand2 className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="font-semibold text-white text-lg mb-2">Edit with Natural Language</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-lg mb-2">Edit with Natural Language</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Simply describe what you want changed. Remove objects, add elements, change styles, or transform completely
               </p>
@@ -268,7 +268,7 @@ export default function Landing() {
 
             <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-pink-500/20 rounded-2xl p-8 text-center hover:border-pink-400/50 hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300">
               <Sparkles className="w-12 h-12 text-pink-400 mx-auto mb-4" />
-              <h3 className="font-semibold text-white text-lg mb-2">Professional Results</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-lg mb-2">Professional Results</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Get high-quality, professional-grade images powered by cutting-edge Flux AI technology
               </p>
@@ -287,7 +287,7 @@ export default function Landing() {
                   />
                 ))}
               </div>
-              <blockquote className="text-lg text-slate-200 mb-4 leading-relaxed">
+              <blockquote className="text-lg text-slate-900 dark:text-slate-200 mb-4 leading-relaxed">
                 "This AI image editor is incredible! I transformed my old
                 vacation photos into artistic masterpieces in minutes. The
                 results are so professional, my friends thought I hired a

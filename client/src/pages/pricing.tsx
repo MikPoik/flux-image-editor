@@ -125,7 +125,7 @@ export default function Pricing() {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative bg-gradient-to-br from-slate-800 to-slate-900 border rounded-2xl p-8 transition-all duration-300 ${plan.popular ? "border-2 border-purple-400 scale-105 shadow-2xl shadow-purple-500/20" : "border border-slate-700/50 hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10"}`}
+              className={`relative bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border rounded-2xl p-8 transition-all duration-300 ${plan.popular ? "border-2 border-purple-400 scale-105 shadow-2xl shadow-purple-500/20" : "border border-slate-300/50 dark:border-slate-700/50 hover:border-blue-400/50 dark:hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/10"}`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-xs font-semibold">
@@ -142,22 +142,22 @@ export default function Pricing() {
                     <Star className="h-8 w-8 text-slate-400" />
                   )}
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{plan.name}</h3>
                 <div className="text-center">
                   <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
                     {plan.price}
                   </span>
-                  <span className="text-slate-400 ml-2">{plan.period}</span>
+                  <span className="text-slate-600 dark:text-slate-400 ml-2">{plan.period}</span>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <div className="text-center pb-6 border-b border-slate-700/50">
-                  <p className="text-lg font-semibold text-slate-200">
+                <div className="text-center pb-6 border-b border-slate-300/50 dark:border-slate-700/50">
+                  <p className="text-lg font-semibold text-slate-900 dark:text-slate-200">
                     {plan.id === "free" ? `${plan.credits} one-time credits` : `${plan.credits} credits/month`}
                   </p>
                   {plan.id !== "free" && (
-                    <p className="text-sm text-slate-400 mt-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                       Credits reset monthly
                     </p>
                   )}
@@ -184,11 +184,11 @@ export default function Pricing() {
         </div>
 
         {/* Features Comparison */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700/50 mb-16">
+        <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 border border-slate-300/50 dark:border-slate-700/50 mb-16">
           <h2 className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">
             What's Included
           </h2>
-          <p className="text-center text-slate-400 mb-12">Everything you need to transform your images</p>
+          <p className="text-center text-slate-600 dark:text-slate-400 mb-12">Everything you need to transform your images</p>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -207,8 +207,8 @@ export default function Pricing() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-white">Advanced AI Models</h3>
-              <p className="text-slate-400 text-sm">
+              <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">Advanced AI Models</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
                 Access to Flux.ai Kontext Pro and Max models for the highest
                 quality image editing and generation.
               </p>
@@ -230,8 +230,8 @@ export default function Pricing() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-white">Lightning Fast</h3>
-              <p className="text-slate-400 text-sm">
+              <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">Lightning Fast</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
                 Fast processing times with optimized infrastructure for the best
                 user experience.
               </p>
@@ -253,8 +253,8 @@ export default function Pricing() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-white">Full Control</h3>
-              <p className="text-slate-400 text-sm">
+              <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">Full Control</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
                 Complete editing history, revert capabilities, and fine-grained
                 control over your creations.
               </p>
@@ -263,44 +263,44 @@ export default function Pricing() {
         </div>
 
         {/* FAQ Section */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700/50 mb-16">
+        <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 border border-slate-300/50 dark:border-slate-700/50 mb-16">
           <h2 className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-200 dark:to-purple-200">
             Frequently Asked Questions
           </h2>
-          <p className="text-center text-slate-400 mb-8">Common questions about our pricing and plans</p>
+          <p className="text-center text-slate-600 dark:text-slate-400 mb-8">Common questions about our pricing and plans</p>
 
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
-              <h3 className="font-semibold mb-2 text-white">How do credits work?</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">How do credits work?</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Each edit or generation costs 1 credit. Upscaling is free.
                 Credits reset monthly on your billing date.
               </p>
             </div>
 
             <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
-              <h3 className="font-semibold mb-2 text-white">Can I cancel anytime?</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">Can I cancel anytime?</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Yes, you can cancel your subscription at any time. You'll retain
                 access until the end of your billing period.
               </p>
             </div>
 
             <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
-              <h3 className="font-semibold mb-2 text-white">
+              <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">
                 What's the difference between models?
               </h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Kontext Pro provides excellent quality, while Kontext Max offers
                 the highest quality results with more detail and accuracy.
               </p>
             </div>
 
             <div className="bg-slate-200/30 dark:bg-slate-700/30 border border-slate-300/50 dark:border-slate-600/50 rounded-lg p-4">
-              <h3 className="font-semibold mb-2 text-white">
+              <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">
                 Do unused credits roll over?
               </h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 Credits reset monthly and don't roll over. We recommend choosing
                 a plan that fits your monthly usage.
               </p>
