@@ -309,7 +309,7 @@ export default function Pricing() {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center mt-16 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700/50 rounded-2xl p-12">
+        <div className="text-center mt-16 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700/50 rounded-2xl p-12">
           <h2 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200">
             Ready to Transform Your Images?
           </h2>
