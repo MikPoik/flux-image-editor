@@ -138,7 +138,7 @@ export default function Landing() {
 
             <div className="grid md:grid-cols-2 gap-8 mb-8">
               {/* Example 1 */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
                 <h3 className="text-lg font-semibold text-white mb-4">
                   Object Removal & Background Change
                 </h3>
@@ -174,7 +174,7 @@ export default function Landing() {
               </div>
 
               {/* Example 2 */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-cyan-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-cyan-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300">
                 <h3 className="text-lg font-semibold text-white mb-4">
                   Style Transfer & Enhancement
                 </h3>
@@ -211,7 +211,7 @@ export default function Landing() {
             </div>
 
             {/* Example 3 */}
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-pink-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-pink-500/10 transition-all duration-300 max-w-3xl mx-auto">
+            <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-pink-500/20 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-pink-500/10 transition-all duration-300 max-w-3xl mx-auto">
               <h3 className="text-lg font-semibold text-white mb-4">
                 Object Addition & Scene Composition
               </h3>
@@ -250,7 +250,7 @@ export default function Landing() {
           {/* Feature Cards */}
           <section className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto" aria-labelledby="features-heading">
             <h2 id="features-heading" className="sr-only">Key Features</h2>
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-blue-500/20 rounded-2xl p-8 text-center hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
+            <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-blue-500/20 rounded-2xl p-8 text-center hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
               <Upload className="w-12 h-12 text-blue-400 mx-auto mb-4" />
               <h3 className="font-semibold text-white text-lg mb-2">Upload or Generate</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
@@ -258,7 +258,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-purple-500/20 rounded-2xl p-8 text-center hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
+            <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-purple-500/20 rounded-2xl p-8 text-center hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
               <Wand2 className="w-12 h-12 text-purple-400 mx-auto mb-4" />
               <h3 className="font-semibold text-white text-lg mb-2">Edit with Natural Language</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
@@ -266,7 +266,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-pink-500/20 rounded-2xl p-8 text-center hover:border-pink-400/50 hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300">
+            <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-pink-500/20 rounded-2xl p-8 text-center hover:border-pink-400/50 hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300">
               <Sparkles className="w-12 h-12 text-pink-400 mx-auto mb-4" />
               <h3 className="font-semibold text-white text-lg mb-2">Professional Results</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
@@ -278,7 +278,7 @@ export default function Landing() {
           {/* Social Proof */}
           <section className="mt-20 text-center" aria-labelledby="testimonials-heading">
             <h2 id="testimonials-heading" className="sr-only">Customer Testimonials</h2>
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-yellow-500/20 rounded-2xl p-8 max-w-2xl mx-auto shadow-xl hover:shadow-2xl hover:shadow-yellow-500/10 transition-all duration-300">
+            <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-yellow-500/20 rounded-2xl p-8 max-w-2xl mx-auto shadow-xl hover:shadow-2xl hover:shadow-yellow-500/10 transition-all duration-300">
               <div className="flex justify-center mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star
