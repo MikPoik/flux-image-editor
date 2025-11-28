@@ -3,7 +3,7 @@ run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
-channel = "stable-24_05"
+channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -17,10 +17,6 @@ externalPort = 80
 [[ports]]
 localPort = 5001
 externalPort = 3000
-
-[[ports]]
-localPort = 41245
-externalPort = 3001
 
 [workflows]
 runButton = "Project"
