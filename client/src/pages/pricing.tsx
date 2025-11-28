@@ -167,13 +167,13 @@ export default function Pricing() {
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-3">
                       <Check className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-slate-300">{feature}</span>
+                      <span className="text-sm text-slate-700 dark:text-slate-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 <Button
-                  className={`w-full font-semibold transition-all duration-300 ${plan.popular ? "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/50" : "bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 hover:border-blue-400"}`}
+                  className={`w-full font-semibold transition-all duration-300 ${plan.popular ? "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/50" : "bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 hover:border-blue-400"}`}
                   onClick={handleGetStarted}
                 >
                   {plan.cta}
