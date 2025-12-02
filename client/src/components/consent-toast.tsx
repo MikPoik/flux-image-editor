@@ -1,6 +1,7 @@
 import { useConsentCookie } from "@/hooks/useConsentCookie";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { initializeAnalytics } from "@/lib/analytics";
 
 export function ConsentToast() {
   const { consent, isLoading, acceptConsent, declineConsent } =
@@ -16,6 +17,8 @@ export function ConsentToast() {
   const handleAccept = () => {
     acceptConsent();
     setIsOpen(false);
+    // Initialize analytics immediately after consent
+    initializeAnalytics();
   };
 
   const handleDecline = () => {
