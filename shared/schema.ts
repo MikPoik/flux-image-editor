@@ -19,6 +19,10 @@ export const sessions = pgTable(
 // This table only stores app-specific fields for subscriptions and credits
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   subscriptionTier: varchar("subscription_tier").default("free"), // 'free', 'basic', 'premium', 'premium-plus'
