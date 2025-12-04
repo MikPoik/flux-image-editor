@@ -3,14 +3,7 @@ import { isAuthenticated } from '../replitAuth';
 import { storage } from '../storage';
 
 export function setupAuthRoutes(app: Express) {
-  // Auth routes are handled by Neon Auth's StackHandler on the client
-  // This endpoint returns the current user info from the session
-  app.get('/api/auth/user', async (req: any, res) => {
-    // With Neon Auth, user info is managed client-side
-    // This endpoint can remain for backwards compatibility but is not required
-    res.json(null);
-  });
-
+  // Auth routes are handled by Stack Neon Auth's StackHandler on the client
   // Ensure user exists in app database (lazy creation on first access)
   app.post('/api/ensure-user', isAuthenticated, async (req: any, res) => {
     try {
