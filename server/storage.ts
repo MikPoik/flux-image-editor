@@ -1,6 +1,7 @@
 import {
   images,
   users,
+  neonAuthUsers, // Import neonAuthUsers
   type Image,
   type InsertImage,
   type User,
@@ -25,6 +26,8 @@ export interface IStorage {
   updateUserSubscriptionStatus(userId: string, status: string): Promise<User | undefined>;
   getUserBySubscriptionId(subscriptionId: string): Promise<User | undefined>;
   getUserByCustomerId(customerId: string): Promise<User | undefined>;
+  // Add getNeonAuthUser to the interface
+  getNeonAuthUser(id: string): Promise<any | undefined>;
 
   // Image operations
   createImage(image: InsertImage): Promise<Image>;
@@ -58,6 +61,12 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
     }
+    return user;
+  }
+
+  // New method to get user from neon_auth.users_sync
+  async getNeonAuthUser(id: string): Promise<any | undefined> {
+    const [user] = await db.select().from(neonAuthUsers).where(eq(neonAuthUsers.id, id));
     return user;
   }
 
@@ -147,9 +156,9 @@ export class DatabaseStorage implements IStorage {
     try {
       const [user] = await db
         .update(users)
-        .set({ 
+        .set({
           stripeCustomerId,
-          stripeSubscriptionId 
+          stripeSubscriptionId
         })
         .where(eq(users.id, userId))
         .returning();
@@ -179,8 +188,8 @@ export class DatabaseStorage implements IStorage {
       const currentUser = await this.getUser(userId);
       if (!currentUser) return undefined;
 
-      const isBillingPeriodReset = currentUser.currentPeriodStart && 
-        currentUser.currentPeriodEnd && 
+      const isBillingPeriodReset = currentUser.currentPeriodStart &&
+        currentUser.currentPeriodEnd &&
         Date.now() > currentUser.currentPeriodEnd.getTime();
 
       if (currentUser.lastSubscriptionChange && tier !== 'free' && !isBillingPeriodReset) {
@@ -255,7 +264,7 @@ export class DatabaseStorage implements IStorage {
 
       const [user] = await db
         .update(users)
-        .set({ 
+        .set({
           credits: currentUser.maxCredits,
           creditsResetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
         })
@@ -302,7 +311,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserBillingPeriod(userId: string, periodStart: Date, periodEnd: Date): Promise<User | undefined> {
     try {
-      if (!periodStart || !periodEnd || 
+      if (!periodStart || !periodEnd ||
           isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime()) ||
           periodStart.getTime() <= 0 || periodEnd.getTime() <= 0) {
         console.log('Invalid dates provided to updateUserBillingPeriod');
@@ -315,7 +324,7 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
 
-      const shouldResetCredits = !user.currentPeriodStart || 
+      const shouldResetCredits = !user.currentPeriodStart ||
         user.currentPeriodStart.getTime() !== periodStart.getTime();
 
       const updateData: any = {
