@@ -275,37 +275,40 @@ export default function Landing() {
             </div>
           </section>
 
-          {/* Social Proof */}
-          <section className="mt-20 text-center" aria-labelledby="testimonials-heading">
-            <h2 id="testimonials-heading" className="sr-only">Customer Testimonials</h2>
+          {/* Call to Action */}
+          <section className="mt-20 text-center" aria-labelledby="cta-heading">
+            <h2 id="cta-heading" className="sr-only">Get Started</h2>
             <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-yellow-500/20 rounded-2xl p-8 max-w-2xl mx-auto shadow-xl hover:shadow-2xl hover:shadow-yellow-500/10 transition-all duration-300">
-              <div className="flex justify-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 text-yellow-600 dark:text-yellow-400 fill-current"
-                  />
-                ))}
+              <Sparkles className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">
+                Ready to Transform Your Images?
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
+                Experience the power of AI-driven image editing. Upload your photos, 
+                describe your vision, and watch the magic happen in seconds.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" /> No design skills needed
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" /> Powered by Flux AI
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" /> Results in seconds
+                </span>
               </div>
-              <blockquote className="text-lg text-slate-900 dark:text-slate-200 mb-4 leading-relaxed">
-                "This AI image editor is incredible! I transformed my old
-                vacation photos into artistic masterpieces in minutes. The
-                results are so professional, my friends thought I hired a
-                designer."
-              </blockquote>
-              <cite className="text-sm text-slate-600 dark:text-slate-400">
-                — Sarah M., Creative Professional
-              </cite>
             </div>
 
             <div className="mt-12 text-center">
               <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Join thousands of creators transforming their images with AI
+                Try AI-powered image editing today
               </p>
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg shadow-purple-500/50 hover:shadow-xl hover:shadow-purple-600/60 transition-all duration-300"
                 onClick={() => (window.location.href = "/api/login")}
+                data-testid="button-cta-trial"
               >
                 Start Your Free Trial
               </Button>
