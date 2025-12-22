@@ -107,10 +107,7 @@ export default function Landing() {
               </Button>
             </div>
 
-            <div className="flex justify-center items-center text-sm text-slate-700 dark:text-slate-400 mb-8">
-              <Users className="w-4 h-4 mr-2" />
-              Join thousands of creators
-            </div>
+
 
             {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-slate-700 dark:text-slate-400">
