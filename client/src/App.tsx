@@ -1,5 +1,5 @@
 import { Switch, Route, Router, useLocation } from "wouter";
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, useLayoutEffect, useState } from "react";
 import type { BaseLocationHook } from "wouter";
 import type { QueryClient } from "@tanstack/react-query";
 import { queryClient as defaultQueryClient } from "./lib/queryClient";
@@ -26,6 +26,29 @@ import { normalizeRoutePath } from "@shared/route-metadata";
 import { trackPageView } from "@/lib/analytics";
 import { stackClientApp } from "@/lib/stack";
 
+// Client-side wrapper that delays initializing StackProvider until after the
+// initial client render/hydration to avoid provider-driven suspension during
+// hydration (keeps initial client render identical to server output).
+function ClientStackWrapper({ children }: { children: React.ReactNode }) {
+  // If the current route is an auth handler (e.g. /handler/*) we need the
+  // StackProvider available immediately (not after a layout effect) so that
+  // components like <StackHandler> can run on first render without throwing.
+  const isHandlerRoute = typeof window !== 'undefined' && window.location?.pathname?.startsWith?.('/handler');
+
+  const [mounted, setMounted] = useState<boolean>(() => Boolean(isHandlerRoute));
+
+  useLayoutEffect(() => {
+    if (!mounted) setMounted(true);
+  }, [mounted]);
+
+  if (!mounted) {
+    // Render children without StackProvider to match SSR output during hydration.
+    return <>{children}</>;
+  }
+
+  return <StackProvider app={stackClientApp}>{children}</StackProvider>;
+}
+
 function AuthHandler() {
   const [location] = useLocation();
   
@@ -47,7 +70,11 @@ function LoadingFallback() {
 }
 
 function RouterContent() {
-  const { isAuthenticated } = useAuth();
+  // Avoid calling `useAuth` during SSR because the stack auth hook may suspend
+  // (it performs async user fetches). For SSR-marketing routes we can safely
+  // assume unauthenticated and avoid suspending the render.
+  const isServer = typeof window === "undefined";
+  const { isAuthenticated } = isServer ? { isAuthenticated: false } : useAuth();
   const [location] = useLocation();
 
   useEffect(() => {
@@ -110,7 +137,7 @@ function App(
 ) {
   return (
     <QueryClientProvider client={queryClient}>
-      <StackProvider app={stackClientApp}>
+      {typeof window === "undefined" ? (
         <ThemeProvider>
           <TooltipProvider>
             <Toaster />
@@ -121,14 +148,34 @@ function App(
               {...(ssrSearch !== undefined ? { ssrSearch } : {})}
             >
               <ClientOnly fallback={<div />}>
-                <Suspense fallback={<LoadingFallback />}>
+                <Suspense fallback={null}>
                   <RouterContent />
                 </Suspense>
               </ClientOnly>
             </Router>
           </TooltipProvider>
         </ThemeProvider>
-      </StackProvider>
+      ) : (
+        <ClientStackWrapper>
+          <ThemeProvider>
+            <TooltipProvider>
+              <Toaster />
+              <ConsentToast />
+              <Router
+                {...(routerHook ? { hook: routerHook } : {})}
+                {...(ssrPath !== undefined ? { ssrPath } : {})}
+                {...(ssrSearch !== undefined ? { ssrSearch } : {})}
+              >
+                <ClientOnly fallback={<div />}>
+                  <Suspense fallback={null}>
+                    <RouterContent />
+                  </Suspense>
+                </ClientOnly>
+              </Router>
+            </TooltipProvider>
+          </ThemeProvider>
+        </ClientStackWrapper>
+      )}
     </QueryClientProvider>
   );
 }

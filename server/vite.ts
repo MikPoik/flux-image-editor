@@ -202,7 +202,7 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
@@ -218,7 +218,7 @@ export function serveStatic(app: Express) {
   }
 
   const rawTemplate = fs.readFileSync(templatePath, "utf-8");
-  const ssrBundlePath = path.resolve(import.meta.dirname, "ssr", "entry-server.js");
+  const ssrBundlePath = path.resolve(import.meta.dirname, "..", "dist", "server", "entry-server.js");
   const hasSSRBundle = fs.existsSync(ssrBundlePath);
   let ssrModulePromise: Promise<SSRModule> | null = null;
 
